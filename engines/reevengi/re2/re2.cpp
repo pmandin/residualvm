@@ -20,34 +20,17 @@
  *
  */
 
-#ifndef REEVENGI_H
-#define REEVENGI_H
-
-#include "engines/engine.h"
-
-struct ADGameDescription;
+#include "engines/reevengi/re2/re2.h"
 
 namespace Reevengi {
 
-enum ReevengiGameType {
-	RType_None,
-	RType_RE1_DEMO,
-	RType_RE1_GAME,
-	RType_RE2_DEMO,
-	RType_RE2_GAME_LEON,
-	RType_RE2_GAME_CLAIRE,
-	RType_RE3_DEMO,
-	RType_RE3_GAME
-};
+RE2Engine::RE2Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc) :
+		ReevengiEngine(syst, desc) {
 
-class ReevengiEngine : public Engine {
-public:
-	ReevengiEngine(OSystem *syst, const ADGameDescription *gameDesc);
-	~ReevengiEngine() override;
+}
 
-	virtual Common::Error run();
-};
+RE2Engine::~RE2Engine() {
+}
 
-} // End of namespace Stark
+} // end of namespace Reevengi
 
-#endif // REEVENGI_H

@@ -2,7 +2,10 @@ MODULE := engines/reevengi
 
 MODULE_OBJS := \
 	detection.o \
-	reevengi.o
+	reevengi.o \
+	re1/re1.o \
+	re2/re2.o \
+	re3/re3.o
 
 # This module can be built as a plugin
 ifeq ($(ENABLE_REEVENGI), DYNAMIC_PLUGIN)
