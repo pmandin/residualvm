@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef RE1_ENGINE_H
-#define RE1_ENGINE_H
+#ifndef REEVENGI_RE1_ENGINE_H
+#define REEVENGI_RE1_ENGINE_H
 
 #include "engines/advancedDetector.h"
 #include "engines/reevengi/reevengi.h"

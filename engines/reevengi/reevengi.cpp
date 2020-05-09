@@ -30,8 +30,8 @@
 
 namespace Reevengi {
 
-ReevengiEngine::ReevengiEngine(OSystem *syst, const ADGameDescription *gameDesc) :
-	Engine(syst) {
+ReevengiEngine::ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *gameDesc) :
+	Engine(syst), _gameType(gameType) {
 }
 
 ReevengiEngine::~ReevengiEngine() {

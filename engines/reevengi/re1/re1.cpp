@@ -25,7 +25,7 @@
 namespace Reevengi {
 
 RE1Engine::RE1Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc) :
-		ReevengiEngine(syst, desc) {
+		ReevengiEngine(syst, gameType, desc) {
 
 }
 

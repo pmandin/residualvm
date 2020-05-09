@@ -31,21 +31,21 @@ namespace Reevengi {
 
 enum ReevengiGameType {
 	RType_None,
-	RType_RE1_DEMO,
-	RType_RE1_GAME,
-	RType_RE2_DEMO,
-	RType_RE2_GAME_LEON,
-	RType_RE2_GAME_CLAIRE,
-	RType_RE3_DEMO,
-	RType_RE3_GAME
+	RType_RE1,
+	RType_RE2_LEON,
+	RType_RE2_CLAIRE,
+	RType_RE3
 };
 
 class ReevengiEngine : public Engine {
 public:
-	ReevengiEngine(OSystem *syst, const ADGameDescription *gameDesc);
+	ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *gameDesc);
 	~ReevengiEngine() override;
 
 	virtual Common::Error run();
+
+private:
+	ReevengiGameType _gameType;
 };
 
 } // End of namespace Stark
