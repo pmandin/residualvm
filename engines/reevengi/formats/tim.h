@@ -41,6 +41,9 @@ public:
 	virtual void destroy();
 	virtual bool loadStream(Common::SeekableReadStream &str);
 	virtual const Graphics::Surface *getSurface() const { return &_surface; }
+	virtual const byte *getPalette() const { return _colorMap; }
+	virtual const byte *getPalette(int numColorMap) const { return &_colorMap[_colorMapLength * numColorMap]; }
+	virtual uint16 getPaletteColorCount() const { return _colorMapLength; }
 
 private:
 	// Color-map:
