@@ -149,6 +149,7 @@ public:
 		_maxScanDepth = 4;
 		_directoryGlobs = directoryGlobs;
 		_matchFullPaths = true;
+		_guiOptions = GUIO_NOMIDI;
 	}
 
 	const char *getName() const override {
