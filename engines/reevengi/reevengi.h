@@ -44,7 +44,7 @@ public:
 
 	virtual Common::Error run();
 
-private:
+protected:
 	ReevengiGameType _gameType;
 	int _character;
 	int _stage, _room, _camera;
