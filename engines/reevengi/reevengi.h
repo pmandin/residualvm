@@ -46,8 +46,10 @@ public:
 
 private:
 	ReevengiGameType _gameType;
+	int _character;
+	int _stage, _room, _camera;
 };
 
-} // End of namespace Stark
+} // End of namespace Reevengi
 
-#endif // REEVENGI_H
+#endif

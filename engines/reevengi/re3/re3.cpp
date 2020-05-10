@@ -26,7 +26,7 @@ namespace Reevengi {
 
 RE3Engine::RE3Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc) :
 		ReevengiEngine(syst, gameType, desc) {
-
+	_room = 13;
 }
 
 RE3Engine::~RE3Engine() {

@@ -26,7 +26,9 @@ namespace Reevengi {
 
 RE2Engine::RE2Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc) :
 		ReevengiEngine(syst, gameType, desc) {
-
+	if (gameType == RType_RE2_CLAIRE) {
+		_character = 1;
+	}
 }
 
 RE2Engine::~RE2Engine() {

@@ -32,6 +32,11 @@ namespace Reevengi {
 
 ReevengiEngine::ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *gameDesc) :
 	Engine(syst), _gameType(gameType) {
+	_character = 0;
+
+	_stage = 1;
+	_room = 0;
+	_camera = 0;
 }
 
 ReevengiEngine::~ReevengiEngine() {
