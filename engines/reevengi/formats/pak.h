@@ -20,11 +20,13 @@
  *
  */
 
-#ifndef REEVENGI_TIM_H
-#define REEVENGI_TIM_H
+#ifndef REEVENGI_PAK_H
+#define REEVENGI_PAK_H
 
 #include "graphics/surface.h"
 #include "image/image_decoder.h"
+
+#include "reevengi/formats/tim.h"
 
 namespace Common {
 class SeekableReadStream;
@@ -32,32 +34,45 @@ class SeekableReadStream;
 
 namespace Reevengi {
 
-class TimDecoder : public Image::ImageDecoder {
+/*--- Defines ---*/
+
+#define CHUNK_SIZE 32768
+
+#define DECODE_SIZE 35024
+
+/*--- Types ---*/
+
+typedef struct {
+	uint32 flag;
+	uint32 index;
+	uint32 value;
+} re1_pack_t;
+
+class PakDecoder : TimDecoder {
 public:
-	TimDecoder();
-	virtual ~TimDecoder();
+	PakDecoder();
+	virtual ~PakDecoder();
 
 	// ImageDecoder API
-	virtual void destroy();
-	virtual bool loadStream(Common::SeekableReadStream &tim);
-	virtual const Graphics::Surface *getSurface() const { return &_surface; }
-	virtual const byte *getPalette() const { return _colorMap; }
-	virtual const byte *getPalette(int numColorMap) const { return &_colorMap[_colorMapLength * numColorMap]; }
-	virtual uint16 getPaletteColorCount() const { return _colorMapLength; }
+	virtual void destroy() override;
+	virtual bool loadStream(Common::SeekableReadStream &pak) override;
 
 private:
-	// Color-map:
-	byte *_colorMap;
-	int16 _colorMapCount;	/* Number of color maps */
-	int16 _colorMapLength;	/* Number of colors per color map */
+	// LZW depacker
+	uint8 *_dstPointer;
+	int _dstBufLen, _dstOffset;
 
-	Graphics::PixelFormat _format;
-	Graphics::Surface _surface;
+	uint8 _srcByte;
+	int _tmpMask;
 
-	// Loading helpers
-	bool readHeader(Common::SeekableReadStream &tim, byte &imageType);
-	bool readData(Common::SeekableReadStream &tim, byte imageType);
-	bool readColorMap(Common::SeekableReadStream &tim, byte imageType);
+	re1_pack_t _tmpArray2[DECODE_SIZE];
+	uint8 _decodeStack[DECODE_SIZE];
+
+	void depack(Common::SeekableReadStream &pak);
+	uint32 read_bits(Common::SeekableReadStream &pak, int num_bits);
+	int decodeString(int decodeStackOffset, uint32 code);
+	void write_dest(uint8 value);
+
 };
 
 } // End of namespace Reevengi

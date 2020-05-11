@@ -3,6 +3,7 @@ MODULE := engines/reevengi
 MODULE_OBJS := \
 	detection.o \
 	reevengi.o \
+	formats/pak.o \
 	formats/tim.o \
 	re1/re1.o \
 	re2/re2.o \
