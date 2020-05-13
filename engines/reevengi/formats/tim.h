@@ -37,6 +37,8 @@ public:
 	TimDecoder();
 	virtual ~TimDecoder();
 
+	void CreateTimSurface(int w, int h, Graphics::PixelFormat &fmt);
+
 	// ImageDecoder API
 	virtual void destroy();
 	virtual bool loadStream(Common::SeekableReadStream &tim);

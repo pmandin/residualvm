@@ -70,6 +70,10 @@ TimDecoder::~TimDecoder() {
 	destroy();
 }
 
+void TimDecoder::CreateTimSurface(int w, int h, Graphics::PixelFormat &fmt) {
+	_surface.create(w, h, fmt);
+}
+
 void TimDecoder::destroy() {
 	_surface.free();
 	delete[] _colorMap;
