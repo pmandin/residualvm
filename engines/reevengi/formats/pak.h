@@ -56,6 +56,7 @@ public:
 	// ImageDecoder API
 	virtual void destroy() override;
 	virtual bool loadStream(Common::SeekableReadStream &pak) override;
+	virtual const Graphics::Surface *getSurface() const { return TimDecoder::getSurface(); } override;
 
 private:
 	// LZW depacker
