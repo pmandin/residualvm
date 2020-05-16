@@ -20,10 +20,11 @@
  *
  */
 
+#include "common/debug.h"
+#include "common/file.h"
 #include "common/memstream.h"
 #include "common/stream.h"
 #include "common/textconsole.h"
-#include "common/debug.h"
 
 #include "engines/reevengi/formats/pak.h"
 
@@ -54,8 +55,13 @@ bool PakDecoder::loadStream(Common::SeekableReadStream &pak) {
 	if (!_dstPointer) {
 		return false;
 	}
-
-	Common::MemoryReadStream *mem_str = new Common::MemoryReadStream(_dstPointer, _dstBufLen);
+/*
+	Common::DumpFile adf;
+	adf.open("img_pak.bin");
+	adf.write(_dstPointer, _dstBufLen);
+	adf.close();
+*/
+	Common::SeekableReadStream *mem_str = new Common::MemoryReadStream(_dstPointer, _dstBufLen);
 	if (!mem_str) {
 		return false;
 	}

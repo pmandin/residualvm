@@ -20,6 +20,7 @@
  *
  */
 
+#include "common/debug.h"
 #include "common/stream.h"
 #include "common/textconsole.h"
 
@@ -83,7 +84,7 @@ bool TimDecoder::loadStream(Common::SeekableReadStream &tim) {
 	byte imageType;
 	bool success;
 
-	destroy();
+	TimDecoder::destroy();
 
 	success = readHeader(tim, imageType);
 	if (success) {

@@ -68,7 +68,7 @@ bool AdtDecoder::loadStream(Common::SeekableReadStream &adt) {
 	adf.write(_dstPointer, _dstBufLen);
 	adf.close();
 */
-	Common::MemoryReadStream *mem_str = new Common::MemoryReadStream(_dstPointer, _dstBufLen);
+	Common::SeekableReadStream *mem_str = new Common::MemoryReadStream(_dstPointer, _dstBufLen);
 	if (!mem_str) {
 		return false;
 	}
