@@ -1190,9 +1190,9 @@ void OptionsDialog::addAchievementsControls(GuiObject *boss, const Common::Strin
 
 	for (int16 viewAchieved = 1; viewAchieved >= 0; viewAchieved--) {
 		// run this twice, first view all achieved, then view all non-hidden & non-achieved
-	
+
 		for (uint16 idx = 0; idx < nMax ; idx++) {
-			bool isAchieved = AchMan.isAchieved(info.descriptions[idx].id);
+			int16 isAchieved = AchMan.isAchieved(info.descriptions[idx].id) ? 1 : 0;
 
 			if (isAchieved != viewAchieved) {
 				continue;
@@ -1201,7 +1201,7 @@ void OptionsDialog::addAchievementsControls(GuiObject *boss, const Common::Strin
 			if (isAchieved) {
 				nAchieved++;
 			}
-			
+
 			if (!isAchieved && info.descriptions[idx].isHidden) {
 				nHidden++;
 				continue;
@@ -1356,7 +1356,6 @@ void OptionsDialog::addGraphicControls(GuiObject *boss, const Common::String &pr
 }
 
 void OptionsDialog::addAudioControls(GuiObject *boss, const Common::String &prefix) {
-	return; //ResidualVM: do not enable midi
 	// The MIDI mode popup & a label
 	if (g_system->getOverlayWidth() > 320)
 		_midiPopUpDesc = new StaticTextWidget(boss, prefix + "auMidiPopupDesc", _domain == Common::ConfigManager::kApplicationDomain ? _("Preferred device:") : _("Music device:"), _domain == Common::ConfigManager::kApplicationDomain ? _("Specifies preferred sound device or sound card emulator") : _("Specifies output sound device or sound card emulator"));
@@ -1387,12 +1386,12 @@ void OptionsDialog::addAudioControls(GuiObject *boss, const Common::String &pref
 		}
 	}
 
-#if 0 // ResidualVM specific
 	// The OPL emulator popup & a label
 	_oplPopUpDesc = new StaticTextWidget(boss, prefix + "auOPLPopupDesc", _("AdLib emulator:"), _("AdLib is used for music in many games"));
 	_oplPopUp = new PopUpWidget(boss, prefix + "auOPLPopup", _("AdLib is used for music in many games"));
 
 	// Populate it
+#if 0 // ResidualVM specific
 	const OPL::Config::EmulatorDescription *ed = OPL::Config::getAvailable();
 	while (ed->name) {
 		_oplPopUp->appendEntry(_(ed->description), ed->id);
@@ -1404,7 +1403,6 @@ void OptionsDialog::addAudioControls(GuiObject *boss, const Common::String &pref
 }
 
 void OptionsDialog::addMIDIControls(GuiObject *boss, const Common::String &prefix) {
-	return; //ResidualVM: do not enable midi
 	_gmDevicePopUpDesc = new StaticTextWidget(boss, prefix + "auPrefGmPopupDesc", _("GM device:"), _("Specifies default sound device for General MIDI output"));
 	_gmDevicePopUp = new PopUpWidget(boss, prefix + "auPrefGmPopup");
 
@@ -1460,7 +1458,6 @@ void OptionsDialog::addMIDIControls(GuiObject *boss, const Common::String &prefi
 }
 
 void OptionsDialog::addMT32Controls(GuiObject *boss, const Common::String &prefix) {
-	return; //ResidualVM: do not enable midi
 	_mt32DevicePopUpDesc = new StaticTextWidget(boss, prefix + "auPrefMt32PopupDesc", _("MT-32 Device:"), _("Specifies default sound device for Roland MT-32/LAPC1/CM32l/CM64 output"));
 	_mt32DevicePopUp = new PopUpWidget(boss, prefix + "auPrefMt32Popup");
 
@@ -2815,7 +2812,6 @@ void GlobalOptionsDialog::reflowLayout() {
 	int firstVisible = _tabWidget->getFirstVisible();
 	int activeTab = _tabWidget->getActiveTab();
 
-#if 0 // ResidualVM does not use it
 	if (_midiTabId != -1) {
 		_tabWidget->setActiveTab(_midiTabId);
 
@@ -2824,7 +2820,6 @@ void GlobalOptionsDialog::reflowLayout() {
 		delete _soundFontClearButton;
 		_soundFontClearButton = addClearButton(_tabWidget, "GlobalOptions_MIDI.mcFontClearButton", kClearSoundFontCmd);
 	}
-#endif
 
 	if (_pathsTabId != -1) {
 		_tabWidget->setActiveTab(_pathsTabId);
@@ -2881,7 +2876,7 @@ void GlobalOptionsDialog::setupCloudTab() {
 
 	// calculate shift
 	int16 x, y;
-	uint16 w, h;
+	int16 w, h;
 	int16 shiftUp = 0;
 	if (!showingCurrentStorage || enabled) {
 		// "storage is disabled" hint is not shown, shift everything up
@@ -3010,7 +3005,7 @@ void GlobalOptionsDialog::shiftWidget(Widget *widget, const char *widgetName, in
 	if (!widget) return;
 
 	int16 x, y;
-	uint16 w, h;
+	int16 w, h;
 	if (!g_gui.xmlEval()->getWidgetData(widgetName, x, y, w, h))
 		warning("%s's position is undefined", widgetName);
 

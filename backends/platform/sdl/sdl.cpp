@@ -75,6 +75,15 @@
 
 OSystem_SDL::OSystem_SDL()
 	:
+#if 0 // ResidualVM - not used
+#ifdef USE_OPENGL
+	_graphicsModes(),
+	_graphicsMode(0),
+	_firstGLMode(0),
+	_defaultSDLMode(0),
+	_defaultGLMode(0),
+#endif // ResidualVM
+#endif
 	_inited(false),
 	_initedSDL(false),
 #ifdef USE_SDL_NET
@@ -188,6 +197,8 @@ void OSystem_SDL::initBackend() {
 
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	const char *sdlDriverName = SDL_GetCurrentVideoDriver();
+	// Allow the screen to turn off
+	SDL_EnableScreenSaver();
 #else
 	const int maxNameLen = 20;
 	char sdlDriverName[maxNameLen];
@@ -197,7 +208,6 @@ void OSystem_SDL::initBackend() {
 	debug(1, "Using SDL Video Driver \"%s\"", sdlDriverName);
 
 // ResidualVM specific code start
-	detectDesktopResolution();
 #ifdef USE_OPENGL
 	detectFramebufferSupport();
 	detectAntiAliasingSupport();
@@ -220,9 +230,32 @@ void OSystem_SDL::initBackend() {
 	}
 
 	if (_graphicsManager == 0) {
+#if 0 // ResidualVM - not used
+#ifdef USE_OPENGL
+		// Setup a list with both SDL and OpenGL graphics modes. We only do
+		// this whenever the subclass did not already set up an graphics
+		// manager yet. This is because we don't know the type of the graphics
+		// manager of the subclass, thus we cannot easily switch between the
+		// OpenGL one and the set up one. It also is to be expected that the
+		// subclass does not want any switching of graphics managers anyway.
+		setupGraphicsModes();
+
+		if (ConfMan.hasKey("gfx_mode")) {
+			// If the gfx_mode is from OpenGL, create the OpenGL graphics manager
+			Common::String gfxMode(ConfMan.get("gfx_mode"));
+			for (uint i = _firstGLMode; i < _graphicsModeIds.size(); ++i) {
+				if (!scumm_stricmp(_graphicsModes[i].name, gfxMode.c_str())) {
+					_graphicsManager = new OpenGLSdlGraphicsManager(_eventSource, _window);
+					_graphicsMode = i;
+					break;
+				}
+			}
+		}
+#endif // ResidualVM
+#endif
 
 		if (_graphicsManager == 0) {
-			_graphicsManager = new SurfaceSdlGraphicsManager(_eventSource, _window, _capabilities);
+			_graphicsManager = new SurfaceSdlGraphicsManager(_eventSource, _window);
 		}
 	}
 
@@ -260,25 +293,7 @@ void OSystem_SDL::initBackend() {
 	dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->activateManager();
 }
 
-// ResidualVM specific code
-void OSystem_SDL::detectDesktopResolution() {
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_DisplayMode displayMode;
-	if (!SDL_GetDesktopDisplayMode(0, &displayMode)) {
-		_capabilities.desktopWidth = displayMode.w;
-		_capabilities.desktopHeight = displayMode.h;
-	}
-#else
-	// Query the desktop resolution. We simply hope nothing tried to change
-	// the resolution so far.
-	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
-	if (videoInfo && videoInfo->current_w > 0 && videoInfo->current_h > 0) {
-		_capabilities.desktopWidth = videoInfo->current_w;
-		_capabilities.desktopHeight = videoInfo->current_h;
-	}
-#endif
-}
-
+// ResidualVM specific code - Start
 #ifdef USE_OPENGL
 void OSystem_SDL::detectFramebufferSupport() {
 	_capabilities.openGLFrameBuffer = false;
@@ -359,6 +374,11 @@ void OSystem_SDL::detectAntiAliasingSupport() {
 // End of ResidualVM specific code
 
 void OSystem_SDL::engineInit() {
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->unlockWindowSize();
+	// Disable screen saver when engine starts
+	SDL_DisableScreenSaver();
+#endif
 #ifdef USE_TASKBAR
 	// Add the started engine to the list of recent tasks
 	_taskbarManager->addRecent(ConfMan.getActiveDomainName(), ConfMan.get("description"));
@@ -366,16 +386,19 @@ void OSystem_SDL::engineInit() {
 	// Set the overlay icon the current running engine
 	_taskbarManager->setOverlayIcon(ConfMan.getActiveDomainName(), ConfMan.get("description"));
 #endif
+	_eventSource->setEngineRunning(true);
 }
 
 void OSystem_SDL::engineDone() {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->unlockWindowSize();
+	SDL_EnableScreenSaver();
 #endif
 #ifdef USE_TASKBAR
 	// Remove overlay icon
 	_taskbarManager->setOverlayIcon("", "");
 #endif
+	_eventSource->setEngineRunning(false);
 }
 
 void OSystem_SDL::initSDL() {
@@ -441,8 +464,8 @@ void OSystem_SDL::setWindowCaption(const char *caption) {
 }
 
 // ResidualVM specific code
-void OSystem_SDL::setupScreen(uint screenW, uint screenH, bool fullscreen, bool accel3d) {
 #ifdef USE_OPENGL
+void OSystem_SDL::setupScreen(uint screenW, uint screenH, bool fullscreen, bool accel3d) {
 	bool switchedManager = false;
 	if (accel3d && !dynamic_cast<OpenGLSdlGraphicsManager *>(_graphicsManager)) {
 		switchedManager = true;
@@ -458,14 +481,18 @@ void OSystem_SDL::setupScreen(uint screenW, uint screenH, bool fullscreen, bool 
 		if (accel3d) {
 			_graphicsManager = sdlGraphicsManager = new OpenGLSdlGraphicsManager(_eventSource, _window, _capabilities);
 		} else {
-			_graphicsManager = sdlGraphicsManager = new SurfaceSdlGraphicsManager(_eventSource, _window, _capabilities);
+			_graphicsManager = sdlGraphicsManager = new SurfaceSdlGraphicsManager(_eventSource, _window);
 		}
 		sdlGraphicsManager->activateManager();
 	}
-#endif
 
 	ModularBackend::setupScreen(screenW, screenH, fullscreen, accel3d);
 }
+
+Common::Array<uint> OSystem_SDL::getSupportedAntiAliasingLevels() const {
+	return _capabilities.openGLAntiAliasLevels;
+}
+#endif
 
 void OSystem_SDL::launcherInitSize(uint w, uint h) {
 	Common::String rendererConfig = ConfMan.get("renderer");
@@ -477,9 +504,6 @@ void OSystem_SDL::launcherInitSize(uint w, uint h) {
 	setupScreen(w, h, fullscreen, matchingRendererType != Graphics::kRendererTypeTinyGL);
 }
 
-Common::Array<uint> OSystem_SDL::getSupportedAntiAliasingLevels() const {
-	return _capabilities.openGLAntiAliasLevels;
-}
 // End of ResidualVM specific code
 
 void OSystem_SDL::quit() {
@@ -705,6 +729,158 @@ Common::String OSystem_SDL::getScreenshotsPath() {
 		path += "/";
 	return path;
 }
+
+#if 0 // ResidualVM - not used
+#ifdef USE_OPENGL
+
+const OSystem::GraphicsMode *OSystem_SDL::getSupportedGraphicsModes() const {
+	if (_graphicsModes.empty()) {
+		return _graphicsManager->getSupportedGraphicsModes();
+	} else {
+		return _graphicsModes.begin();
+	}
+}
+
+int OSystem_SDL::getDefaultGraphicsMode() const {
+	if (_graphicsModes.empty()) {
+		return _graphicsManager->getDefaultGraphicsMode();
+	} else {
+		// Return the default graphics mode from the current graphics manager
+		if (_graphicsMode < _firstGLMode)
+			return _defaultSDLMode;
+		else
+			return _defaultGLMode;
+	}
+}
+
+bool OSystem_SDL::setGraphicsMode(int mode) {
+	if (_graphicsModes.empty()) {
+		return _graphicsManager->setGraphicsMode(mode);
+	}
+
+	// Check whether a invalid mode is requested.
+	if (mode < 0 || (uint)mode >= _graphicsModeIds.size()) {
+		return false;
+	}
+
+	// Very hacky way to set up the old graphics manager state, in case we
+	// switch from SDL->OpenGL or OpenGL->SDL.
+	//
+	// This is a probably temporary workaround to fix bugs like #3368143
+	// "SDL/OpenGL: Crash when switching renderer backend".
+	SdlGraphicsManager *sdlGraphicsManager = dynamic_cast<SdlGraphicsManager *>(_graphicsManager);
+	SdlGraphicsManager::State state = sdlGraphicsManager->getState();
+
+	bool switchedManager = false;
+
+	// If the new mode and the current mode are not from the same graphics
+	// manager, delete and create the new mode graphics manager
+	if (_graphicsMode >= _firstGLMode && mode < _firstGLMode) {
+		debug(1, "switching to plain SDL graphics");
+		sdlGraphicsManager->deactivateManager();
+		delete _graphicsManager;
+		_graphicsManager = sdlGraphicsManager = new SurfaceSdlGraphicsManager(_eventSource, _window);
+
+		switchedManager = true;
+	} else if (_graphicsMode < _firstGLMode && mode >= _firstGLMode) {
+		debug(1, "switching to OpenGL graphics");
+		sdlGraphicsManager->deactivateManager();
+		delete _graphicsManager;
+		_graphicsManager = sdlGraphicsManager = new OpenGLSdlGraphicsManager(_eventSource, _window);
+
+		switchedManager = true;
+	}
+
+	_graphicsMode = mode;
+
+	if (switchedManager) {
+		sdlGraphicsManager->activateManager();
+
+		// This failing will probably have bad consequences...
+		if (!sdlGraphicsManager->setState(state)) {
+			return false;
+		}
+
+		// Next setup the cursor again
+		CursorMan.pushCursor(0, 0, 0, 0, 0, 0);
+		CursorMan.popCursor();
+
+		// Next setup cursor palette if needed
+		if (_graphicsManager->getFeatureState(kFeatureCursorPalette)) {
+			CursorMan.pushCursorPalette(0, 0, 0);
+			CursorMan.popCursorPalette();
+		}
+
+		_graphicsManager->beginGFXTransaction();
+		// Oh my god if this failed the client code might just explode.
+		return _graphicsManager->setGraphicsMode(_graphicsModeIds[mode]);
+	} else {
+		return _graphicsManager->setGraphicsMode(_graphicsModeIds[mode]);
+	}
+}
+
+int OSystem_SDL::getGraphicsMode() const {
+	if (_graphicsModes.empty()) {
+		return _graphicsManager->getGraphicsMode();
+	} else {
+		return _graphicsMode;
+	}
+}
+
+void OSystem_SDL::setupGraphicsModes() {
+	_graphicsModes.clear();
+	_graphicsModeIds.clear();
+	_defaultSDLMode = _defaultGLMode = -1;
+
+	// Count the number of graphics modes
+	const OSystem::GraphicsMode *srcMode;
+	int defaultMode;
+
+	GraphicsManager *manager = new SurfaceSdlGraphicsManager(_eventSource, _window);
+	srcMode = manager->getSupportedGraphicsModes();
+	defaultMode = manager->getDefaultGraphicsMode();
+	while (srcMode->name) {
+		if (defaultMode == srcMode->id) {
+			_defaultSDLMode = _graphicsModes.size();
+		}
+		_graphicsModes.push_back(*srcMode);
+		srcMode++;
+	}
+	delete manager;
+	assert(_defaultSDLMode != -1);
+
+	_firstGLMode = _graphicsModes.size();
+	manager = new OpenGLSdlGraphicsManager(_eventSource, _window);
+	srcMode = manager->getSupportedGraphicsModes();
+	defaultMode = manager->getDefaultGraphicsMode();
+	while (srcMode->name) {
+		if (defaultMode == srcMode->id) {
+			_defaultGLMode = _graphicsModes.size();
+		}
+		_graphicsModes.push_back(*srcMode);
+		srcMode++;
+	}
+	delete manager;
+	manager = nullptr;
+	assert(_defaultGLMode != -1);
+
+	// Set a null mode at the end
+	GraphicsMode nullMode;
+	memset(&nullMode, 0, sizeof(nullMode));
+	_graphicsModes.push_back(nullMode);
+
+	// Set new internal ids for all modes
+	int i = 0;
+	OSystem::GraphicsMode *mode = _graphicsModes.begin();
+	while (mode->name) {
+		_graphicsModeIds.push_back(mode->id);
+		mode->id = i++;
+		mode++;
+	}
+}
+#endif
+#endif // ResidualVM
+
 char *OSystem_SDL::convertEncoding(const char *to, const char *from, const char *string, size_t length) {
 #if SDL_VERSION_ATLEAST(1, 2, 10)
 	int zeroBytes = 1;

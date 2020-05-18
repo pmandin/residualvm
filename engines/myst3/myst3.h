@@ -91,7 +91,6 @@ protected:
 	// Engine APIs
 	virtual Common::Error run() override;
 	virtual void syncSoundSettings() override;
-	virtual GUI::Debugger *getDebugger() override { return (GUI::Debugger *)_console; }
 	virtual void pauseEngineIntern(bool pause) override;
 
 public:
@@ -122,11 +121,10 @@ public:
 
 	bool canSaveGameStateCurrently() override;
 	bool canLoadGameStateCurrently() override;
-	void tryAutoSaving();
 	Common::Error loadGameState(int slot) override;
 	Common::Error loadGameState(Common::String fileName, TransitionType transition);
 	Common::Error saveGameState(int slot, const Common::String &desc, bool isAutosave = false) override;
-	Common::Error saveGameState(const Common::String &desc, const Graphics::Surface *thumbnail);
+	Common::Error saveGameState(const Common::String &desc, const Graphics::Surface *thumbnail, bool isAutosave);
 
 	ResourceDescription getFileDescription(const Common::String &room, uint32 index, uint16 face,
 	                                            Archive::ResourceType type);
@@ -194,7 +192,6 @@ public:
 
 private:
 	OSystem *_system;
-	Console *_console;
 	const Myst3GameDescription *_gameDescription;
 
 	Node *_node;
@@ -225,8 +222,6 @@ private:
 	bool _inputTildePressed;
 
 	bool _interactive;
-
-	uint32 _lastSaveTime;
 
 	uint32 _backgroundSoundScriptLastRoomId;
 	uint32 _backgroundSoundScriptLastAgeId;

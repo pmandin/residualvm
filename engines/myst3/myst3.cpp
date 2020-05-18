@@ -64,14 +64,14 @@ namespace Myst3 {
 
 Myst3Engine::Myst3Engine(OSystem *syst, const Myst3GameDescription *version) :
 		Engine(syst), _system(syst), _gameDescription(version),
-		_db(0), _console(0), _scriptEngine(0),
+		_db(0), _scriptEngine(0),
 		_state(0), _node(0), _scene(0), _archiveNode(0),
 		_cursor(0), _inventory(0), _gfx(0), _menu(0),
 		_rnd(0), _sound(0), _ambient(0),
 		_inputSpacePressed(false), _inputEnterPressed(false),
 		_inputEscapePressed(false), _inputTildePressed(false),
 		_inputEscapePressedNotConsumed(false),
-		_interactive(false), _lastSaveTime(0),
+		_interactive(false),
 		_menuAction(0), _projectorBackground(0),
 		_shakeEffect(0), _rotationEffect(0),
 		_backgroundSoundScriptLastRoomId(0),
@@ -122,7 +122,6 @@ Myst3Engine::~Myst3Engine() {
 	delete _archiveNode;
 	delete _db;
 	delete _scriptEngine;
-	delete _console;
 	delete _state;
 	delete _rnd;
 	delete _sound;
@@ -159,7 +158,7 @@ Common::Error Myst3Engine::run() {
 	_sound = new Sound(this);
 	_ambient = new Ambient(this);
 	_rnd = new Common::RandomSource("sprint");
-	_console = new Console(this);
+	setDebugger(new Console(this));
 	_scriptEngine = new Script(this);
 	_db = new Database(getPlatform(), getGameLanguage(), getGameLocalizationType());
 	_state = new GameState(getPlatform(), _db);
@@ -216,7 +215,6 @@ Common::Error Myst3Engine::run() {
 		drawFrame();
 	}
 
-	tryAutoSaving(); //Attempt to autosave before exiting
 	unloadNode();
 
 	_archiveNode->close();
@@ -510,12 +508,6 @@ void Myst3Engine::processInput(bool interactive) {
 						_menu->goToNode(kNodeMenuMain);
 				}
 				break;
-			case Common::KEYCODE_d:
-				if (event.kbd.flags & Common::KBD_CTRL) {
-					_console->attach();
-					_console->onFrame();
-				}
-				break;
 			case Common::KEYCODE_i:
 				if (event.kbd.flags & Common::KBD_CTRL) {
 					bool mouseInverted = ConfMan.getBool("mouse_inverted");
@@ -538,10 +530,6 @@ void Myst3Engine::processInput(bool interactive) {
 
 	if (shouldInteractWithHoveredElement && interactive) {
 		interactWithHoveredElement();
-	}
-
-	if (shouldPerformAutoSave(_lastSaveTime)) {
-		tryAutoSaving();
 	}
 
 	// Open main menu
@@ -1525,23 +1513,6 @@ bool Myst3Engine::canLoadGameStateCurrently() {
 	return _interactive;
 }
 
-void Myst3Engine::tryAutoSaving() {
-	if (!canSaveGameStateCurrently()) {
-		return; // Can't save right now, try again on the next frame
-	}
-
-	_lastSaveTime = _system->getMillis();
-
-	// Get a thumbnail of the game screen
-	if (!_menu->isOpen())
-		_menu->generateSaveThumbnail();
-
-	Common::Error result = saveGameState(0, "Autosave");
-	if (result.getCode() != Common::kNoError) {
-		warning("Unable to autosave: %s.", result.getDesc().c_str());
-	}
-}
-
 Common::Error Myst3Engine::loadGameState(int slot) {
 	Common::StringArray filenames = Saves::list(_saveFileMan, getPlatform());
 	return loadGameState(filenames[slot], kTransitionNone);
@@ -1611,13 +1582,15 @@ Common::Error Myst3Engine::saveGameState(int slot, const Common::String &desc, b
 	// Try to use an already generated thumbnail
 	const Graphics::Surface *thumbnail = _menu->borrowSaveThumbnail();
 	if (!thumbnail) {
-		return Common::Error(Common::kUnknownError, "No thumbnail");
+		_menu->generateSaveThumbnail();
 	}
+	thumbnail = _menu->borrowSaveThumbnail();
+	assert(thumbnail);
 
-	return saveGameState(desc, thumbnail);
+	return saveGameState(desc, thumbnail, isAutosave);
 }
 
-Common::Error Myst3Engine::saveGameState(const Common::String &desc, const Graphics::Surface *thumbnail) {
+Common::Error Myst3Engine::saveGameState(const Common::String &desc, const Graphics::Surface *thumbnail, bool isAutosave) {
 	// Strip extension
 	Common::String saveName = desc;
 	if (desc.hasSuffixIgnoreCase(".M3S") || desc.hasSuffixIgnoreCase(".M3X")) {
@@ -1632,7 +1605,7 @@ Common::Error Myst3Engine::saveGameState(const Common::String &desc, const Graph
 		return Common::kCreatingFileFailed;
 	}
 
-	Common::Error saveError = _state->save(save.get(), saveName, thumbnail);
+	Common::Error saveError = _state->save(save.get(), saveName, thumbnail, isAutosave);
 	if (saveError.getCode() != Common::kNoError) {
 		return saveError;
 	}

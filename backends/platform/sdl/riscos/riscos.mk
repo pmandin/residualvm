@@ -36,11 +36,40 @@ ifdef DYNAMIC_MODULES
 endif
 	mkdir -p $(APP_NAME)/docs
 	cp ${srcdir}/dists/riscos/!Help,feb $(APP_NAME)/!Help,feb
+ifdef TOKENIZE
+	$(TOKENIZE) ${srcdir}/dists/riscos/FindHelp,fd1 -out $(APP_NAME)/FindHelp,ffb
+endif
 	@$(foreach file, $(DIST_FILES_DOCS) $(srcdir)/doc/QuickStart, echo '   ' ICONV '  ' $(APP_NAME)/docs/$(notdir $(file)),fff;iconv --to-code=$(ENCODING) $(file) > $(APP_NAME)/docs/$(notdir $(file)),fff;)
 
 clean: riscosclean
 
 riscosclean:
 	$(RM_REC) $(APP_NAME)
+
+ifdef BINDHELP
+ifdef PANDOC
+
+riscosdist: $(APP_NAME)/docs/ResidualVM,3d6
+
+README=${srcdir}/README.md
+NEWS=${srcdir}/NEWS.md
+
+define manual-markdown
+	echo Converting markdown file '$1'
+	echo "ResidualVM - $(notdir $(basename $1)) " > $(APP_NAME)/tmp/$2,fff
+	$(PANDOC) -f gfm -t ${srcdir}/dists/riscos/manual/stronghelp.lua $1 | iconv --to-code=$(ENCODING) >> $(APP_NAME)/tmp/$2,fff
+endef
+
+%,3d6: $(README) $(NEWS) ${srcdir}/dists/riscos/manual/stronghelp.lua ${srcdir}/devtools/credits.pl $(DIST_FILES_DOCS)
+	$(MKDIR) $(APP_NAME)/tmp
+	@$(call manual-markdown,$(README),!Root)
+	@$(call manual-markdown,$(NEWS),NEWS)
+	${srcdir}/devtools/credits.pl --stronghelp > $(APP_NAME)/tmp/AUTHORS,fff
+	$(MKDIR) $(APP_NAME)/docs
+	$(BINDHELP) $(APP_NAME)/tmp $@ -r -f
+	$(RM_REC) $(APP_NAME)/tmp
+
+endif
+endif
 
 .PHONY: riscosdist riscosclean

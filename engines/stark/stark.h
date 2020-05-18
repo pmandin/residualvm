@@ -73,7 +73,6 @@ public:
 protected:
 	// Engine APIs
 	Common::Error run() override;
-	GUI::Debugger *getDebugger() override { return (GUI::Debugger *)_console; }
 	bool hasFeature(EngineFeature f) const override;
 	bool canLoadGameStateCurrently() override;
 	bool canSaveGameStateCurrently() override;
@@ -88,18 +87,14 @@ private:
 	void onScreenChanged() const;
 	void addModsToSearchPath() const;
 	static void checkRecommendedDatafiles();
-	void tryAutoSaving();
 
 	Gfx::FrameLimiter *_frameLimiter;
-	Console *_console;
 
 	const ADGameDescription *_gameDescription;
 
 	// Double click handling
 	static const uint _doubleClickDelay = 500; // ms
 	uint _lastClickTime;
-
-	uint32 _lastAutoSaveTime;
 };
 
 } // End of namespace Stark

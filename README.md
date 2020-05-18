@@ -11,7 +11,9 @@ ResidualVM: A 3D game interpreter
   7. [ Troubleshooting             ](#7-troubleshooting-known-bugs-issues)
   8. [ Debugging                   ](#8-debugging)
   9. [ Bug reports                 ](#9-bug-reports)
- 10. [ Contact                     ](#10-contact)
+ 10. [ Changelog                   ](#10-changelog)
+ 11. [ Credits                     ](#11-credits)
+ 12. [ Contact                     ](#12-contact)
 
 
 ## 1. What is ResidualVM?
@@ -368,7 +370,7 @@ are included for debugging ResidualVM, this should not be necessary for
 normal play at all! However, the curious might like to know how to access
 these tool. Please use at your own risk!
 
-To enter the debug console, press `Ctrl` + `d`. Use the `help` command to
+To enter the debug console, press `Ctrl` + `Alt`  + `d`. Use the `help` command to
 display a list of the available commands. To exit, press `Escape` or type
 `exit` or `quit`.
 
@@ -548,7 +550,15 @@ Remember to always provide the following information in your bug reports:
   * Preferably also a link to a save game right before the bug happened.
 
 
-## 10. Contact
+## 10. Changelog
+
+Please refer to our extensive Changelog [here](NEWS.md).
+
+## 11. Credits
+
+Please refer to our extensive Credits list [here](AUTHORS).
+
+## 12. Contact
   * Homepage: https://www.residualvm.org/
   * Wiki: https://wiki.residualvm.org/
   * Discord: https://discord.gg/VFQjRfa
