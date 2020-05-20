@@ -6,6 +6,10 @@ MODULE_OBJS := \
 	formats/adt.o \
 	formats/pak.o \
 	formats/tim.o \
+	movie/avi.o \
+	movie/movie.o \
+	movie/mpeg.o \
+	movie/psx.o \
 	re1/re1.o \
 	re2/re2.o \
 	re3/re3.o
