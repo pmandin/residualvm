@@ -63,6 +63,9 @@ bool PsxPlayer::loadFile(const Common::String &filename) {
 #define RAW_CD_SECTOR_SIZE	2352
 #define DATA_CD_SECTOR_SIZE	2048
 
+#define CDXA_TYPE_DATA     0x08
+#define CDXA_TYPE_AUDIO    0x04
+
 #define CD_SYNC_SIZE 12
 #define CD_SEC_SIZE 4
 #define CD_XA_SIZE 8
@@ -106,7 +109,7 @@ uint32 PsxCdStream::read(void *dataPtr, uint32 dataSize) {
 			if (sector_pos == 0x12) {
 				pos_data_type = size_read;
 			}
-			buf[size_read++] = 0;
+			buf[size_read++] = (sector_pos == 0x11 ? 1 : 0);
 			dataSize--;
 			sector_pos++;
 			_pos++;
@@ -140,10 +143,10 @@ uint32 PsxCdStream::read(void *dataPtr, uint32 dataSize) {
 		if (pos_data_type>=0) {
 			if (is_video) {
 				//logMsg(3, "cd: generate video\n");
-				buf[pos_data_type] = 0x08;
+				buf[pos_data_type] = CDXA_TYPE_DATA;
 			} else {
 				//logMsg(3, "cd: generate audio\n");
-				buf[pos_data_type] = 0x04;
+				buf[pos_data_type] = CDXA_TYPE_AUDIO;
 			}
 		}
 	}
