@@ -173,7 +173,7 @@ protected:
 
 MoviePlayer *CreateMpegPlayer();
 MoviePlayer *CreateAviPlayer();
-MoviePlayer *CreatePsxPlayer();
+MoviePlayer *CreatePsxPlayer(bool emul_cd = true);
 //MoviePlayer *CreateBinkPlayer(bool demo);
 //MoviePlayer *CreateQuickTimePlayer();
 extern MoviePlayer *g_movie;

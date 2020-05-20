@@ -28,11 +28,33 @@
 namespace Reevengi {
 
 class PsxPlayer : public MoviePlayer {
-public:
-	PsxPlayer();
 private:
+	bool _emul_cd;
+
 	bool loadFile(const Common::String &filename) override;
 	//bool _demo;
+
+public:
+	PsxPlayer(bool emul_cd);
+};
+
+class PsxCdStream : public Common::SeekableReadStream {
+private:
+	Common::SeekableReadStream *_srcStream;
+	uint32 _size;
+	uint32 _pos;
+
+public:
+	PsxCdStream(Common::SeekableReadStream *srcStream);
+
+	uint32 read(void *dataPtr, uint32 dataSize);
+
+	bool eos() const { return _srcStream->eos(); }
+
+	int32 pos() const { return _pos; }
+	int32 size() const { return _size; }
+
+	bool seek(int32 offs, int whence = SEEK_SET);
 };
 
 } // end of namespace Reevengi
