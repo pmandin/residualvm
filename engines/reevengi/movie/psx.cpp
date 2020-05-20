@@ -127,6 +127,10 @@ uint32 PsxCdStream::read(void *dataPtr, uint32 dataSize) {
 				uint32 magic = *((uint32 *) &buf[size_read]);
 				is_video = (FROM_LE_32(magic) == STR_MAGIC);
 			}
+			if (!is_video) {
+				// FIXME: Avoid static sound (bad format ?) for now
+				memset(&buf[size_read], 0, max_size);
+			}
 			dataSize -= max_size;
 			size_read += max_size;
 			sector_pos += max_size;
