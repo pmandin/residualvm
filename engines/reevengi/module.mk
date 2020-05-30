@@ -6,6 +6,9 @@ MODULE_OBJS := \
 	formats/adt.o \
 	formats/pak.o \
 	formats/tim.o \
+	gfx/gfx_base.o \
+	gfx/gfx_opengl.o \
+	gfx/gfx_tinygl.o \
 	movie/avi.o \
 	movie/movie.o \
 	movie/mpeg.o \
