@@ -29,6 +29,9 @@ struct ADGameDescription;
 
 namespace Reevengi {
 
+class GfxBase;
+class TimDecoder;
+
 enum ReevengiGameType {
 	RType_None,
 	RType_RE1,
@@ -42,12 +45,26 @@ public:
 	ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *gameDesc);
 	~ReevengiEngine() override;
 
-	virtual Common::Error run();
+	virtual Common::Error run(void);
 
 protected:
 	ReevengiGameType _gameType;
 	int _character;
 	int _stage, _room, _camera;
+
+	bool hasFeature(EngineFeature f) const override;
+	GfxBase *createRenderer(int screenW, int screenH, bool fullscreen);
+
+private:
+	bool _softRenderer;
+
+	void processEvents(void);
+	void onScreenChanged(void);
+
+	TimDecoder *testLoadImage(void);
+	void testLoadMovie(void);
+	void testPlayMovie(void);
+
 };
 
 } // End of namespace Reevengi
