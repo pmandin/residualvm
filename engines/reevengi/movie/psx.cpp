@@ -117,15 +117,12 @@ uint32 PsxCdStream::read(void *dataPtr, uint32 dataSize) {
 		while ((sector_pos<CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE+CD_DATA_SIZE) && (dataSize>0)) {
 			max_size = CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE+CD_DATA_SIZE-sector_pos;
 			max_size = (max_size>dataSize) ? dataSize : max_size;
-			//logMsg(3, "cd: reading real data at 0x%08x in file, %d\n", SDL_RWtell((SDL_RWops *)opaque), max_size);
+			//debug(3, "cd: reading real data at 0x%08x in file, %d", _srcStream->pos(), max_size);
 			_srcStream->read(&buf[size_read], max_size);
-			//if (SDL_RWread((SDL_RWops *)opaque, &buf[size_read], max_size, 1)<1) {
-			//	return -1;
-			//}
 			if ((sector_pos == CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE) && (max_size>=4)) {
 				/* Read first bytes */
 				uint32 magic = *((uint32 *) &buf[size_read]);
-				is_video = (FROM_LE_32(magic) == STR_MAGIC);
+				is_video = (FROM_BE_32(magic) == STR_MAGIC);
 			}
 			if (!is_video) {
 				// FIXME: Avoid static sound (bad format ?) for now
@@ -146,10 +143,10 @@ uint32 PsxCdStream::read(void *dataPtr, uint32 dataSize) {
 		/* set data type */
 		if (pos_data_type>=0) {
 			if (is_video) {
-				//logMsg(3, "cd: generate video\n");
+				//debug(3, "cd: generate video 0x%08x", _srcStream->pos());
 				buf[pos_data_type] = CDXA_TYPE_DATA;
 			} else {
-				//logMsg(3, "cd: generate audio\n");
+				//debug(3, "cd: generate audio 0x%08x", _srcStream->pos());
 				buf[pos_data_type] = CDXA_TYPE_AUDIO;
 			}
 		}
