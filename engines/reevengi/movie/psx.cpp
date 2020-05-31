@@ -78,7 +78,7 @@ PsxCdStream::PsxCdStream(Common::SeekableReadStream *srcStream):
 	_srcStream = srcStream;
 
 	_srcStream->seek(0, SEEK_END);
-	_size = (_srcStream->pos() * RAW_CD_SECTOR_SIZE) / DATA_CD_SECTOR_SIZE;
+	_size = (_srcStream->pos() / DATA_CD_SECTOR_SIZE) * RAW_CD_SECTOR_SIZE;
 
 	_pos = 0;
 	_srcStream->seek(0, SEEK_SET);
