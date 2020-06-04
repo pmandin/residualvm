@@ -112,25 +112,22 @@ uint32 PsxCdStream::read(void *dataPtr, uint32 dataSize) {
 			_srcStream->read(_srcBufSector, DATA_CD_SECTOR_SIZE);
 			_prevSector = _curSector;
 
+			memcpy(&_dstBufSector[CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE],
+				_srcBufSector, DATA_CD_SECTOR_SIZE);
+
 			if (READ_BE_INT32(_srcBufSector) == STR_MAGIC) {
 				/* Prepare video sector */
 				_dstBufSector[0x12] = CDXA_TYPE_DATA;
-				memcpy(&_dstBufSector[CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE],
-					_srcBufSector, DATA_CD_SECTOR_SIZE);
+				_dstBufSector[0x13] = 0;
 			} else {
 				/* Prepare audio sector */
 				_dstBufSector[0x12] = CDXA_TYPE_AUDIO;
-				// FIXME: Avoid static sound (bad format ?) for now
-				// -> Convert from CDDA to XA ADPCM?
-				/*memcpy(&_dstBufSector[CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE],
-					_srcBufSector, DATA_CD_SECTOR_SIZE);*/
-				memset(&_dstBufSector[CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE],
-					0, DATA_CD_SECTOR_SIZE);
+				_dstBufSector[0x13] = 1;	// Stereo, 37.8KHz
 			}
 		}
 
 		int srcPos = _pos % RAW_CD_SECTOR_SIZE;
-		int srcRead = MIN<int32>(dataSize, RAW_CD_SECTOR_SIZE);
+		int srcRead = MIN<int32>(dataSize, RAW_CD_SECTOR_SIZE-srcPos);
 
 		memcpy(dataPtr, &_dstBufSector[srcPos], srcRead);
 		dataSize -= srcRead;
