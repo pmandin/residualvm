@@ -74,91 +74,76 @@ bool PsxPlayer::loadFile(const Common::String &filename) {
 #define STR_MAGIC 0x60010180
 
 PsxCdStream::PsxCdStream(Common::SeekableReadStream *srcStream):
-	Common::SeekableReadStream() {
+	Common::SeekableReadStream(), _prevSector(-1), _curSector(0),
+	_pos(0) {
+
 	_srcStream = srcStream;
 
 	_srcStream->seek(0, SEEK_END);
 	_size = (_srcStream->pos() / DATA_CD_SECTOR_SIZE) * RAW_CD_SECTOR_SIZE;
-
-	_pos = 0;
 	_srcStream->seek(0, SEEK_SET);
+
+	_srcBufSector = new byte[DATA_CD_SECTOR_SIZE];
+	memset(_srcBufSector, 0, DATA_CD_SECTOR_SIZE);
+
+	_dstBufSector = new byte[RAW_CD_SECTOR_SIZE];
+	memset(_dstBufSector, 0, RAW_CD_SECTOR_SIZE);
+	memset(&_dstBufSector[1], 0xff, 10);
+	_dstBufSector[0x11] = 1;
+
+	//_adf.open("audio.bin");
+}
+
+PsxCdStream::~PsxCdStream() {
+	delete _srcBufSector;
+	_srcBufSector = nullptr;
+	delete _dstBufSector;
+	_dstBufSector = nullptr;
+
+	//_adf.close();
 }
 
 uint32 PsxCdStream::read(void *dataPtr, uint32 dataSize) {
-	uint32 size_read = 0;
-	uint8 *buf = (uint8 *) dataPtr;
-
-	//debug(3, "psx: read %d from pos %d", dataSize, _pos);
+	uint32 readSize = 0;
 
 	while (dataSize>0) {
-		int sector_pos = _pos % RAW_CD_SECTOR_SIZE;
-		uint32 max_size;
-		int pos_data_type = -1; /* need to set data type */
-		int is_video = 0;
+		/* Read new source sector ? */
+		if (_curSector != _prevSector) {
+			_srcStream->read(_srcBufSector, DATA_CD_SECTOR_SIZE);
+			_prevSector = _curSector;
 
-		//logMsg(2,"cd:  generate sector %d, pos %d, remains %d\n",
-		//	emul_cd_pos / RAW_CD_SECTOR_SIZE, sector_pos,
-		//	dataSize);
-		while ((sector_pos<CD_SYNC_SIZE) && (dataSize>0)) {
-			buf[size_read++] = ((sector_pos==0) || (sector_pos==11)) ? 0 : 0xff;
-			dataSize--;
-			sector_pos++;
-			_pos++;
-		}
-		while ((sector_pos<CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE) && (dataSize>0)) {
-			if (sector_pos == 0x12) {
-				pos_data_type = size_read;
-			}
-			buf[size_read++] = (sector_pos == 0x11 ? 1 : 0);
-			dataSize--;
-			sector_pos++;
-			_pos++;
-		}
-		while ((sector_pos<CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE+CD_DATA_SIZE) && (dataSize>0)) {
-			max_size = CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE+CD_DATA_SIZE-sector_pos;
-			max_size = (max_size>dataSize) ? dataSize : max_size;
-			//debug(3, "cd: reading real data at 0x%08x in file, %d", _srcStream->pos(), max_size);
-			_srcStream->read(&buf[size_read], max_size);
-			if ((sector_pos == CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE) && (max_size>=4)) {
-				/* Read first bytes */
-				uint32 magic = *((uint32 *) &buf[size_read]);
-				is_video = (FROM_BE_32(magic) == STR_MAGIC);
-			}
-			if (!is_video) {
-				// FIXME: Avoid static sound (bad format ?) for now
-				memset(&buf[size_read], 0, max_size);
-			}
-			dataSize -= max_size;
-			size_read += max_size;
-			sector_pos += max_size;
-			_pos += max_size;
-		}
-		while ((sector_pos<RAW_CD_SECTOR_SIZE) && (dataSize>0)) {
-			buf[size_read++] = 0;
-			dataSize--;
-			sector_pos++;
-			_pos++;
-		}
-
-		/* set data type */
-		if (pos_data_type>=0) {
-			if (is_video) {
-				//debug(3, "cd: generate video 0x%08x", _srcStream->pos());
-				buf[pos_data_type] = CDXA_TYPE_DATA;
+			if (READ_BE_INT32(_srcBufSector) == STR_MAGIC) {
+				/* Prepare video sector */
+				_dstBufSector[0x12] = CDXA_TYPE_DATA;
+				memcpy(&_dstBufSector[CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE],
+					_srcBufSector, DATA_CD_SECTOR_SIZE);
 			} else {
-				//debug(3, "cd: generate audio 0x%08x", _srcStream->pos());
-				buf[pos_data_type] = CDXA_TYPE_AUDIO;
+				/* Prepare audio sector */
+				_dstBufSector[0x12] = CDXA_TYPE_AUDIO;
+				// FIXME: Avoid static sound (bad format ?) for now
+				// -> Convert from CDDA to XA ADPCM?
+				/*memcpy(&_dstBufSector[CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE],
+					_srcBufSector, DATA_CD_SECTOR_SIZE);*/
+				memset(&_dstBufSector[CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE],
+					0, DATA_CD_SECTOR_SIZE);
 			}
 		}
+
+		int srcPos = _pos % RAW_CD_SECTOR_SIZE;
+		int srcRead = MIN<int32>(dataSize, RAW_CD_SECTOR_SIZE);
+
+		memcpy(dataPtr, &_dstBufSector[srcPos], srcRead);
+		dataSize -= srcRead;
+		readSize += srcRead;
+
+		_pos += srcRead;
+		_curSector = _pos / RAW_CD_SECTOR_SIZE;
 	}
 
-	return size_read;
+	return readSize;
 }
 
 bool PsxCdStream::seek(int32 offs, int whence) {
-	uint32 srcOffset;
-	int sectorNum, sectorPos;
-
 	switch(whence) {
 		case SEEK_SET:
 		case SEEK_END:
@@ -169,22 +154,10 @@ bool PsxCdStream::seek(int32 offs, int whence) {
 			break;
 	}
 
-	sectorNum = _pos / RAW_CD_SECTOR_SIZE;
-	sectorPos = _pos % RAW_CD_SECTOR_SIZE;
+	_curSector = _pos / RAW_CD_SECTOR_SIZE;
 
-	if (sectorPos<CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE) {
-		sectorPos = 0;
-	} else if ((sectorPos>=CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE) &&
-		(sectorPos<CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE+CD_DATA_SIZE))
-	{
-		sectorPos -= CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE;
-	} else if (sectorPos>=CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE+CD_DATA_SIZE) {
-		sectorPos = 0;
-		sectorNum++;
-	}
-
-	srcOffset = (sectorNum * DATA_CD_SECTOR_SIZE) + sectorPos;
-	_srcStream->seek(srcOffset, whence);
+	/* Always seek to start of sector */
+	_srcStream->seek(_curSector * DATA_CD_SECTOR_SIZE, whence);
 
 	return true;
 }

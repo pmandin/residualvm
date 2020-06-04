@@ -23,6 +23,8 @@
 #ifndef REEVENGI_PSX_PLAYER_H
 #define REEVENGI_PSX_PLAYER_H
 
+//#include "common/file.h"
+
 #include "engines/reevengi/movie/movie.h"
 
 namespace Reevengi {
@@ -40,12 +42,16 @@ public:
 
 class PsxCdStream : public Common::SeekableReadStream {
 private:
+	byte *_srcBufSector, *_dstBufSector;
 	Common::SeekableReadStream *_srcStream;
 	uint32 _size;
 	uint32 _pos;
+	int32 _prevSector, _curSector;
+//	Common::DumpFile _adf;
 
 public:
 	PsxCdStream(Common::SeekableReadStream *srcStream);
+	~PsxCdStream();
 
 	uint32 read(void *dataPtr, uint32 dataSize);
 
