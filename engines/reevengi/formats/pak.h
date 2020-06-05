@@ -48,7 +48,7 @@ typedef struct {
 	uint32 value;
 } re1_pack_t;
 
-class PakDecoder : TimDecoder {
+class PakDecoder : public TimDecoder {
 public:
 	PakDecoder();
 	virtual ~PakDecoder();

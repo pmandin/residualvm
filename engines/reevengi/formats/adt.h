@@ -55,7 +55,7 @@ typedef struct {
 
 /*--- Class ---*/
 
-class AdtDecoder : TimDecoder {
+class AdtDecoder : public TimDecoder {
 public:
 	AdtDecoder();
 	virtual ~AdtDecoder();
