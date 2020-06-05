@@ -42,8 +42,8 @@ public:
 
 class PsxCdStream : public Common::SeekableReadStream {
 private:
-	byte *_srcBufSector, *_dstBufSector;
 	Common::SeekableReadStream *_srcStream;
+	byte *_bufSector;
 	uint32 _size;
 	uint32 _pos;
 	int32 _prevSector, _curSector;

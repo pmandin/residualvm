@@ -20,9 +20,6 @@
  *
  */
 
-
-/* FIXME: Finish emulate CD reading from file */
-
 #include "common/system.h"
 #include "engines/advancedDetector.h"
 #include "video/psx_decoder.h"
@@ -83,22 +80,17 @@ PsxCdStream::PsxCdStream(Common::SeekableReadStream *srcStream):
 	_size = (_srcStream->pos() / DATA_CD_SECTOR_SIZE) * RAW_CD_SECTOR_SIZE;
 	_srcStream->seek(0, SEEK_SET);
 
-	_srcBufSector = new byte[DATA_CD_SECTOR_SIZE];
-	memset(_srcBufSector, 0, DATA_CD_SECTOR_SIZE);
-
-	_dstBufSector = new byte[RAW_CD_SECTOR_SIZE];
-	memset(_dstBufSector, 0, RAW_CD_SECTOR_SIZE);
-	memset(&_dstBufSector[1], 0xff, 10);
-	_dstBufSector[0x11] = 1;
+	_bufSector = new byte[RAW_CD_SECTOR_SIZE];
+	memset(_bufSector, 0, RAW_CD_SECTOR_SIZE);
+	memset(&_bufSector[1], 0xff, 10);
+	_bufSector[0x11] = 1;
 
 	//_adf.open("audio.bin");
 }
 
 PsxCdStream::~PsxCdStream() {
-	delete _srcBufSector;
-	_srcBufSector = nullptr;
-	delete _dstBufSector;
-	_dstBufSector = nullptr;
+	delete _bufSector;
+	_bufSector = nullptr;
 
 	//_adf.close();
 }
@@ -109,27 +101,26 @@ uint32 PsxCdStream::read(void *dataPtr, uint32 dataSize) {
 	while (dataSize>0) {
 		/* Read new source sector ? */
 		if (_curSector != _prevSector) {
-			_srcStream->read(_srcBufSector, DATA_CD_SECTOR_SIZE);
+			byte *srcBuf = &_bufSector[CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE];
+
+			_srcStream->read(srcBuf, DATA_CD_SECTOR_SIZE);
 			_prevSector = _curSector;
 
-			memcpy(&_dstBufSector[CD_SYNC_SIZE+CD_SEC_SIZE+CD_XA_SIZE],
-				_srcBufSector, DATA_CD_SECTOR_SIZE);
-
-			if (READ_BE_INT32(_srcBufSector) == STR_MAGIC) {
+			if (READ_BE_INT32(srcBuf) == STR_MAGIC) {
 				/* Prepare video sector */
-				_dstBufSector[0x12] = CDXA_TYPE_DATA;
-				_dstBufSector[0x13] = 0;
+				_bufSector[0x12] = CDXA_TYPE_DATA;
+				_bufSector[0x13] = 0;
 			} else {
 				/* Prepare audio sector */
-				_dstBufSector[0x12] = CDXA_TYPE_AUDIO;
-				_dstBufSector[0x13] = 1;	// Stereo, 37.8KHz
+				_bufSector[0x12] = CDXA_TYPE_AUDIO;
+				_bufSector[0x13] = 1;	// Stereo, 37.8KHz
 			}
 		}
 
 		int srcPos = _pos % RAW_CD_SECTOR_SIZE;
 		int srcRead = MIN<int32>(dataSize, RAW_CD_SECTOR_SIZE-srcPos);
 
-		memcpy(dataPtr, &_dstBufSector[srcPos], srcRead);
+		memcpy(dataPtr, &_bufSector[srcPos], srcRead);
 		dataSize -= srcRead;
 		readSize += srcRead;
 
