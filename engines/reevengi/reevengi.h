@@ -62,6 +62,7 @@ private:
 	void onScreenChanged(void);
 
 	TimDecoder *testLoadImage(void);
+	void testDisplayImage(TimDecoder *img);
 	void testLoadMovie(void);
 	void testPlayMovie(void);
 

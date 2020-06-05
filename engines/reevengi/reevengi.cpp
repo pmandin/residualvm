@@ -124,12 +124,13 @@ Common::Error ReevengiEngine::run() {
 
 	uint32 t=0;
 
-	//TimDecoder *my_image = testLoadImage();
-	testLoadMovie();
+	TimDecoder *my_image = testLoadImage();
+	//testLoadMovie();
 
 	while (!shouldQuit()) {
 
-		testPlayMovie();
+		testDisplayImage(my_image);
+		//testPlayMovie();
 
 		// Tell the system to update the screen.
 		g_driver->flipBuffer();
@@ -145,7 +146,7 @@ Common::Error ReevengiEngine::run() {
 	}
 
 	g_driver->releaseMovieFrame();
-	//delete my_image;
+	delete my_image;
 
 	return Common::kNoError;
 }
@@ -195,38 +196,42 @@ void ReevengiEngine::onScreenChanged(void) {
 }
 
 TimDecoder *ReevengiEngine::testLoadImage(void) {
-	debug(3, "loading jopt06.tim");
+	/*debug(3, "loading jopt06.tim");
 	Common::SeekableReadStream *s1 = SearchMan.createReadStreamForMember("jopt06.tim");
 	TimDecoder *my_image1 = new TimDecoder();
-	my_image1->loadStream(*s1);
-
-	return my_image1;
-/*
-	debug(3, "loading rc1060.pak");
-	Common::SeekableReadStream *s2 = SearchMan.createReadStreamForMember("rc1060.pak");
-	PakDecoder *my_image2 = new PakDecoder();
-	my_image2->loadStream(*s2);
+	my_image1->loadStream(*s1);*/
 
 	debug(3, "loading gwarning.adt");
 	Common::SeekableReadStream *s3 = SearchMan.createReadStreamForMember("common/datp/gwarning.adt");
-	AdtDecoder *my_image3 = new AdtDecoder();
-	my_image3->loadStream(*s3);
+	AdtDecoder *my_image1 = new AdtDecoder();
+	my_image1->loadStream(*s3);
 
-	debug(3, "loading alice.jpg");
-	Common::SeekableReadStream *s4 = SearchMan.createReadStreamForMember("alice.bmp");
-	Image::BitmapDecoder *my_image4 = new Image::BitmapDecoder();
-	debug(3, "loading alice.jpg: %p", my_image4);
-	my_image4->loadStream(*s4);
-*/
+	/*debug(3, "loading rc1060.pak");
+	Common::SeekableReadStream *s2 = SearchMan.createReadStreamForMember("rc1060.pak");
+	PakDecoder *my_image1 = new PakDecoder();
+	my_image1->loadStream(*s2);*/
+
+	if (my_image1) {
+		Graphics::Surface *surf = (Graphics::Surface *) my_image1->getSurface();
+		if (surf) {
+			g_driver->prepareMovieFrame(surf);
+		}
+	}
+
+	return my_image1;
+}
+
+void ReevengiEngine::testDisplayImage(TimDecoder *img) {
+	g_driver->drawMovieFrame(0, 0);
 }
 
 void ReevengiEngine::testLoadMovie(void) {
-	//g_movie = CreatePsxPlayer();
-	//g_movie->play("capcom.str", false, 0, 0);
+	g_movie = CreatePsxPlayer();
+	g_movie->play("capcom.str", false, 0, 0);
 	//g_movie = CreateAviPlayer();
 	//g_movie->play("sample.avi", false, 0, 0);
-	g_movie = CreateMpegPlayer();
-	g_movie->play("zmovie/roopne.dat", false, 0, 0);
+	//g_movie = CreateMpegPlayer();
+	//g_movie->play("zmovie/roopne.dat", false, 0, 0);
 }
 
 void ReevengiEngine::testPlayMovie(void) {
