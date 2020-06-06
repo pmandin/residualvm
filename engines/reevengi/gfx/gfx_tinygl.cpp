@@ -109,10 +109,28 @@ void GfxTinyGL::prepareMovieFrame(Graphics::Surface *frame) {
 }
 
 void GfxTinyGL::drawMovieFrame(int offsetX, int offsetY) {
-	offsetX += (_screenWidth-_smushWidth)>>1;
-	offsetY += (_screenHeight-_smushHeight)>>1;
+	int sysW = g_system->getWidth();
+	int sysH = g_system->getHeight();
 
-	Graphics::tglBlitFast(_smushImage, offsetX, offsetY);
+	float movScale = MIN<float>((float) sysW / _smushWidth, (float) sysH / _smushHeight);
+	int movW = _smushWidth * movScale;
+	int movH = _smushHeight * movScale;
+
+	offsetX = (int)(offsetX * movScale);
+	offsetY = (int)(offsetY * movScale);
+
+	offsetX += (sysW-movW)>>1;
+	offsetY += (sysH-movH)>>1;
+
+	if ((movW==_smushWidth) && (movH==_smushHeight)) {
+		Graphics::tglBlitFast(_smushImage, offsetX, offsetY);
+		return;
+	}
+
+	Graphics::BlitTransform bltTransform(offsetX, offsetY);
+	bltTransform.scale(movW, movH);
+
+	Graphics::tglBlit(_smushImage, bltTransform);
 }
 
 void GfxTinyGL::releaseMovieFrame() {
