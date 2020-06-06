@@ -88,7 +88,7 @@ void AdtDecoder::ProcessRawImage()
 	int x, y;
 	uint16 *surface_line, *src_line, *srcBuffer = (uint16 *) _dstPointer;
 	uint16 *dstBuffer;
-	Graphics::PixelFormat fmt = Graphics::PixelFormat(2, 5, 5, 5, 1, 0, 5, 10, 15);
+	Graphics::PixelFormat fmt = Graphics::PixelFormat(2, 5, 5, 5, 1, 11, 6, 1, 0);
 
 	TimDecoder::CreateTimSurface(320, 240, fmt);
 	dstBuffer = (uint16 *) (getSurface()->getBasePtr(0,0));
@@ -100,7 +100,7 @@ void AdtDecoder::ProcessRawImage()
 		uint16 *surface_col = surface_line;
 		for (x=0; x<256; x++) {
 			uint16 col = *src_line++;
-			*surface_col++ = FROM_LE_16(col);
+			*surface_col++ = readPixel(col);
 		}
 		surface_line += 320;
 	}
@@ -114,7 +114,7 @@ void AdtDecoder::ProcessRawImage()
 		uint16 *src_col = src_line;
 		for (x=0; x<64; x++) {
 			uint16 col = *src_col++;
-			*surface_col++ = FROM_LE_16(col);
+			*surface_col++ = readPixel(col);
 		}
 
 		surface_line += 320;
@@ -129,7 +129,7 @@ void AdtDecoder::ProcessRawImage()
 		uint16 *src_col = src_line;
 		for (x=0; x<64; x++) {
 			uint16 col = *src_col++;
-			*surface_col++ = FROM_LE_16(col);
+			*surface_col++ = readPixel(col);
 		}
 
 		surface_line += 320;

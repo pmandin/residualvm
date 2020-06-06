@@ -117,11 +117,11 @@ bool TimDecoder::readHeader(Common::SeekableReadStream &tim, byte &imageType) {
 	imageType = hdr.type;
 
 	if (imageType==TIM_TYPE_BPP24) {
-		_format = Graphics::PixelFormat(3, 8, 8, 8, 0, 16, 8, 0, 0);;
+		_format = Graphics::PixelFormat(3, 8, 8, 8, 0, 16, 8, 0, 0);
 		return true;
 	}
 	if (imageType==TIM_TYPE_BPP15) {
-		_format = Graphics::PixelFormat(2, 5, 5, 5, 1, 0, 5, 10, 15);
+		_format = Graphics::PixelFormat(2, 5, 5, 5, 1, 11, 6, 1, 0);
 		return true;
 	}
 
@@ -146,6 +146,28 @@ bool TimDecoder::readHeader(Common::SeekableReadStream &tim, byte &imageType) {
 	return success;
 }
 
+/* Convert ABGR to RGBA + set alpha correctly */
+uint16 TimDecoder::readPixel(Common::SeekableReadStream &tim) {
+	return readPixel(tim.readUint16LE());
+}
+
+uint16 TimDecoder::readPixel(uint16 color) {
+	int r1,g1,b1,a1;
+
+	a1 = (color>>15) & 1;
+	b1 = (color>>10) & 31;
+	g1 = (color>>5) & 31;
+	r1 = color & 31;
+
+	if (r1+g1+b1 == 0) {
+		a1 = (a1 ? 1 : 0);
+	} else {
+		a1 = 1;
+	}
+
+	return (r1<<11)|(g1<<6)|(b1<<1)|a1;
+}
+
 bool TimDecoder::readColorMap(Common::SeekableReadStream &tim, byte imageType) {
 	_colorMap = new byte[3 * _colorMapCount * _colorMapLength];
 	byte *_colorMapFill = _colorMap;
@@ -153,9 +175,9 @@ bool TimDecoder::readColorMap(Common::SeekableReadStream &tim, byte imageType) {
 	for (int j = 0; j < _colorMapCount; j++) {
 		for (int i = 0; i < _colorMapLength * 3; i += 3) {
 			byte r, g, b, a;
-			Graphics::PixelFormat format(2, 5, 5, 5, 0, 0, 5, 10, 15);
+			Graphics::PixelFormat format(2, 5, 5, 5, 1, 11, 6, 1, 0);
 
-			uint16 color = tim.readUint16LE();
+			uint16 color = readPixel(tim);
 			format.colorToARGB(color, a, r, g, b);
 
 #ifdef SCUMM_LITTLE_ENDIAN
@@ -231,7 +253,7 @@ bool TimDecoder::readData(Common::SeekableReadStream &tim, byte imageType) {
 					uint16 *dst = (uint16 *)_surface.getBasePtr(0, y);
 
 					for (int x = 0; x < _surface.w; x++) {
-						*dst++ = tim.readUint16LE();
+						*dst++ = readPixel(tim);
 					}
 				}
 			}

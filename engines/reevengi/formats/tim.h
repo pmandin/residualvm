@@ -47,6 +47,10 @@ public:
 	virtual const byte *getPalette(int numColorMap) const { return &_colorMap[_colorMapLength * numColorMap]; }
 	virtual uint16 getPaletteColorCount() const { return _colorMapLength; }
 
+protected:
+	uint16 readPixel(Common::SeekableReadStream &tim);
+	uint16 readPixel(uint16 color);
+
 private:
 	// Color-map:
 	byte *_colorMap;
