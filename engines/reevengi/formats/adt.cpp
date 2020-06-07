@@ -73,12 +73,19 @@ bool AdtDecoder::loadStream(Common::SeekableReadStream &adt) {
 		return false;
 	}
 
+	if (!TimDecoder::loadStream(*mem_str)) {
+		ProcessRawImage();
+	}
+
+	return true;
+/*
 	if (_dstBufLen == 320*256*2) {
 		ProcessRawImage();
 		return true;
 	}
 
 	return TimDecoder::loadStream(*mem_str);
+*/
 }
 
 /*--- Raw image and reorganize ---*/
