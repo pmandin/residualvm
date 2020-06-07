@@ -140,7 +140,11 @@ BaseGame::BaseGame(const Common::String &targetName) : BaseObject(this), _target
 
 	_cursorNoninteractive = nullptr;
 
+#ifdef ENABLE_WME3D
+	_useD3D = true;
+#else
 	_useD3D = false;
+#endif
 
 	_musicSystem = new BaseGameMusic(this);
 
@@ -482,7 +486,11 @@ bool BaseGame::initialize1() {
 
 //////////////////////////////////////////////////////////////////////
 bool BaseGame::initialize2() { // we know whether we are going to be accelerated
+#ifdef ENABLE_WME3D
+	_renderer = makeOpenGL3DRenderer(this);
+#else
 	_renderer = makeOSystemRenderer(this);
+#endif
 	if (_renderer == nullptr) {
 		return STATUS_FAILED;
 	}

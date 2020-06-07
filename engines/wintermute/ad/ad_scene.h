@@ -44,6 +44,10 @@ class AdPath;
 class AdScaleLevel;
 class AdRotLevel;
 class AdPathPoint;
+#ifdef ENABLE_WME3D
+class AdSceneGeometry;
+#endif
+
 class AdScene : public BaseObject {
 public:
 
@@ -123,6 +127,10 @@ public:
 	BaseArray<AdLayer *> _layers;
 	BaseArray<AdObject *> _objects;
 	BaseArray<AdWaypointGroup *> _waypointGroups;
+#ifdef ENABLE_WME3D
+	AdSceneGeometry* _sceneGeometry;
+	bool _showGeometry;
+#endif
 	bool loadFile(const char *filename);
 	bool loadBuffer(char *buffer, bool complete = true);
 	int32 _width;

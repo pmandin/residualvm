@@ -256,6 +256,13 @@ bool BaseRenderer::setup2D(bool Force) {
 	return STATUS_FAILED;
 }
 
+#ifdef ENABLE_WME3D
+//////////////////////////////////////////////////////////////////////////
+bool BaseRenderer::setup3D(Camera3D* camera, bool force) {
+	return STATUS_FAILED;
+}
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////
 bool BaseRenderer::setupLines() {
