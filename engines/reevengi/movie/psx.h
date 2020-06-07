@@ -37,7 +37,7 @@ private:
 	//bool _demo;
 
 public:
-	PsxPlayer(bool emul_cd);
+	PsxPlayer(bool emul_cd = true);
 };
 
 class PsxCdStream : public Common::SeekableReadStream {
