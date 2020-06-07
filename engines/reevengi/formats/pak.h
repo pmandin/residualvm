@@ -36,9 +36,9 @@ namespace Reevengi {
 
 /*--- Defines ---*/
 
-#define CHUNK_SIZE 32768
+#define RE1PAK_CHUNK_SIZE 32768
 
-#define DECODE_SIZE 35024
+#define RE1PAK_DECODE_SIZE 35024
 
 /*--- Types ---*/
 
@@ -66,8 +66,8 @@ private:
 	uint8 _srcByte;
 	int _tmpMask;
 
-	re1_pack_t _tmpArray2[DECODE_SIZE];
-	uint8 _decodeStack[DECODE_SIZE];
+	re1_pack_t _tmpArray2[RE1PAK_DECODE_SIZE];
+	uint8 _decodeStack[RE1PAK_DECODE_SIZE];
 
 	void depack(Common::SeekableReadStream &pak);
 	uint32 read_bits(Common::SeekableReadStream &pak, int num_bits);

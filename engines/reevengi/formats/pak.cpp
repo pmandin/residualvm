@@ -86,7 +86,7 @@ void PakDecoder::depack(Common::SeekableReadStream &pak)
 	memset(_tmpArray2, 0, sizeof(_tmpArray2));
 
 	while (!stop) {
-		for (i=0; i<DECODE_SIZE; i++) {
+		for (i=0; i<RE1PAK_DECODE_SIZE; i++) {
 			_tmpArray2[i].flag = 0xffffffff;
 		}
 		lzwnext = 0x103;
@@ -184,7 +184,7 @@ int PakDecoder::decodeString(int decodeStackOffset, uint32 code)
 void PakDecoder::write_dest(uint8 value)
 {
 	if ((_dstPointer==nullptr) || (_dstOffset>=_dstBufLen)) {
-		_dstBufLen += CHUNK_SIZE;
+		_dstBufLen += RE1PAK_CHUNK_SIZE;
 		_dstPointer = (uint8 *) realloc(_dstPointer, _dstBufLen);
 		if (_dstPointer==NULL) {
 			debug(3, "%s: can not allocate %d bytes\n", __FUNCTION__, _dstBufLen);
