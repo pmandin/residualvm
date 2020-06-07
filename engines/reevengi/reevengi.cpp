@@ -112,7 +112,12 @@ GfxBase *ReevengiEngine::createRenderer(int screenW, int screenH, bool fullscree
 	return renderer;
 }
 
+void ReevengiEngine::initPreRun(void) {
+}
+
 Common::Error ReevengiEngine::run() {
+	initPreRun();
+
 	bool fullscreen = ConfMan.getBool("fullscreen");
 	g_driver = createRenderer(640, 480, fullscreen);
 

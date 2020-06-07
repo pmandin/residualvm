@@ -59,6 +59,7 @@ protected:
 
 	bool hasFeature(EngineFeature f) const override;
 	GfxBase *createRenderer(int screenW, int screenH, bool fullscreen);
+	virtual void initPreRun(void);
 
 	TimDecoder *_bgImage;
 	void destroyBgImage(void);
