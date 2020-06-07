@@ -36,6 +36,12 @@ public:
 
 protected:
 	void loadBgImage(void);
+
+private:
+	void loadBgImagePcDemo(void);
+	void loadBgImagePcGame(void);
+	void loadBgImagePsx(void);
+
 };
 
 } // end of namespace Reevengi

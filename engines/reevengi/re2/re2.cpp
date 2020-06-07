@@ -21,10 +21,17 @@
  */
 
 #include "common/debug.h"
+#include "common/memstream.h"
+#include "common/stream.h"
 
+#include "engines/reevengi/formats/adt.h"
 #include "engines/reevengi/re2/re2.h"
 
 namespace Reevengi {
+
+/*--- Constant ---*/
+
+static const char *RE2PCDEMO_BG = "common/stage%d/rc%d%02x%1x.adt";
 
 RE2Engine::RE2Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc) :
 		ReevengiEngine(syst, gameType, desc) {
@@ -47,7 +54,85 @@ void RE2Engine::loadBgImage(void) {
 		if (_stage>2) { _stage=1; }
 	}
 
+	switch(_gameDesc.platform) {
+		case Common::kPlatformWindows:
+			{
+				if ((_gameDesc.flags & ADGF_DEMO)==ADGF_DEMO) {
+					loadBgImagePcDemo();
+				} else {
+					loadBgImagePcGame();
+				}
+			}
+			break;
+		case Common::kPlatformPSX:
+			{
+				loadBgImagePsx();
+			}
+			break;
+		default:
+			return;
+	}
+
 	ReevengiEngine::loadBgImage();
+}
+
+void RE2Engine::loadBgImagePcDemo(void) {
+	char *filePath;
+
+	filePath = (char *) malloc(strlen(RE2PCDEMO_BG)+8);
+	if (!filePath) {
+		return;
+	}
+	sprintf(filePath, RE2PCDEMO_BG, _stage, _stage, _room, _camera);
+
+	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
+	if (stream) {
+		_bgImage = new AdtDecoder();
+		((AdtDecoder *) _bgImage)->loadStream(*stream);
+	}
+	delete stream;
+
+	free(filePath);
+}
+
+void RE2Engine::loadBgImagePcGame(void) {
+	int num_image, max_images;
+	int32 archiveLen;
+	uint32 streamPos[2], imageLen;
+	byte *imgBuffer;
+
+	num_image = (_stage-1)*512 + _room*16 + _camera;
+
+	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember("common/bin/roomcut.bin");
+	archiveLen = arcStream->size();
+
+	max_images = arcStream->readUint32LE() >> 2;
+	if (num_image<max_images) {
+		arcStream->seek(num_image<<2);
+
+		streamPos[0] = arcStream->readUint32LE();
+		streamPos[1] = (arcStream->pos() == (max_images<<2) ? archiveLen : arcStream->readUint32LE());
+		imageLen = streamPos[1]-streamPos[0];
+
+		imgBuffer = new byte[imageLen];
+		arcStream->seek(streamPos[0]);
+		arcStream->read(imgBuffer, imageLen);
+
+		Common::SeekableReadStream *imgStream = new Common::MemoryReadStream(imgBuffer, imageLen,
+			DisposeAfterUse::YES
+		);
+		if (imgStream) {
+			_bgImage = new AdtDecoder();
+			((AdtDecoder *) _bgImage)->loadStream(*imgStream);
+		}
+		delete imgStream;
+	}
+
+	delete arcStream;
+}
+
+void RE2Engine::loadBgImagePsx(void) {
+	// TODO
 }
 
 } // end of namespace Reevengi
