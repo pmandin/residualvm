@@ -35,7 +35,14 @@ public:
 	virtual ~RE1Engine();
 
 protected:
+	void initPreRun(void);
 	void loadBgImage(void);
+
+private:
+	int _country;
+
+	void loadBgImagePc(int stage);
+	void loadBgImagePsx(int stage);
 };
 
 } // end of namespace Reevengi
