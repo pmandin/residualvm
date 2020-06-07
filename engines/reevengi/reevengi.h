@@ -23,9 +23,13 @@
 #ifndef REEVENGI_H
 #define REEVENGI_H
 
+#include "engines/advancedDetector.h"
 #include "engines/engine.h"
 
-struct ADGameDescription;
+namespace Common {
+class Event;
+}
+
 
 namespace Reevengi {
 
@@ -48,6 +52,7 @@ public:
 	virtual Common::Error run(void);
 
 protected:
+	ADGameDescription _gameDesc;
 	ReevengiGameType _gameType;
 	int _character;
 	int _stage, _room, _camera;
@@ -55,11 +60,17 @@ protected:
 	bool hasFeature(EngineFeature f) const override;
 	GfxBase *createRenderer(int screenW, int screenH, bool fullscreen);
 
+	TimDecoder *_bgImage;
+	void destroyBgImage(void);
+	virtual void loadBgImage(void);
+
 private:
 	bool _softRenderer;
 
 	void processEvents(void);
 	void onScreenChanged(void);
+
+	void processEventsKeyDown(Common::Event e);
 
 	TimDecoder *testLoadImage(void);
 	void testDisplayImage(TimDecoder *img);

@@ -26,8 +26,6 @@
 #include "common/events.h"
 #include "common/scummsys.h"
 #include "common/system.h"
-#include "engines/advancedDetector.h"
-#include "engines/engine.h"
 #include "engines/util.h"
 #include "graphics/pixelbuffer.h"
 #include "graphics/renderer.h"
@@ -54,19 +52,15 @@ namespace Reevengi {
 GfxBase *g_driver = nullptr;
 
 ReevengiEngine::ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *gameDesc) :
-	Engine(syst), _gameType(gameType) {
-	_character = 0;
-
-	_stage = 1;
-	_room = 0;
-	_camera = 0;
-
-	_softRenderer = true;
-
+	Engine(syst), _gameType(gameType), _character(0), _softRenderer(true),
+	_stage(1), _room(0), _camera(0), _bgImage(nullptr) {
+	memcpy(&_gameDesc, gameDesc, sizeof(_gameDesc));
 	g_movie = nullptr;
 }
 
 ReevengiEngine::~ReevengiEngine() {
+	destroyBgImage();
+
 	delete g_movie;
 	g_movie = nullptr;
 }
@@ -169,6 +163,8 @@ void ReevengiEngine::processEvents(void) {
 				continue;
 			}
 
+			processEventsKeyDown(e);
+
 			if (e.kbd.keycode == Common::KEYCODE_d && (e.kbd.hasFlags(Common::KBD_CTRL))) {
 				/*_console->attach();*/
 				/*_console->onFrame();*/
@@ -191,8 +187,90 @@ void ReevengiEngine::processEvents(void) {
 	}
 }
 
+void ReevengiEngine::processEventsKeyDown(Common::Event e) {
+	bool updateBgImage = false;
+
+	/* Depend on game/demo */
+	if (e.kbd.keycode == Common::KEYCODE_z) {
+		--_stage;
+		if (_stage<1) {
+			_stage=7;
+		}
+		updateBgImage = true;
+	}
+	if (e.kbd.keycode == Common::KEYCODE_s) {
+		++_stage;
+		if (_stage>7) {
+			_stage=1;
+		}
+		updateBgImage = true;
+	}
+	if (e.kbd.keycode == Common::KEYCODE_x) {
+		_stage=1;
+		updateBgImage = true;
+	}
+
+	/* Depend on game/stage */
+	if (e.kbd.keycode == Common::KEYCODE_e) {
+		--_room;
+		if (_room<0) {
+			_room=0x1c;
+		}
+		updateBgImage = true;
+	}
+	if (e.kbd.keycode == Common::KEYCODE_d) {
+		++_room;
+		if (_room>0x1c) {
+			_room=0;
+		}
+		updateBgImage = true;
+	}
+	if (e.kbd.keycode == Common::KEYCODE_c) {
+		_room=0;
+		updateBgImage = true;
+	}
+
+	/* Room dependant */
+	if (e.kbd.keycode == Common::KEYCODE_r) {
+		--_camera;
+		updateBgImage = true;
+	}
+	if (e.kbd.keycode == Common::KEYCODE_f) {
+		++_camera;
+		updateBgImage = true;
+	}
+	if (e.kbd.keycode == Common::KEYCODE_v) {
+		_camera=0;
+		updateBgImage = true;
+	}
+
+	if (!updateBgImage) {
+		return;
+	}
+
+	debug(3, "switch to stage %d, room %d, camera %d", _stage, _room, _camera);
+	destroyBgImage();
+	loadBgImage();
+}
+
 void ReevengiEngine::onScreenChanged(void) {
 	bool changed = g_driver->computeScreenViewport();
+}
+
+void ReevengiEngine::destroyBgImage(void) {
+	delete _bgImage;
+	_bgImage = nullptr;
+}
+
+void ReevengiEngine::loadBgImage(void) {
+	if (!_bgImage) {
+		return;
+	}
+
+	Graphics::Surface *bgSurf = (Graphics::Surface *) _bgImage->getSurface();
+	if (bgSurf) {
+		g_driver->prepareMovieFrame(bgSurf);
+	}
 }
 
 TimDecoder *ReevengiEngine::testLoadImage(void) {

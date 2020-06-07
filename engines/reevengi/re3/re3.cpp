@@ -20,6 +20,8 @@
  *
  */
 
+#include "common/debug.h"
+
 #include "engines/reevengi/re3/re3.h"
 
 namespace Reevengi {
@@ -30,6 +32,12 @@ RE3Engine::RE3Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescr
 }
 
 RE3Engine::~RE3Engine() {
+}
+
+void RE3Engine::loadBgImage(void) {
+	debug(3, "re3: loadBgImage");
+
+	ReevengiEngine::loadBgImage();
 }
 
 } // end of namespace Reevengi

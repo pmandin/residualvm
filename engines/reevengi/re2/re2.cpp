@@ -20,6 +20,8 @@
  *
  */
 
+#include "common/debug.h"
+
 #include "engines/reevengi/re2/re2.h"
 
 namespace Reevengi {
@@ -29,9 +31,23 @@ RE2Engine::RE2Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescr
 	if (gameType == RType_RE2_CLAIRE) {
 		_character = 1;
 	}
+
+	/* Game B: start in room 4 */
+
+	/* Demo: only stage 1 and 2 */
 }
 
 RE2Engine::~RE2Engine() {
+}
+
+void RE2Engine::loadBgImage(void) {
+	debug(3, "re2: loadBgImage");
+
+	if ((_gameDesc.flags & ADGF_DEMO)==ADGF_DEMO) {
+		if (_stage>2) { _stage=1; }
+	}
+
+	ReevengiEngine::loadBgImage();
 }
 
 } // end of namespace Reevengi

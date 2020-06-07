@@ -24,6 +24,7 @@
 #define REEVENGI_RE3_ENGINE_H
 
 #include "engines/advancedDetector.h"
+
 #include "engines/reevengi/reevengi.h"
 
 namespace Reevengi {
@@ -32,6 +33,9 @@ class RE3Engine : public ReevengiEngine {
 public:
 	RE3Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc);
 	virtual ~RE3Engine();
+
+protected:
+	void loadBgImage(void);
 };
 
 } // end of namespace Reevengi
