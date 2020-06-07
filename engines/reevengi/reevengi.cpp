@@ -118,12 +118,16 @@ Common::Error ReevengiEngine::run() {
 
 	uint32 t=0;
 
-	TimDecoder *my_image = testLoadImage();
+	//TimDecoder *my_image = testLoadImage();
 	//testLoadMovie();
+	loadBgImage();
 
 	while (!shouldQuit()) {
 
-		testDisplayImage(my_image);
+		if (_bgImage) {
+			testDisplayImage(_bgImage);
+		}
+		//testDisplayImage(my_image);
 		//testPlayMovie();
 
 		// Tell the system to update the screen.
@@ -140,7 +144,7 @@ Common::Error ReevengiEngine::run() {
 	}
 
 	g_driver->releaseMovieFrame();
-	delete my_image;
+	//delete my_image;
 
 	return Common::kNoError;
 }
