@@ -77,6 +77,10 @@ void RE1Engine::loadBgImage(void) {
 	/* Stages 6,7 use images from stages 1,2 */
 	int stage = (_stage>5 ? _stage-5 : _stage);
 
+	if ((_gameDesc.flags & ADGF_DEMO)==ADGF_DEMO) {
+		if (_stage>2) { _stage=1; }
+	}
+
 	switch(_gameDesc.platform) {
 		case Common::kPlatformWindows:
 			{
