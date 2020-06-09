@@ -36,6 +36,9 @@ public:
 
 protected:
 	void loadBgImage(void);
+
+private:
+	void loadBgImagePsx(void);
 };
 
 } // end of namespace Reevengi
