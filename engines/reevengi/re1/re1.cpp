@@ -25,6 +25,7 @@
 #include "common/stream.h"
 
 #include "engines/reevengi/formats/pak.h"
+#include "engines/reevengi/formats/bss.h"
 #include "engines/reevengi/re1/re1.h"
 
 namespace Reevengi {
@@ -48,9 +49,14 @@ static const char *re1_country[NUM_COUNTRIES]={
 
 static const char *RE1PCGAME_BG = "%s/stage%d/rc%d%02x%d.pak";
 
+static const char *RE1PSX_BG = "psx%s/stage%d/room%d%02x.bss";
+
 RE1Engine::RE1Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc) :
 		ReevengiEngine(syst, gameType, desc) {
 	_room = 6;
+
+	_isShock = false;
+	_country = 0;
 }
 
 RE1Engine::~RE1Engine() {
@@ -68,6 +74,11 @@ void RE1Engine::initPreRun(void) {
 			debug(3, "re1: country %d", i);
 			break;
 		}
+	}
+
+	/* Dual shock ? */
+	if (SearchMan.hasFile("slus_007.47")) {
+		_isShock = true;
 	}
 }
 
@@ -119,7 +130,57 @@ void RE1Engine::loadBgImagePc(int stage) {
 }
 
 void RE1Engine::loadBgImagePsx(int stage) {
-	// TODO
+	char *filePath;
+
+	filePath = (char *) malloc(strlen(RE1PSX_BG)+16);
+	if (!filePath) {
+		return;
+	}
+	sprintf(filePath, RE1PSX_BG, _isShock ? "usa": "", _stage, _stage, _room);
+
+	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember(filePath);
+	if (arcStream) {
+		byte *imgBuffer = new byte[32768];
+		memset(imgBuffer, 0, 32768);
+
+		arcStream->seek(32768 * _camera);
+		arcStream->read(imgBuffer, 32768);
+
+		Common::BitStreamMemoryStream *imgStream = new Common::BitStreamMemoryStream(imgBuffer, 32768, DisposeAfterUse::YES);
+		if (imgStream) {
+			/* FIXME: Would be simpler to call PSXStreamDecoder::PSXVideoTrack::decodeFrame() on imgBuffer
+			   instead of duplicating implementation in formats/bss.[cpp,h] */
+			PSXVideoTrack *vidDecoder = new PSXVideoTrack(/*imgStream,*/ 1, 16);
+			vidDecoder->decodeFrame(imgStream, 16);
+
+			const Graphics::Surface *frame = vidDecoder->decodeNextFrame();
+			if (frame) {
+				Graphics::PixelFormat fmt;
+				memcpy(&fmt, &(frame->format), sizeof(Graphics::PixelFormat));
+
+				_bgImage = new TimDecoder();
+				_bgImage->CreateTimSurface(frame->w, frame->h, fmt);
+
+				const Graphics::Surface *dstFrame = _bgImage->getSurface();
+
+				const byte *src = (const byte *) frame->getPixels();
+				byte *dst = (byte *) dstFrame->getPixels();
+				if (frame->pitch == dstFrame->pitch) {
+					memcpy(dst, src, frame->h * frame->pitch);
+				} else {
+					for (int y = frame->h; y > 0; --y) {
+						memcpy(dst, src, frame->w * fmt.bytesPerPixel);
+						src += frame->pitch;
+						dst += dstFrame->pitch;
+					}
+				}
+			}
+
+			delete vidDecoder;
+		}
+		delete imgStream;
+	}
+	delete arcStream;
 }
 
 } // end of namespace Reevengi
