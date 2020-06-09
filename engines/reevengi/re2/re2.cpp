@@ -25,6 +25,7 @@
 #include "common/stream.h"
 
 #include "engines/reevengi/formats/adt.h"
+#include "engines/reevengi/formats/bss.h"
 #include "engines/reevengi/re2/re2.h"
 
 namespace Reevengi {
@@ -32,6 +33,8 @@ namespace Reevengi {
 /*--- Constant ---*/
 
 static const char *RE2PCDEMO_BG = "common/stage%d/rc%d%02x%1x.adt";
+
+static const char *RE2PSX_BG = "common/bss/room%d%02x.bss";
 
 RE2Engine::RE2Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc) :
 		ReevengiEngine(syst, gameType, desc) {
@@ -132,7 +135,57 @@ void RE2Engine::loadBgImagePcGame(void) {
 }
 
 void RE2Engine::loadBgImagePsx(void) {
-	// TODO
+	char *filePath;
+
+	filePath = (char *) malloc(strlen(RE2PSX_BG)+8);
+	if (!filePath) {
+		return;
+	}
+	sprintf(filePath, RE2PSX_BG, _stage, _room);
+
+	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember(filePath);
+	if (arcStream) {
+		byte *imgBuffer = new byte[65536];
+		memset(imgBuffer, 0, 65536);
+
+		arcStream->seek(65536 * _camera);
+		arcStream->read(imgBuffer, 65536);
+
+		Common::BitStreamMemoryStream *imgStream = new Common::BitStreamMemoryStream(imgBuffer, 65536, DisposeAfterUse::YES);
+		if (imgStream) {
+			/* FIXME: Would be simpler to call PSXStreamDecoder::PSXVideoTrack::decodeFrame() on imgBuffer
+			   instead of duplicating implementation in formats/bss.[cpp,h] */
+			PSXVideoTrack *vidDecoder = new PSXVideoTrack(/*imgStream,*/ 1, 32);
+			vidDecoder->decodeFrame(imgStream, 32);
+
+			const Graphics::Surface *frame = vidDecoder->decodeNextFrame();
+			if (frame) {
+				Graphics::PixelFormat fmt;
+				memcpy(&fmt, &(frame->format), sizeof(Graphics::PixelFormat));
+
+				_bgImage = new TimDecoder();
+				_bgImage->CreateTimSurface(frame->w, frame->h, fmt);
+
+				const Graphics::Surface *dstFrame = _bgImage->getSurface();
+
+				const byte *src = (const byte *) frame->getPixels();
+				byte *dst = (byte *) dstFrame->getPixels();
+				if (frame->pitch == dstFrame->pitch) {
+					memcpy(dst, src, frame->h * frame->pitch);
+				} else {
+					for (int y = frame->h; y > 0; --y) {
+						memcpy(dst, src, frame->w * fmt.bytesPerPixel);
+						src += frame->pitch;
+						dst += dstFrame->pitch;
+					}
+				}
+			}
+
+			delete vidDecoder;
+		}
+		delete imgStream;
+	}
+	delete arcStream;
 }
 
 } // end of namespace Reevengi
