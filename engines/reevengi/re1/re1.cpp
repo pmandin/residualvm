@@ -32,7 +32,7 @@ namespace Reevengi {
 
 /*--- Defines ---*/
 
-#define NUM_COUNTRIES 8
+#define NUM_COUNTRIES 9
 
 /*--- Constant ---*/
 
@@ -44,7 +44,8 @@ static const char *re1_country[NUM_COUNTRIES]={
 	"usa",
 	"ger",
 	"jpn",
-	"fra"
+	"fra",
+	""
 };
 
 static const char *RE1PCGAME_BG = "%s/stage%d/rc%d%02x%d.pak";
@@ -55,8 +56,7 @@ RE1Engine::RE1Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescr
 		ReevengiEngine(syst, gameType, desc) {
 	_room = 6;
 
-	_isShock = false;
-	_country = 0;
+	_country = 8;
 }
 
 RE1Engine::~RE1Engine() {
@@ -76,9 +76,9 @@ void RE1Engine::initPreRun(void) {
 		}
 	}
 
-	/* Dual shock ? */
+	/* Dual shock USA ? */
 	if (SearchMan.hasFile("slus_007.47")) {
-		_isShock = true;
+		_country = 4;
 	}
 }
 
@@ -136,7 +136,7 @@ void RE1Engine::loadBgImagePsx(int stage) {
 	if (!filePath) {
 		return;
 	}
-	sprintf(filePath, RE1PSX_BG, _isShock ? "usa": "", _stage, _stage, _room);
+	sprintf(filePath, RE1PSX_BG, re1_country[_country], _stage, _stage, _room);
 
 	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember(filePath);
 	if (arcStream) {

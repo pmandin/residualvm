@@ -40,7 +40,6 @@ protected:
 
 private:
 	int _country;
-	bool _isShock;
 
 	void loadBgImagePc(int stage);
 	void loadBgImagePsx(int stage);
