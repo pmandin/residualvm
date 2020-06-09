@@ -4,6 +4,7 @@ MODULE_OBJS := \
 	detection.o \
 	reevengi.o \
 	formats/adt.o \
+	formats/bss.o \
 	formats/pak.o \
 	formats/tim.o \
 	gfx/gfx_base.o \
