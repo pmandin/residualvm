@@ -25,6 +25,7 @@
 
 #include "engines/advancedDetector.h"
 #include "engines/engine.h"
+#include "image/image_decoder.h"
 
 namespace Common {
 class Event;
@@ -61,7 +62,7 @@ protected:
 	GfxBase *createRenderer(int screenW, int screenH, bool fullscreen);
 	virtual void initPreRun(void);
 
-	TimDecoder *_bgImage;
+	Image::ImageDecoder *_bgImage;
 	void destroyBgImage(void);
 	virtual void loadBgImage(void);
 
@@ -74,7 +75,7 @@ private:
 	void processEventsKeyDown(Common::Event e);
 
 	TimDecoder *testLoadImage(void);
-	void testDisplayImage(TimDecoder *img);
+	void testDisplayImage(Image::ImageDecoder *img);
 	void testLoadMovie(void);
 	void testPlayMovie(void);
 

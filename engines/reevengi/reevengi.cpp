@@ -308,7 +308,7 @@ TimDecoder *ReevengiEngine::testLoadImage(void) {
 	return my_image1;
 }
 
-void ReevengiEngine::testDisplayImage(TimDecoder *img) {
+void ReevengiEngine::testDisplayImage(Image::ImageDecoder *img) {
 	g_driver->drawMovieFrame(0, 0);
 }
 

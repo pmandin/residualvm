@@ -164,7 +164,7 @@ void RE2Engine::loadBgImagePsx(void) {
 				memcpy(&fmt, &(frame->format), sizeof(Graphics::PixelFormat));
 
 				_bgImage = new TimDecoder();
-				_bgImage->CreateTimSurface(frame->w, frame->h, fmt);
+				((TimDecoder *)_bgImage)->CreateTimSurface(frame->w, frame->h, fmt);
 
 				const Graphics::Surface *dstFrame = _bgImage->getSurface();
 
