@@ -133,6 +133,9 @@ void GfxOpenGL::prepareMovieFrame(Graphics::Surface *frame) {
 	} else if (frame->format == Graphics::PixelFormat(4, 8, 8, 8, 8, 0, 8, 16, 24)) {
 		format = GL_RGBA;
 		dataType = GL_UNSIGNED_INT_8_8_8_8_REV;
+	} else if (frame->format == Graphics::PixelFormat(3, 8, 8, 8, 0, 0, 8, 16, 0)) {
+		format = GL_RGB;
+		dataType = GL_UNSIGNED_BYTE;
 	} else {
 		error("Unknown pixelformat: Bpp: %d RBits: %d GBits: %d BBits: %d ABits: %d RShift: %d GShift: %d BShift: %d AShift: %d",
 			frame->format.bytesPerPixel,
