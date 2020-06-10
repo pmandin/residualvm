@@ -96,15 +96,9 @@ Common::SeekableReadStream *RofsArchive::createReadStreamForMember(const Common:
 	if (!_stream || !_map.contains(name))
 		return nullptr;
 
-	/*const FileEntry &entry = _map[name];
+	const RofsFileEntry &entry = _map[name];
 
-	if (!entry.compressed) {
-		return new Common::SeekableSubReadStream(_stream, entry.offset, entry.offset + entry.uncompressedSize);
-	}*/
-
-	// TODO: Return decompressed stream
-
-	return nullptr;
+	return new RofsFileStream(&entry);
 }
 
 /* All rofs<n>.dat files start with this */
@@ -152,14 +146,15 @@ void RofsArchive::enumerateFiles(Common::String &dirPrefix) {
 		name += fileName;
 		//debug(3, " entry %d: %s", i, name.c_str());
 
-		FileEntry entry;
+		RofsFileEntry entry;
+		entry.archive = this;
 		entry.compressed = false;
 		entry.uncompressedSize = fileCompSize;
 		entry.compressedSize = fileCompSize;
 		entry.offset = fileOffset;
 
 		/* Now read file header to check for compression */
-		//debug(3, "file %s at 0x%08x", name.c_str(), fileOffset);
+		debug(3, "file %s at 0x%08x", name.c_str(), fileOffset);
 
 		int32 arcPos = _stream->pos();
 		_stream->seek(entry.offset);
@@ -170,7 +165,7 @@ void RofsArchive::enumerateFiles(Common::String &dirPrefix) {
 	}
 }
 
-void RofsArchive::readFileHeader(FileEntry &entry) {
+void RofsArchive::readFileHeader(RofsFileEntry &entry) {
 	char ident[8];
 
 	entry.offset += _stream->readUint16LE();
@@ -183,7 +178,43 @@ void RofsArchive::readFileHeader(FileEntry &entry) {
 		ident[i] ^= ident[7];
 	}
 	entry.compressed = (strcmp("Hi_Comp", ident)==0);
-	//debug(3, " 0x%08x %d %s", entry.blkOffset, entry.numBlocks, ident);
+	debug(3, " 0x%08x %d %s", entry.blkOffset, entry.numBlocks, ident);
+}
+
+// RofsFileStream
+
+RofsFileStream::RofsFileStream(const RofsFileEntry *entry) : Common::SeekableReadStream(),
+	_pos(0) {
+	memcpy(&_entry, entry, sizeof(_entry));
+	_fileBuffer = new byte[_entry.uncompressedSize];
+}
+
+RofsFileStream::~RofsFileStream() {
+	delete _fileBuffer;
+	_fileBuffer = nullptr;
+}
+
+uint32 RofsFileStream::read(void *dataPtr, uint32 dataSize) {
+	int32 sizeRead = MAX<int32>(dataSize, _entry.uncompressedSize-_pos);
+
+	memcpy(dataPtr, &_fileBuffer[_pos], sizeRead);
+	_pos += sizeRead;
+
+	return sizeRead;
+}
+
+bool RofsFileStream::seek(int32 offs, int whence) {
+	switch(whence) {
+		case SEEK_SET:
+		case SEEK_END:
+			_pos = offs;
+			break;
+		case SEEK_CUR:
+			_pos += offs;
+			break;
+	}
+
+	return true;
 }
 
 } // End of namespace Reevengi

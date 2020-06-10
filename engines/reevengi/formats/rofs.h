@@ -34,6 +34,21 @@
 
 namespace Reevengi {
 
+class RofsArchive;
+
+struct RofsFileEntry {
+	RofsArchive *archive;
+
+	bool compressed;
+	uint32 uncompressedSize;
+	uint32 compressedSize;
+	uint32 offset;
+
+	/* Decryption info */
+	uint16 numBlocks;
+	uint32 blkOffset;
+};
+
 class RofsArchive : public Common::Archive {
 public:
 	RofsArchive();
@@ -50,28 +65,37 @@ public:
 	Common::SeekableReadStream *createReadStreamForMember(const Common::String &name) const override;
 
 private:
-	struct FileEntry {
-		bool compressed;
-		uint32 uncompressedSize;
-		uint32 compressedSize;
-		uint32 offset;
-
-		/* Decryption info */
-		uint16 numBlocks;
-		uint32 blkOffset;
-	};
-
 	Common::SeekableReadStream *_stream;
 
-	typedef Common::HashMap<Common::String, FileEntry, Common::IgnoreCase_Hash, Common::IgnoreCase_EqualTo> FileMap;
+	typedef Common::HashMap<Common::String, RofsFileEntry, Common::IgnoreCase_Hash, Common::IgnoreCase_EqualTo> FileMap;
 	FileMap _map;
 
 	// Archive parsing
 	bool isArchive(void);
 	void readFilename(char *filename, int nameLen);
 	void enumerateFiles(Common::String &dirPrefix);
-	void readFileHeader(FileEntry &entry);
+	void readFileHeader(RofsFileEntry &entry);
 
+};
+
+class RofsFileStream: public Common::SeekableReadStream {
+public:
+	RofsFileEntry _entry;
+	uint32 _pos;
+	byte *_fileBuffer;
+
+	RofsFileStream(const RofsFileEntry *entry);
+	~RofsFileStream();
+
+private:
+	uint32 read(void *dataPtr, uint32 dataSize);
+
+	bool eos() const { return _pos>=_entry.uncompressedSize; }
+
+	int32 pos() const { return _pos; }
+	int32 size() const { return _entry.uncompressedSize; }
+
+	bool seek(int32 offs, int whence = SEEK_SET);
 };
 
 } // End of namespace Reevengi
