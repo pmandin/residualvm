@@ -34,10 +34,8 @@
 
 namespace Reevengi {
 
-class RofsArchive;
-
 struct RofsFileEntry {
-	RofsArchive *archive;
+	Common::SeekableReadStream *arcStream;
 
 	bool compressed;
 	uint32 uncompressedSize;
@@ -96,6 +94,14 @@ private:
 	int32 size() const { return _entry.uncompressedSize; }
 
 	bool seek(int32 offs, int whence = SEEK_SET);
+
+	// Decrypt file
+	void decryptFile(void);
+	void decryptBlock(byte *src, uint32 key, uint32 length);
+	uint8 nextKey(uint32 *key);
+
+	// Depack file if needed
+	void depackFile(void);
 };
 
 } // End of namespace Reevengi

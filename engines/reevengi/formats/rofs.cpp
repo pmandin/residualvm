@@ -147,14 +147,14 @@ void RofsArchive::enumerateFiles(Common::String &dirPrefix) {
 		//debug(3, " entry %d: %s", i, name.c_str());
 
 		RofsFileEntry entry;
-		entry.archive = this;
+		entry.arcStream = _stream;
 		entry.compressed = false;
 		entry.uncompressedSize = fileCompSize;
 		entry.compressedSize = fileCompSize;
 		entry.offset = fileOffset;
 
 		/* Now read file header to check for compression */
-		debug(3, "file %s at 0x%08x", name.c_str(), fileOffset);
+		//debug(3, "file %s at 0x%08x", name.c_str(), fileOffset);
 
 		int32 arcPos = _stream->pos();
 		_stream->seek(entry.offset);
@@ -178,15 +178,26 @@ void RofsArchive::readFileHeader(RofsFileEntry &entry) {
 		ident[i] ^= ident[7];
 	}
 	entry.compressed = (strcmp("Hi_Comp", ident)==0);
-	debug(3, " 0x%08x %d %s", entry.blkOffset, entry.numBlocks, ident);
+	//debug(3, " 0x%08x %d %s", entry.blkOffset, entry.numBlocks, ident);
 }
 
 // RofsFileStream
 
 RofsFileStream::RofsFileStream(const RofsFileEntry *entry) : Common::SeekableReadStream(),
 	_pos(0) {
-	memcpy(&_entry, entry, sizeof(_entry));
+	_entry = *entry;
 	_fileBuffer = new byte[_entry.uncompressedSize];
+
+	decryptFile();
+	if (_entry.compressed) {
+		depackFile();
+	}
+/*
+	Common::DumpFile adf;
+	adf.open("img.jpg");
+	adf.write(_fileBuffer, _entry.uncompressedSize);
+	adf.close();
+*/
 }
 
 RofsFileStream::~RofsFileStream() {
@@ -215,6 +226,93 @@ bool RofsFileStream::seek(int32 offs, int whence) {
 	}
 
 	return true;
+}
+
+// RofsFileStream decryption
+
+const unsigned short base_array[64]={
+	0x00e6, 0x01a4, 0x00e6, 0x01c5,
+	0x0130, 0x00e8, 0x03db, 0x008b,
+	0x0141, 0x018e, 0x03ae, 0x0139,
+	0x00f0, 0x027a, 0x02c9, 0x01b0,
+	0x01f7, 0x0081, 0x0138, 0x0285,
+	0x025a, 0x015b, 0x030f, 0x0335,
+	0x02e4, 0x01f6, 0x0143, 0x00d1,
+	0x0337, 0x0385, 0x007b, 0x00c6,
+	0x0335, 0x0141, 0x0186, 0x02a1,
+	0x024d, 0x0342, 0x01fb, 0x03e5,
+	0x01b0, 0x006d, 0x0140, 0x00c0,
+	0x0386, 0x016b, 0x020b, 0x009a,
+	0x0241, 0x00de, 0x015e, 0x035a,
+	0x025b, 0x0154, 0x0068, 0x02e8,
+	0x0321, 0x0071, 0x01b0, 0x0232,
+	0x02d9, 0x0263, 0x0164, 0x0290
+};
+
+void RofsFileStream::decryptFile(void) {
+	//debug(3, "blocks: %d", _entry.numBlocks);
+	uint32 *keyInfo = new uint32[2*_entry.numBlocks];
+
+	/* Read key info */
+	//debug(3, "blk offset: 0x%08x", _entry.blkOffset);
+	_entry.arcStream->seek(_entry.blkOffset);
+	for(int i=0; i<2*_entry.numBlocks; i++) {
+		keyInfo[i] = _entry.arcStream->readUint32LE();
+		//debug(3, "key %d: 0x%08x", i, keyInfo[i]);
+	}
+
+	//debug(3, "offset 0x%08x", _entry.offset);
+	_entry.arcStream->seek(_entry.offset);
+	int32 offset = 0;
+	for(int i=0; i<_entry.numBlocks; i++) {
+		uint32 blockKey = keyInfo[i];
+		uint32 blockLen = keyInfo[i+_entry.numBlocks];
+
+		//debug(3, "decrypt %d bytes with 0x%08x", blockLen, blockKey);
+
+		_entry.arcStream->read(&_fileBuffer[offset], blockLen);
+		decryptBlock(&_fileBuffer[offset], blockKey, blockLen);
+
+		offset += blockLen;
+	}
+
+	//debug(3, "done");
+	delete keyInfo;
+}
+
+void RofsFileStream::decryptBlock(byte *src, uint32 key, uint32 length) {
+	uint8 xor_key, base_index, modulo;
+	int i, block_index;
+
+	xor_key = nextKey(&key);
+	modulo = nextKey(&key);
+	base_index = modulo % 0x3f;
+
+	block_index = 0;
+	for (i=0; i<length; i++) {
+		if (block_index>base_array[base_index]) {
+			modulo = nextKey(&key);
+			base_index = modulo % 0x3f;
+			xor_key = nextKey(&key);
+			block_index = 0;
+		}
+		src[i] ^= xor_key;
+		block_index++;
+	}
+}
+
+uint8 RofsFileStream::nextKey(uint32 *key)
+{
+	*key *= 0x5d588b65;
+	*key += 0x8000000b;
+
+	return (*key >> 24);
+}
+
+// RofsFileStream depacking
+
+void RofsFileStream::depackFile(void) {
+	debug(3, "TODO: depack file");
 }
 
 } // End of namespace Reevengi
