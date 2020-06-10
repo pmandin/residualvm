@@ -6,6 +6,7 @@ MODULE_OBJS := \
 	formats/adt.o \
 	formats/bss.o \
 	formats/pak.o \
+	formats/rofs.o \
 	formats/tim.o \
 	gfx/gfx_base.o \
 	gfx/gfx_opengl.o \
