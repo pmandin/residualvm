@@ -35,16 +35,10 @@
 namespace Reevengi {
 
 struct RofsFileEntry {
-	Common::SeekableReadStream *arcStream;
-
 	bool compressed;
 	uint32 uncompressedSize;
 	uint32 compressedSize;
 	uint32 offset;
-
-	/* Decryption info */
-	uint16 numBlocks;
-	uint32 blkOffset;
 };
 
 class RofsArchive : public Common::Archive {
@@ -78,11 +72,12 @@ private:
 
 class RofsFileStream: public Common::SeekableReadStream {
 public:
+	Common::SeekableReadStream *_arcStream;
 	RofsFileEntry _entry;
 	uint32 _pos;
 	byte *_fileBuffer;
 
-	RofsFileStream(const RofsFileEntry *entry);
+	RofsFileStream(const RofsFileEntry *entry, Common::SeekableReadStream &subStream);
 	~RofsFileStream();
 
 private:

@@ -98,7 +98,9 @@ Common::SeekableReadStream *RofsArchive::createReadStreamForMember(const Common:
 
 	const RofsFileEntry &entry = _map[name];
 
-	return new RofsFileStream(&entry);
+	Common::SeekableSubReadStream subStream(_stream, entry.offset, entry.offset + entry.compressedSize);
+
+	return new RofsFileStream(&entry, subStream);
 }
 
 /* All rofs<n>.dat files start with this */
@@ -147,7 +149,6 @@ void RofsArchive::enumerateFiles(Common::String &dirPrefix) {
 		//debug(3, " entry %d: %s", i, name.c_str());
 
 		RofsFileEntry entry;
-		entry.arcStream = _stream;
 		entry.compressed = false;
 		entry.uncompressedSize = fileCompSize;
 		entry.compressedSize = fileCompSize;
@@ -168,25 +169,27 @@ void RofsArchive::enumerateFiles(Common::String &dirPrefix) {
 void RofsArchive::readFileHeader(RofsFileEntry &entry) {
 	char ident[8];
 
-	entry.offset += _stream->readUint16LE();
-	entry.numBlocks = _stream->readUint16LE();
+	_stream->skip(4);	/* Skip relative offset, num blocks */
 	entry.uncompressedSize = _stream->readUint32LE();
 	_stream->read(ident, 8);
-	entry.blkOffset = _stream->pos();
+	//entry.blkOffset = _stream->pos();
 
 	for(int i=0; i<8; i++) {
 		ident[i] ^= ident[7];
 	}
 	entry.compressed = (strcmp("Hi_Comp", ident)==0);
-	//debug(3, " 0x%08x %d %s", entry.blkOffset, entry.numBlocks, ident);
+
+	//debug(3, " file %s", ident);
 }
 
 // RofsFileStream
 
-RofsFileStream::RofsFileStream(const RofsFileEntry *entry) : Common::SeekableReadStream(),
-	_pos(0) {
+RofsFileStream::RofsFileStream(const RofsFileEntry *entry, Common::SeekableReadStream &subStream):
+	_pos(0), _arcStream(&subStream) {
+
 	_entry = *entry;
 	_fileBuffer = new byte[_entry.uncompressedSize];
+	memset(_fileBuffer, 0, _entry.uncompressedSize);
 
 	decryptFile();
 	if (_entry.compressed) {
@@ -194,7 +197,7 @@ RofsFileStream::RofsFileStream(const RofsFileEntry *entry) : Common::SeekableRea
 	}
 /*
 	Common::DumpFile adf;
-	adf.open("img.jpg");
+	adf.open("img0.jpg");
 	adf.write(_fileBuffer, _entry.uncompressedSize);
 	adf.close();
 */
@@ -217,8 +220,10 @@ uint32 RofsFileStream::read(void *dataPtr, uint32 dataSize) {
 bool RofsFileStream::seek(int32 offs, int whence) {
 	switch(whence) {
 		case SEEK_SET:
-		case SEEK_END:
 			_pos = offs;
+			break;
+		case SEEK_END:
+			_pos = offs+_entry.uncompressedSize;
 			break;
 		case SEEK_CUR:
 			_pos += offs;
@@ -250,27 +255,30 @@ const unsigned short base_array[64]={
 };
 
 void RofsFileStream::decryptFile(void) {
-	//debug(3, "blocks: %d", _entry.numBlocks);
-	uint32 *keyInfo = new uint32[2*_entry.numBlocks];
+	uint16 fileOffset = _arcStream->readUint16LE();
+	//debug(3, "offset 0x%08x", fileOffset);
+
+	uint16 numBlocks = _arcStream->readUint16LE();
+	//debug(3, "blocks: %d", numBlocks);
+
+	_arcStream->skip(4+8);	// Uncompressed size + Hi_Comp/Not_Comp string
+
+	uint32 *keyInfo = new uint32[2*numBlocks];
 
 	/* Read key info */
-	//debug(3, "blk offset: 0x%08x", _entry.blkOffset);
-	_entry.arcStream->seek(_entry.blkOffset);
-	for(int i=0; i<2*_entry.numBlocks; i++) {
-		keyInfo[i] = _entry.arcStream->readUint32LE();
-		//debug(3, "key %d: 0x%08x", i, keyInfo[i]);
+	for(int i=0; i<2*numBlocks; i++) {
+		keyInfo[i] = _arcStream->readUint32LE();
 	}
 
-	//debug(3, "offset 0x%08x", _entry.offset);
-	_entry.arcStream->seek(_entry.offset);
+	_arcStream->seek(fileOffset);
 	int32 offset = 0;
-	for(int i=0; i<_entry.numBlocks; i++) {
+	for(int i=0; i<numBlocks; i++) {
 		uint32 blockKey = keyInfo[i];
-		uint32 blockLen = keyInfo[i+_entry.numBlocks];
+		uint32 blockLen = keyInfo[i+numBlocks];
 
 		//debug(3, "decrypt %d bytes with 0x%08x", blockLen, blockKey);
 
-		_entry.arcStream->read(&_fileBuffer[offset], blockLen);
+		_arcStream->read(&_fileBuffer[offset], blockLen);
 		decryptBlock(&_fileBuffer[offset], blockKey, blockLen);
 
 		offset += blockLen;
