@@ -134,8 +134,10 @@ uint32 PsxCdStream::read(void *dataPtr, uint32 dataSize) {
 bool PsxCdStream::seek(int32 offs, int whence) {
 	switch(whence) {
 		case SEEK_SET:
-		case SEEK_END:
 			_pos = offs;
+			break;
+		case SEEK_END:
+			_pos = offs+_size;
 			break;
 		case SEEK_CUR:
 			_pos += offs;
