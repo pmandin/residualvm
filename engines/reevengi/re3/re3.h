@@ -35,9 +35,11 @@ public:
 	virtual ~RE3Engine();
 
 protected:
+	void initPreRun(void);
 	void loadBgImage(void);
 
 private:
+	void loadBgImagePc(void);
 	void loadBgImagePsx(void);
 };
 
