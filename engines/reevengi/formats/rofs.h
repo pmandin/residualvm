@@ -77,7 +77,7 @@ public:
 	uint32 _pos;
 	byte *_fileBuffer;
 
-	RofsFileStream(const RofsFileEntry *entry, Common::SeekableReadStream &subStream);
+	RofsFileStream(const RofsFileEntry *entry, Common::SeekableReadStream *subStream);
 	~RofsFileStream();
 
 private:

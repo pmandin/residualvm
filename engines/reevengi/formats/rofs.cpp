@@ -100,7 +100,7 @@ Common::SeekableReadStream *RofsArchive::createReadStreamForMember(const Common:
 
 	Common::SeekableSubReadStream subStream(_stream, entry.offset, entry.offset + entry.compressedSize);
 
-	return new RofsFileStream(&entry, subStream);
+	return new RofsFileStream(&entry, &subStream);
 }
 
 /* All rofs<n>.dat files start with this */
@@ -184,8 +184,8 @@ void RofsArchive::readFileHeader(RofsFileEntry &entry) {
 
 // RofsFileStream
 
-RofsFileStream::RofsFileStream(const RofsFileEntry *entry, Common::SeekableReadStream &subStream):
-	_pos(0), _arcStream(&subStream) {
+RofsFileStream::RofsFileStream(const RofsFileEntry *entry, Common::SeekableReadStream *subStream):
+	_pos(0), _arcStream(subStream) {
 
 	_entry = *entry;
 	_fileBuffer = new byte[_entry.uncompressedSize];
@@ -201,6 +201,8 @@ RofsFileStream::RofsFileStream(const RofsFileEntry *entry, Common::SeekableReadS
 	adf.write(_fileBuffer, _entry.uncompressedSize);
 	adf.close();
 */
+
+	_arcStream = nullptr;
 }
 
 RofsFileStream::~RofsFileStream() {
@@ -209,7 +211,7 @@ RofsFileStream::~RofsFileStream() {
 }
 
 uint32 RofsFileStream::read(void *dataPtr, uint32 dataSize) {
-	int32 sizeRead = MAX<int32>(dataSize, _entry.uncompressedSize-_pos);
+	int32 sizeRead = MIN<int32>(dataSize, _entry.uncompressedSize-_pos);
 
 	memcpy(dataPtr, &_fileBuffer[_pos], sizeRead);
 	_pos += sizeRead;
