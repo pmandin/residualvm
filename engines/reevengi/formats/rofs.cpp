@@ -193,6 +193,7 @@ RofsFileStream::RofsFileStream(const RofsFileEntry *entry, Common::SeekableReadS
 
 	decryptFile();
 	if (_entry.compressed) {
+		_arcStream->seek(0);
 		depackFile();
 	}
 /*
@@ -292,14 +293,14 @@ void RofsFileStream::decryptFile(void) {
 
 void RofsFileStream::decryptBlock(byte *src, uint32 key, uint32 length) {
 	uint8 xor_key, base_index, modulo;
-	int i, block_index;
+	int block_index;
 
 	xor_key = nextKey(&key);
 	modulo = nextKey(&key);
 	base_index = modulo % 0x3f;
 
 	block_index = 0;
-	for (i=0; i<length; i++) {
+	for (uint32 i=0; i<length; i++) {
 		if (block_index>base_array[base_index]) {
 			modulo = nextKey(&key);
 			base_index = modulo % 0x3f;
@@ -319,10 +320,98 @@ uint8 RofsFileStream::nextKey(uint32 *key)
 	return (*key >> 24);
 }
 
-// RofsFileStream depacking
+// RofsFileStream depacking, LZSS like routine
 
 void RofsFileStream::depackFile(void) {
-	debug(3, "TODO: depack file");
+	uint16 fileOffset = _arcStream->readUint16LE();
+	//debug(3, "offset 0x%08x", fileOffset);
+
+	uint16 numBlocks = _arcStream->readUint16LE();
+	//debug(3, "blocks: %d", numBlocks);
+
+	_arcStream->skip(4+8);	// Uncompressed size + Hi_Comp/Not_Comp string
+
+	uint32 *keyInfo = new uint32[2*numBlocks];
+
+	/* Read key info */
+	for(int i=0; i<2*numBlocks; i++) {
+		keyInfo[i] = _arcStream->readUint32LE();
+	}
+
+	byte *dst = new byte[_entry.uncompressedSize];
+
+	_arcStream->seek(fileOffset);
+	int32 offset = 0;
+	for(int i=0; i<numBlocks; i++) {
+		uint32 blockLen = keyInfo[i+numBlocks];
+
+		/* Depacked blocks are 32KB max */
+		depackBlock(&dst[offset], 32768, &_fileBuffer[offset], blockLen);
+
+		offset += blockLen;
+	}
+
+	//debug(3, "done");
+	delete keyInfo;
+
+	/* Swap buffers */
+	delete _fileBuffer;
+	_fileBuffer = dst;
+}
+
+void RofsFileStream::depackBlock(uint8 *dst, int dstLength, uint8 *src, int srcLength) {
+	int srcNumBit, srcIndex, tmpIndex, dstIndex;
+	int i, value, value2, tmpStart, tmpLength;
+	uint8 tmp4k[4096+256];
+
+	for (i=0; i<256; i++) {
+ 		memset(&tmp4k[i*16], i, 16);
+	}
+	memset(&tmp4k[4096], 0, 256);
+
+	srcNumBit = 0;
+	srcIndex = 0;
+	tmpIndex = 0;
+	dstIndex = 0;
+	while ((srcIndex<srcLength) && (dstIndex<dstLength)) {
+		srcNumBit++;
+
+		value = src[srcIndex++] << srcNumBit;
+		if (srcIndex<srcLength) {
+			value |= src[srcIndex] >> (8-srcNumBit);
+		}
+
+		if (srcNumBit==8) {
+			srcIndex++;
+			srcNumBit = 0;
+		}
+
+		if ((value & (1<<8))==0) {
+			dst[dstIndex++] = tmp4k[tmpIndex++] = value;
+		} else {
+			value2 = (src[srcIndex++] << srcNumBit) & 0xff;
+			value2 |= src[srcIndex] >> (8-srcNumBit);
+
+			tmpLength = (value2 & 0x0f)+2;
+
+			tmpStart = (value2 >> 4) & 0xfff;
+			tmpStart |= (value & 0xff) << 4;
+
+			if (dstIndex+tmpLength > dstLength) {
+				tmpLength = dstLength-dstIndex;
+			}
+
+			memcpy(&dst[dstIndex], &tmp4k[tmpStart], tmpLength);
+			memcpy(&tmp4k[tmpIndex], &dst[dstIndex], tmpLength);
+
+			dstIndex += tmpLength;
+			tmpIndex += tmpLength;
+		}
+
+		if (tmpIndex>=4096) {
+			tmpIndex = 0;
+		}
+	}
 }
 
 } // End of namespace Reevengi

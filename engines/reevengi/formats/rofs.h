@@ -95,8 +95,9 @@ private:
 	void decryptBlock(byte *src, uint32 key, uint32 length);
 	uint8 nextKey(uint32 *key);
 
-	// Depack file if needed
+	// Depack file
 	void depackFile(void);
+	void depackBlock(uint8 *dst, int dstLength, uint8 *src, int srcLength);
 };
 
 } // End of namespace Reevengi
