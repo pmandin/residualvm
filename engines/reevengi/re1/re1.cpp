@@ -83,7 +83,7 @@ void RE1Engine::initPreRun(void) {
 }
 
 void RE1Engine::loadBgImage(void) {
-	debug(3, "re1: loadBgImage");
+	//debug(3, "re1: loadBgImage");
 
 	/* Stages 6,7 use images from stages 1,2 */
 	int stage = (_stage>5 ? _stage-5 : _stage);
@@ -92,15 +92,47 @@ void RE1Engine::loadBgImage(void) {
 		if (_stage>2) { _stage=1; }
 	}
 
+	/* Images for shaking scenes have 4 pixels less, force dimensions */
+	int width = 320, height = 240;
+	if (stage==2) {
+		if (_room==0) {
+			if (_camera==0) {
+				width -= 4; height -= 4;
+			}
+		}
+	} else if (stage==3) {
+		if (_room==6) {
+			if (_camera!=2) {
+				width -= 4; height -= 4;
+			}
+		} else if (_room==7) {
+			/* All cameras angles for this room */
+				width -= 4; height -= 4;
+		} else if (_room==0x0b) {
+			/* All cameras angles for this room */
+				width -= 4; height -= 4;
+		} else if (_room==0x0f) {
+			/* All cameras angles for this room */
+				width -= 4; height -= 4;
+		}
+	} else if (stage==5) {
+		if (_room==0x0d) {
+			width -= 4; height -= 4;
+		}
+		if (_room==0x15) {
+			width -= 4; height -= 4;
+		}
+	}
+
 	switch(_gameDesc.platform) {
 		case Common::kPlatformWindows:
 			{
-				loadBgImagePc(stage);
+				loadBgImagePc(stage, width, height);
 			}
 			break;
 		case Common::kPlatformPSX:
 			{
-				loadBgImagePsx(stage);
+				loadBgImagePsx(stage, width, height);
 			}
 			break;
 		default:
@@ -110,7 +142,7 @@ void RE1Engine::loadBgImage(void) {
 	ReevengiEngine::loadBgImage();
 }
 
-void RE1Engine::loadBgImagePc(int stage) {
+void RE1Engine::loadBgImagePc(int stage, int width, int height) {
 	char *filePath;
 
 	filePath = (char *) malloc(strlen(RE1PCGAME_BG)+32);
@@ -122,6 +154,9 @@ void RE1Engine::loadBgImagePc(int stage) {
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
 	if (stream) {
 		_bgImage = new PakDecoder();
+		if ((width!=320) || (height!=240)) {
+			((PakDecoder *) _bgImage)->setSize(width, height);
+		}
 		((PakDecoder *) _bgImage)->loadStream(*stream);
 	}
 	delete stream;
@@ -129,7 +164,7 @@ void RE1Engine::loadBgImagePc(int stage) {
 	free(filePath);
 }
 
-void RE1Engine::loadBgImagePsx(int stage) {
+void RE1Engine::loadBgImagePsx(int stage, int width, int height) {
 	char *filePath;
 
 	filePath = (char *) malloc(strlen(RE1PSX_BG)+16);
@@ -158,21 +193,20 @@ void RE1Engine::loadBgImagePsx(int stage) {
 				Graphics::PixelFormat fmt;
 				memcpy(&fmt, &(frame->format), sizeof(Graphics::PixelFormat));
 
+				int frameW = width;
+				int frameH = height;
+
 				_bgImage = new TimDecoder();
-				((TimDecoder *)_bgImage)->CreateTimSurface(frame->w, frame->h, fmt);
+				((TimDecoder *)_bgImage)->CreateTimSurface(frameW, frameH, fmt);
 
 				const Graphics::Surface *dstFrame = _bgImage->getSurface();
 
 				const byte *src = (const byte *) frame->getPixels();
 				byte *dst = (byte *) dstFrame->getPixels();
-				if (frame->pitch == dstFrame->pitch) {
-					memcpy(dst, src, frame->h * frame->pitch);
-				} else {
-					for (int y = frame->h; y > 0; --y) {
-						memcpy(dst, src, frame->w * fmt.bytesPerPixel);
-						src += frame->pitch;
-						dst += dstFrame->pitch;
-					}
+				for (int y = frameH; y > 0; --y) {
+					memcpy(dst, src, frameW * fmt.bytesPerPixel);
+					src += /*frame->pitch*/ frameW * fmt.bytesPerPixel;
+					dst += dstFrame->pitch;
 				}
 			}
 

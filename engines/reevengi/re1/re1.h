@@ -41,8 +41,8 @@ protected:
 private:
 	int _country;
 
-	void loadBgImagePc(int stage);
-	void loadBgImagePsx(int stage);
+	void loadBgImagePc(int stage, int width = 320, int height = 240);
+	void loadBgImagePsx(int stage, int width = 320, int height = 240);
 };
 
 } // end of namespace Reevengi
