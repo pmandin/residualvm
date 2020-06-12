@@ -37,6 +37,8 @@ public:
 	TimDecoder();
 	virtual ~TimDecoder();
 
+	void setSize(int w, int h);
+
 	void CreateTimSurface(int w, int h, Graphics::PixelFormat &fmt);
 
 	// ImageDecoder API
@@ -52,6 +54,8 @@ protected:
 	uint16 readPixel(uint16 color);
 
 private:
+	int _forcedW, _forcedH;
+
 	// Color-map:
 	byte *_colorMap;
 	int16 _colorMapCount;	/* Number of color maps */

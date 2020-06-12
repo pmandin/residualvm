@@ -53,12 +53,16 @@ public:
 	PakDecoder();
 	virtual ~PakDecoder();
 
+	void setSize(int w, int h);
+
 	// ImageDecoder API
 	virtual void destroy() override;
 	virtual bool loadStream(Common::SeekableReadStream &pak) override;
 	virtual const Graphics::Surface *getSurface() const { return TimDecoder::getSurface(); } override;
 
 private:
+	int _forcedW, _forcedH;
+
 	// LZW depacker
 	uint8 *_dstPointer;
 	int _dstBufLen, _dstOffset;

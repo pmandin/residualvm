@@ -61,23 +61,26 @@ typedef struct {
 
 /*--- Class ---*/
 
-TimDecoder::TimDecoder() {
-	_colorMapCount = 0;
-	_colorMapLength = 0;
-	_colorMap = NULL;
+TimDecoder::TimDecoder(): _colorMapCount(0), _colorMapLength(0), _colorMap(nullptr),
+	_forcedW(0), _forcedH(0) {
 }
 
 TimDecoder::~TimDecoder() {
 	destroy();
 }
 
-void TimDecoder::CreateTimSurface(int w, int h, Graphics::PixelFormat &fmt) {
-	_surface.create(w, h, fmt);
-}
-
 void TimDecoder::destroy() {
 	_surface.free();
 	delete[] _colorMap;
+}
+
+void TimDecoder::setSize(int w, int h) {
+	_forcedW = w;
+	_forcedH = h;
+}
+
+void TimDecoder::CreateTimSurface(int w, int h, Graphics::PixelFormat &fmt) {
+	_surface.create(w, h, fmt);
 }
 
 bool TimDecoder::loadStream(Common::SeekableReadStream &tim) {
@@ -220,6 +223,9 @@ bool TimDecoder::readData(Common::SeekableReadStream &tim, byte imageType) {
 			return false;
 	}
 	_surface.h = pix_hdr.height;
+
+	if (_forcedW) { _surface.w = _forcedW; }
+	if (_forcedH) { _surface.h = _forcedH; }
 
 	_surface.create(_surface.w, _surface.h, _format);
 

@@ -30,9 +30,7 @@
 
 namespace Reevengi {
 
-PakDecoder::PakDecoder() {
-	_dstPointer = 0;
-	_dstBufLen = 0;
+PakDecoder::PakDecoder(): _forcedW(0), _forcedH(0), _dstPointer(nullptr), _dstBufLen(0) {
 }
 
 PakDecoder::~PakDecoder() {
@@ -46,6 +44,11 @@ void PakDecoder::destroy() {
 	_dstBufLen = 0;
 
 	TimDecoder::destroy();
+}
+
+void PakDecoder::setSize(int w, int h) {
+	_forcedW = w;
+	_forcedH = h;
 }
 
 bool PakDecoder::loadStream(Common::SeekableReadStream &pak) {
@@ -66,6 +69,9 @@ bool PakDecoder::loadStream(Common::SeekableReadStream &pak) {
 		return false;
 	}
 
+	if (_forcedW || _forcedH) {
+		TimDecoder::setSize(_forcedW, _forcedH);
+	}
 	return TimDecoder::loadStream(*mem_str);
 }
 
