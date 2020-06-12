@@ -8,6 +8,7 @@ MODULE_OBJS := \
 	formats/pak.o \
 	formats/rofs.o \
 	formats/tim.o \
+	game/clock.o \
 	gfx/gfx_base.o \
 	gfx/gfx_opengl.o \
 	gfx/gfx_tinygl.o \
