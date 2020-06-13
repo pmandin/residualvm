@@ -4,6 +4,7 @@ MODULE_OBJS := \
 	detection.o \
 	reevengi.o \
 	formats/adt.o \
+	formats/ard.o \
 	formats/bss.o \
 	formats/pak.o \
 	formats/rofs.o \
