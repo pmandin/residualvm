@@ -20,6 +20,7 @@ MODULE_OBJS := \
 	movie/psx.o \
 	re1/re1.o \
 	re2/re2.o \
+	re2/room.o \
 	re3/re3.o
 
 # This module can be built as a plugin

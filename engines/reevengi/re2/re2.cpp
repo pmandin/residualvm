@@ -28,6 +28,7 @@
 #include "engines/reevengi/formats/bss.h"
 #include "engines/reevengi/game/room.h"
 #include "engines/reevengi/re2/re2.h"
+#include "engines/reevengi/re2/room.h"
 
 namespace Reevengi {
 
@@ -213,7 +214,7 @@ void RE2Engine::loadRoom(void) {
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
 	if (stream) {
-		_roomScene = new Room(stream);
+		_roomScene = new RE2Room(stream);
 	}
 	delete stream;
 }
