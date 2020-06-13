@@ -35,13 +35,18 @@ public:
 	virtual ~RE2Engine();
 
 protected:
+	void initPreRun(void);
 	void loadBgImage(void);
+	void loadRoom(void);
 
 private:
+	char _country;
+
 	void loadBgImagePcDemo(void);
 	void loadBgImagePcGame(void);
 	void loadBgImagePsx(void);
 
+	void loadRoomPc(void);
 };
 
 } // end of namespace Reevengi

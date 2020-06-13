@@ -26,6 +26,7 @@
 
 #include "engines/reevengi/formats/adt.h"
 #include "engines/reevengi/formats/bss.h"
+#include "engines/reevengi/game/room.h"
 #include "engines/reevengi/re2/re2.h"
 
 namespace Reevengi {
@@ -33,11 +34,12 @@ namespace Reevengi {
 /*--- Constant ---*/
 
 static const char *RE2PCDEMO_BG = "common/stage%d/rc%d%02x%1x.adt";
+static const char *RE2PC_ROOM = "pl%d/rd%c/room%d%02x%d.rdt";
 
 static const char *RE2PSX_BG = "common/bss/room%d%02x.bss";
 
 RE2Engine::RE2Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc) :
-		ReevengiEngine(syst, gameType, desc) {
+		ReevengiEngine(syst, gameType, desc), _country('u') {
 	if (gameType == RType_RE2_CLAIRE) {
 		_character = 1;
 	}
@@ -50,8 +52,31 @@ RE2Engine::RE2Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescr
 RE2Engine::~RE2Engine() {
 }
 
+void RE2Engine::initPreRun(void) {
+	char filePath[32];
+
+	/* Country detection */
+	sprintf(filePath, RE2PC_ROOM, _character, 'p', 1, 0, _character);
+	if (SearchMan.hasFile(filePath)) {
+		_country = 'p';
+	}
+	sprintf(filePath, RE2PC_ROOM, _character, 's', 1, 0, _character);
+	if (SearchMan.hasFile(filePath)) {
+		_country = 's';
+	}
+	sprintf(filePath, RE2PC_ROOM, _character, 'f', 1, 0, _character);
+	if (SearchMan.hasFile(filePath)) {
+		_country = 'f';
+	}
+	sprintf(filePath, RE2PC_ROOM, _character, 't', 1, 0, _character);
+	if (SearchMan.hasFile(filePath)) {
+		_country = 't';
+	}
+
+}
+
 void RE2Engine::loadBgImage(void) {
-	debug(3, "re2: loadBgImage");
+	//debug(3, "re2: loadBgImage");
 
 	if ((_gameDesc.flags & ADGF_DEMO)==ADGF_DEMO) {
 		if (_stage>2) { _stage=1; }
@@ -186,6 +211,43 @@ void RE2Engine::loadBgImagePsx(void) {
 		delete imgStream;
 	}
 	delete arcStream;
+}
+
+void RE2Engine::loadRoom(void) {
+	debug(3, "re2: loadRoom");
+
+	switch(_gameDesc.platform) {
+		case Common::kPlatformWindows:
+			{
+				loadRoomPc();
+			}
+			break;
+		case Common::kPlatformPSX:
+			{
+				//loadRoomPsx();
+			}
+			break;
+		default:
+			return;
+	}
+}
+
+void RE2Engine::loadRoomPc(void) {
+	char *filePath;
+
+	filePath = (char *) malloc(strlen(RE2PC_ROOM)+8);
+	if (!filePath) {
+		return;
+	}
+	sprintf(filePath, RE2PC_ROOM, _character, _country, _stage, _room, _character);
+
+	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
+	if (stream) {
+		_roomScene = new Room(stream);
+	}
+	delete stream;
+
+	free(filePath);
 }
 
 } // end of namespace Reevengi
