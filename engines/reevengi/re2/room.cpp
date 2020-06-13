@@ -20,6 +20,7 @@
  *
  */
 
+#include "common/endian.h"
 #include "common/stream.h"
 
 #include "engines/reevengi/re2/room.h"
@@ -47,18 +48,40 @@ typedef struct {
 	uint32	offsets[21];
 } rdt2_header_t;
 
+typedef struct {
+	uint16 unk0;
+	uint16 const0; /* 0x683c, or 0x73b7 */
+	/* const0>>7 used for engine */
+	int32 fromX, fromY, fromZ;
+	int32 toX, toY, toZ;
+	uint32 masksOffset;
+} rdt2_rid_t;
+
 RE2Room::RE2Room(Common::SeekableReadStream *stream): Room(stream) {
 	//
 }
 
 int RE2Room::getNumCameras(void) {
-	int result = 0;
+	if (!_roomPtr)
+		return 0;
 
-	if (_roomPtr) {
-		result = ((rdt2_header_t *) _roomPtr)->numCameras;
-	}
+	return ((rdt2_header_t *) _roomPtr)->numCameras;
+}
 
-	return result;
+void RE2Room::getCameraPos(int numCamera, RdtCameraPos_t *cameraPos) {
+	if (!_roomPtr)
+		return;
+
+	int32 offset = FROM_LE_32( ((rdt2_header_t *) _roomPtr)->offsets[RDT2_OFFSET_CAMERAS] );
+	rdt2_rid_t *cameraPosArray = (rdt2_rid_t *) ((byte *) &_roomPtr[offset]);
+
+	cameraPos->fromX = FROM_LE_32( cameraPosArray[numCamera].fromX );
+	cameraPos->fromY = FROM_LE_32( cameraPosArray[numCamera].fromY );
+	cameraPos->fromZ = FROM_LE_32( cameraPosArray[numCamera].fromZ );
+
+	cameraPos->toX = FROM_LE_32( cameraPosArray[numCamera].toX );
+	cameraPos->toY = FROM_LE_32( cameraPosArray[numCamera].toY );
+	cameraPos->toZ = FROM_LE_32( cameraPosArray[numCamera].toZ );
 }
 
 } // End of namespace Reevengi

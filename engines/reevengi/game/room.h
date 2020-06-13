@@ -27,12 +27,18 @@
 
 namespace Reevengi {
 
+typedef struct {
+	int32 fromX, fromY, fromZ;
+	int32 toX, toY, toZ;
+} RdtCameraPos_t;
+
 class Room {
 public:
 	Room(Common::SeekableReadStream *stream);
 	virtual ~Room();
 
 	virtual int getNumCameras(void);
+	virtual void getCameraPos(int numCamera, RdtCameraPos_t *cameraPos);
 
 protected:
 	// raw data file for room

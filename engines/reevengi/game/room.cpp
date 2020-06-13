@@ -43,6 +43,10 @@ int Room::getNumCameras(void) {
 	return 0;
 }
 
+void Room::getCameraPos(int numCamera, RdtCameraPos_t *cameraPos) {
+	//
+}
+
 void Room::postLoad(void) {
 	//
 }

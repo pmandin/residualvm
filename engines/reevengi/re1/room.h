@@ -34,6 +34,7 @@ public:
 	RE1Room(Common::SeekableReadStream *stream);
 
 	int getNumCameras(void);
+	void getCameraPos(int numCamera, RdtCameraPos_t *cameraPos);
 };
 
 } // End of namespace Reevengi
