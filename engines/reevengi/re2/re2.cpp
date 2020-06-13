@@ -33,8 +33,9 @@ namespace Reevengi {
 
 /*--- Constant ---*/
 
+static const char *RE2_ROOM = "pl%d/rd%c/room%d%02x%d.rdt";
+
 static const char *RE2PCDEMO_BG = "common/stage%d/rc%d%02x%1x.adt";
-static const char *RE2PC_ROOM = "pl%d/rd%c/room%d%02x%d.rdt";
 
 static const char *RE2PSX_BG = "common/bss/room%d%02x.bss";
 
@@ -56,19 +57,19 @@ void RE2Engine::initPreRun(void) {
 	char filePath[64];
 
 	/* Country detection */
-	sprintf(filePath, RE2PC_ROOM, _character, 'p', 1, 0, _character);
+	sprintf(filePath, RE2_ROOM, _character, 'p', 1, 0, _character);
 	if (SearchMan.hasFile(filePath)) {
 		_country = 'p';
 	}
-	sprintf(filePath, RE2PC_ROOM, _character, 's', 1, 0, _character);
+	sprintf(filePath, RE2_ROOM, _character, 's', 1, 0, _character);
 	if (SearchMan.hasFile(filePath)) {
 		_country = 's';
 	}
-	sprintf(filePath, RE2PC_ROOM, _character, 'f', 1, 0, _character);
+	sprintf(filePath, RE2_ROOM, _character, 'f', 1, 0, _character);
 	if (SearchMan.hasFile(filePath)) {
 		_country = 'f';
 	}
-	sprintf(filePath, RE2PC_ROOM, _character, 't', 1, 0, _character);
+	sprintf(filePath, RE2_ROOM, _character, 't', 1, 0, _character);
 	if (SearchMan.hasFile(filePath)) {
 		_country = 't';
 	}
@@ -204,28 +205,11 @@ void RE2Engine::loadBgImagePsx(void) {
 }
 
 void RE2Engine::loadRoom(void) {
-	debug(3, "re2: loadRoom");
-
-	switch(_gameDesc.platform) {
-		case Common::kPlatformWindows:
-			{
-				loadRoomPc();
-			}
-			break;
-		case Common::kPlatformPSX:
-			{
-				//loadRoomPsx();
-			}
-			break;
-		default:
-			return;
-	}
-}
-
-void RE2Engine::loadRoomPc(void) {
 	char filePath[64];
 
-	sprintf(filePath, RE2PC_ROOM, _character, _country, _stage, _room, _character);
+	debug(3, "re2: loadRoom");
+
+	sprintf(filePath, RE2_ROOM, _character, _country, _stage, _room, _character);
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
 	if (stream) {

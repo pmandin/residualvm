@@ -45,8 +45,6 @@ private:
 	void loadBgImagePcDemo(void);
 	void loadBgImagePcGame(void);
 	void loadBgImagePsx(void);
-
-	void loadRoomPc(void);
 };
 
 } // end of namespace Reevengi
