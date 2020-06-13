@@ -54,16 +54,22 @@ void Clock::unpause(void) {
 	endPause = getParentTime();
 }
 
-uint32 Clock::getRunningTime(void) {
-	if (paused) {
+uint32 Clock::getRunningTime(bool _unPausedTime) {
+	if (paused && !_unPausedTime) {
 		return runningTime;
 	}
 
 	return runningTime + getParentTime() - endPause;
 }
 
-uint32 Clock::getGameTic(void) {
-	return (getRunningTime() * 30) / 1000;
+uint32 Clock::getGameTic(bool _unPausedTime) {
+	return (getRunningTime(_unPausedTime) * 30) / 1000;
+}
+
+void Clock::waitGameTic(int elapsedTics) {
+	uint32 nextMs = ((getGameTic(true)+elapsedTics) * 1000) / 30;
+
+	g_system->delayMillis( MIN<uint32>(1, nextMs - getRunningTime(true)));
 }
 
 uint32 Clock::getParentTime(void) {

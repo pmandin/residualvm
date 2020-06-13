@@ -35,8 +35,11 @@ public:
 	void pause(void);
 	void unpause(void);
 
-	uint32 getRunningTime(void);
-	uint32 getGameTic(void);	// 1 tic = 1/30s, mostly for animations
+	uint32 getRunningTime(bool _unPausedTime = false);
+	uint32 getGameTic(bool _unPausedTime = false);	// 1 tic = 1/30s, mostly for animations
+
+	// Pause till game tics elapsed, using unpaused time
+	void waitGameTic(int elapsedTics = 1);
 
 private:
 	Clock *_parent;
