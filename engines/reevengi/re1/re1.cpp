@@ -26,6 +26,7 @@
 
 #include "engines/reevengi/formats/pak.h"
 #include "engines/reevengi/formats/bss.h"
+#include "engines/reevengi/game/room.h"
 #include "engines/reevengi/re1/re1.h"
 
 namespace Reevengi {
@@ -47,6 +48,8 @@ static const char *re1_country[NUM_COUNTRIES]={
 	"fra",
 	""
 };
+
+static const char *RE1_ROOM = "%s%s/stage%d/room%d%02x0.rdt";
 
 static const char *RE1PCGAME_BG = "%s/stage%d/rc%d%02x%d.pak";
 
@@ -86,7 +89,7 @@ void RE1Engine::loadBgImage(void) {
 	//debug(3, "re1: loadBgImage");
 
 	/* Stages 6,7 use images from stages 1,2 */
-	int stage = (_stage>5 ? _stage-5 : _stage);
+	int stage = ((_stage % 8)>5 ? _stage-5 : _stage);
 
 	if ((_gameDesc.flags & ADGF_DEMO)==ADGF_DEMO) {
 		if (_stage>2) { _stage=1; }
@@ -143,12 +146,8 @@ void RE1Engine::loadBgImage(void) {
 }
 
 void RE1Engine::loadBgImagePc(int stage, int width, int height) {
-	char *filePath;
+	char filePath[64];
 
-	filePath = (char *) malloc(strlen(RE1PCGAME_BG)+32);
-	if (!filePath) {
-		return;
-	}
 	sprintf(filePath, RE1PCGAME_BG, re1_country[_country], stage, stage, _room, _camera);
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
@@ -160,18 +159,12 @@ void RE1Engine::loadBgImagePc(int stage, int width, int height) {
 		((PakDecoder *) _bgImage)->loadStream(*stream);
 	}
 	delete stream;
-
-	free(filePath);
 }
 
 void RE1Engine::loadBgImagePsx(int stage, int width, int height) {
-	char *filePath;
+	char filePath[64];
 
-	filePath = (char *) malloc(strlen(RE1PSX_BG)+16);
-	if (!filePath) {
-		return;
-	}
-	sprintf(filePath, RE1PSX_BG, re1_country[_country], _stage, _stage, _room);
+	sprintf(filePath, RE1PSX_BG, re1_country[_country], stage, stage, _room);
 
 	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember(filePath);
 	if (arcStream) {
@@ -215,6 +208,22 @@ void RE1Engine::loadBgImagePsx(int stage, int width, int height) {
 		delete imgStream;
 	}
 	delete arcStream;
+}
+
+void RE1Engine::loadRoom(void) {
+	char filePath[64];
+	bool isPsx = (_gameDesc.platform == Common::kPlatformPSX);
+
+	debug(3, "re1: loadRoom");
+
+	sprintf(filePath, RE1_ROOM, isPsx ? "psx" : "", re1_country[_country], _stage, _stage, _room);
+
+	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
+	if (stream) {
+		debug(3, "loaded %s", filePath);
+		_roomScene = new Room(stream);
+	}
+	delete stream;
 }
 
 } // end of namespace Reevengi
