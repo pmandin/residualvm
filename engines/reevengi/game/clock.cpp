@@ -26,8 +26,9 @@
 
 namespace Reevengi {
 
-Clock::Clock(): runningTime(0), paused(false) {
-	startPause = endPause = g_system->getMillis();
+Clock::Clock(Clock *parent): runningTime(0), paused(false) {
+	_parent = parent;
+	startPause = endPause = getParentTime();
 }
 
 Clock::~Clock() {
@@ -39,7 +40,7 @@ void Clock::pause(void) {
 	}
 
 	paused = true;
-	startPause = g_system->getMillis();
+	startPause = getParentTime();
 	/* endPause is end of previous pause */
 	runningTime += startPause - endPause;
 }
@@ -50,7 +51,7 @@ void Clock::unpause(void) {
 	}
 
 	paused = false;
-	endPause = g_system->getMillis();
+	endPause = getParentTime();
 }
 
 uint32 Clock::getRunningTime(void) {
@@ -58,11 +59,19 @@ uint32 Clock::getRunningTime(void) {
 		return runningTime;
 	}
 
-	return runningTime + g_system->getMillis() - endPause;
+	return runningTime + getParentTime() - endPause;
 }
 
 uint32 Clock::getGameTic(void) {
 	return (getRunningTime() * 30) / 1000;
+}
+
+uint32 Clock::getParentTime(void) {
+	if (_parent) {
+		return _parent->getRunningTime();
+	}
+
+	return g_system->getMillis();
 }
 
 } // End of namespace Reevengi

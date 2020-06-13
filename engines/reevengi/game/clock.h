@@ -25,9 +25,11 @@
 
 namespace Reevengi {
 
+class Clock;
+
 class Clock {
 public:
-	Clock();
+	Clock(Clock *parent = nullptr);
 	~Clock();
 
 	void pause(void);
@@ -37,8 +39,12 @@ public:
 	uint32 getGameTic(void);	// 1 tic = 1/30s, mostly for animations
 
 private:
+	Clock *_parent;
+
 	uint32 runningTime, startPause, endPause;
 	bool paused;
+
+	uint32 getParentTime(void);
 };
 
 } // End of namespace Reevengi
