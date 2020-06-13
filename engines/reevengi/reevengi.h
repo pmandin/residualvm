@@ -37,6 +37,7 @@ namespace Reevengi {
 class GfxBase;
 class TimDecoder;
 class Clock;
+class Room;
 
 enum ReevengiGameType {
 	RType_None,
@@ -68,6 +69,11 @@ protected:
 	Image::ImageDecoder *_bgImage;
 	void destroyBgImage(void);
 	virtual void loadBgImage(void);
+
+	// Room data
+	Room *_roomScene;
+	void destroyRoom(void);
+	virtual void loadRoom(void);
 
 private:
 	bool _softRenderer;

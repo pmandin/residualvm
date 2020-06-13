@@ -54,7 +54,7 @@ GfxBase *g_driver = nullptr;
 
 ReevengiEngine::ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *gameDesc) :
 	Engine(syst), _gameType(gameType), _character(0), _softRenderer(true),
-	_stage(1), _room(0), _camera(0), _bgImage(nullptr) {
+	_stage(1), _room(0), _camera(0), _bgImage(nullptr), _roomScene(nullptr) {
 	memcpy(&_gameDesc, gameDesc, sizeof(_gameDesc));
 	g_movie = nullptr;
 	_clock = new Clock();
@@ -62,6 +62,7 @@ ReevengiEngine::ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const A
 
 ReevengiEngine::~ReevengiEngine() {
 	destroyBgImage();
+	destroyRoom();
 
 	delete g_movie;
 	g_movie = nullptr;
@@ -129,6 +130,7 @@ Common::Error ReevengiEngine::run() {
 	//TimDecoder *my_image = testLoadImage();
 	//testLoadMovie();
 	loadBgImage();
+	loadRoom();
 
 	while (!shouldQuit()) {
 
@@ -144,6 +146,7 @@ Common::Error ReevengiEngine::run() {
 		// Get new events from the event manager so the window doesn't appear non-responsive.
 		processEvents();
 
+		// FIXME: Continue processing input events, till game tic elapsed
 		_clock->waitGameTic();
 	}
 
@@ -197,6 +200,7 @@ void ReevengiEngine::processEvents(void) {
 
 void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 	bool updateBgImage = false;
+	bool updateRoom = false;
 
 	/* Depend on game/demo */
 	if (e.kbd.keycode == Common::KEYCODE_z) {
@@ -205,6 +209,7 @@ void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 			_stage=7;
 		}
 		updateBgImage = true;
+		updateRoom = true;
 	}
 	if (e.kbd.keycode == Common::KEYCODE_s) {
 		++_stage;
@@ -212,10 +217,12 @@ void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 			_stage=1;
 		}
 		updateBgImage = true;
+		updateRoom = true;
 	}
 	if (e.kbd.keycode == Common::KEYCODE_x) {
 		_stage=1;
 		updateBgImage = true;
+		updateRoom = true;
 	}
 
 	/* Depend on game/stage */
@@ -225,6 +232,7 @@ void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 			_room=0x1c;
 		}
 		updateBgImage = true;
+		updateRoom = true;
 	}
 	if (e.kbd.keycode == Common::KEYCODE_d) {
 		++_room;
@@ -232,10 +240,12 @@ void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 			_room=0;
 		}
 		updateBgImage = true;
+		updateRoom = true;
 	}
 	if (e.kbd.keycode == Common::KEYCODE_c) {
 		_room=0;
 		updateBgImage = true;
+		updateRoom = true;
 	}
 
 	/* Room dependant */
@@ -252,13 +262,16 @@ void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 		updateBgImage = true;
 	}
 
-	if (!updateBgImage) {
-		return;
-	}
-
 	debug(3, "switch to stage %d, room %d, camera %d", _stage, _room, _camera);
-	destroyBgImage();
-	loadBgImage();
+
+	if (updateRoom) {
+		destroyRoom();
+		loadRoom();
+	}
+	if (updateBgImage) {
+		destroyBgImage();
+		loadBgImage();
+	}
 }
 
 void ReevengiEngine::onScreenChanged(void) {
@@ -279,6 +292,15 @@ void ReevengiEngine::loadBgImage(void) {
 	if (bgSurf) {
 		g_driver->prepareMovieFrame(bgSurf);
 	}
+}
+
+void ReevengiEngine::destroyRoom(void) {
+	delete _roomScene;
+	_roomScene = nullptr;
+}
+
+void ReevengiEngine::loadRoom(void) {
+	//
 }
 
 TimDecoder *ReevengiEngine::testLoadImage(void) {
