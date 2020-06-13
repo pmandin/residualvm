@@ -29,6 +29,7 @@
 #include "engines/reevengi/formats/bss.h"
 #include "engines/reevengi/formats/rofs.h"
 #include "engines/reevengi/formats/tim.h"
+#include "engines/reevengi/game/room.h"
 #include "engines/reevengi/re3/re3.h"
 
 namespace Reevengi {
@@ -37,11 +38,13 @@ namespace Reevengi {
 
 static const char *RE3PCROFS_DAT = "rofs%d.dat";
 static const char *RE3PC_BG = "data_a/bss/r%d%02x%02x.jpg";
+static const char *RE3PC_ROOM = "data_%c/rdt/r%d%02x.rdt";
 
 static const char *RE3PSX_BG = "cd_data/stage%d/r%d%02x.bss";
+static const char *RE3PSX_ROOM = "cd_data/stage%d/r%d%02x.ard";
 
 RE3Engine::RE3Engine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *desc) :
-		ReevengiEngine(syst, gameType, desc) {
+		ReevengiEngine(syst, gameType, desc), _country('u') {
 	_room = 13;
 }
 
@@ -71,6 +74,13 @@ void RE3Engine::initPreRun(void) {
 						delete archive;
 					}
 				}
+
+				if (SearchMan.hasFile("data_e/etc2/died00e.tim")) {
+					_country = 'e';
+				}
+				if (SearchMan.hasFile("data_f/etc2/died00f.tim")) {
+					_country = 'f';
+				}
 			}
 			break;
 		case Common::kPlatformPSX:
@@ -83,7 +93,7 @@ void RE3Engine::initPreRun(void) {
 }
 
 void RE3Engine::loadBgImage(void) {
-	debug(3, "re3: loadBgImage");
+	//debug(3, "re3: loadBgImage");
 
 	switch(_gameDesc.platform) {
 		case Common::kPlatformWindows:
@@ -104,12 +114,8 @@ void RE3Engine::loadBgImage(void) {
 }
 
 void RE3Engine::loadBgImagePc(void) {
-	char *filePath;
+	char filePath[64];
 
-	filePath = (char *) malloc(strlen(RE3PC_BG)+32);
-	if (!filePath) {
-		return;
-	}
 	sprintf(filePath, RE3PC_BG, _stage, _room, _camera);
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
@@ -118,17 +124,11 @@ void RE3Engine::loadBgImagePc(void) {
 		((Image::JPEGDecoder *) _bgImage)->loadStream(*stream);
 	}
 	delete stream;
-
-	free(filePath);
 }
 
 void RE3Engine::loadBgImagePsx(void) {
-	char *filePath;
+	char filePath[64];
 
-	filePath = (char *) malloc(strlen(RE3PSX_BG)+8);
-	if (!filePath) {
-		return;
-	}
 	sprintf(filePath, RE3PSX_BG, _stage, _stage, _room);
 
 	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember(filePath);
@@ -174,6 +174,51 @@ void RE3Engine::loadBgImagePsx(void) {
 		delete imgStream;
 	}
 	delete arcStream;
+}
+
+void RE3Engine::loadRoom(void) {
+	debug(3, "re3: loadRoom");
+
+	switch(_gameDesc.platform) {
+		case Common::kPlatformWindows:
+			{
+				loadRoomPc();
+			}
+			break;
+		case Common::kPlatformPSX:
+			{
+				loadRoomPsx();
+			}
+			break;
+		default:
+			break;
+	}
+}
+
+void RE3Engine::loadRoomPc(void) {
+	char filePath[64];
+
+	sprintf(filePath, RE3PC_ROOM, _country, _stage, _room);
+
+	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
+	if (stream) {
+		_roomScene = new Room(stream);
+	}
+	delete stream;
+}
+
+void RE3Engine::loadRoomPsx(void) {
+	char filePath[64];
+
+	sprintf(filePath, RE3PSX_ROOM, _country, _stage, _stage, _room);
+
+	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
+	if (stream) {
+		// TODO
+		/* Read RDT file at position 8 in ARD archive */
+		//_roomScene = new Room(stream);
+	}
+	delete stream;
 }
 
 } // end of namespace Reevengi

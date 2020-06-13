@@ -220,7 +220,7 @@ void RE1Engine::loadRoom(void) {
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
 	if (stream) {
-		debug(3, "loaded %s", filePath);
+		//debug(3, "loaded %s", filePath);
 		_roomScene = new Room(stream);
 	}
 	delete stream;

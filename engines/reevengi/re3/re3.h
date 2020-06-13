@@ -37,10 +37,16 @@ public:
 protected:
 	void initPreRun(void);
 	void loadBgImage(void);
+	void loadRoom(void);
 
 private:
+	char _country;
+
 	void loadBgImagePc(void);
 	void loadBgImagePsx(void);
+
+	void loadRoomPc(void);
+	void loadRoomPsx(void);
 };
 
 } // end of namespace Reevengi
