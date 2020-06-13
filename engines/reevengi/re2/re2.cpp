@@ -53,7 +53,7 @@ RE2Engine::~RE2Engine() {
 }
 
 void RE2Engine::initPreRun(void) {
-	char filePath[32];
+	char filePath[64];
 
 	/* Country detection */
 	sprintf(filePath, RE2PC_ROOM, _character, 'p', 1, 0, _character);
@@ -105,12 +105,8 @@ void RE2Engine::loadBgImage(void) {
 }
 
 void RE2Engine::loadBgImagePcDemo(void) {
-	char *filePath;
+	char filePath[64];
 
-	filePath = (char *) malloc(strlen(RE2PCDEMO_BG)+8);
-	if (!filePath) {
-		return;
-	}
 	sprintf(filePath, RE2PCDEMO_BG, _stage, _stage, _room, _camera);
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
@@ -119,8 +115,6 @@ void RE2Engine::loadBgImagePcDemo(void) {
 		((AdtDecoder *) _bgImage)->loadStream(*stream);
 	}
 	delete stream;
-
-	free(filePath);
 }
 
 void RE2Engine::loadBgImagePcGame(void) {
@@ -160,12 +154,8 @@ void RE2Engine::loadBgImagePcGame(void) {
 }
 
 void RE2Engine::loadBgImagePsx(void) {
-	char *filePath;
+	char filePath[64];
 
-	filePath = (char *) malloc(strlen(RE2PSX_BG)+8);
-	if (!filePath) {
-		return;
-	}
 	sprintf(filePath, RE2PSX_BG, _stage, _room);
 
 	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember(filePath);
@@ -233,12 +223,8 @@ void RE2Engine::loadRoom(void) {
 }
 
 void RE2Engine::loadRoomPc(void) {
-	char *filePath;
+	char filePath[64];
 
-	filePath = (char *) malloc(strlen(RE2PC_ROOM)+8);
-	if (!filePath) {
-		return;
-	}
 	sprintf(filePath, RE2PC_ROOM, _character, _country, _stage, _room, _character);
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
@@ -246,8 +232,6 @@ void RE2Engine::loadRoomPc(void) {
 		_roomScene = new Room(stream);
 	}
 	delete stream;
-
-	free(filePath);
 }
 
 } // end of namespace Reevengi
