@@ -252,10 +252,20 @@ void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 	/* Room dependant */
 	if (e.kbd.keycode == Common::KEYCODE_r) {
 		--_camera;
+		if (_roomScene) {
+			if (_camera<0) {
+				_camera = _roomScene->getNumCameras()-1;
+			}
+		}
 		updateBgImage = true;
 	}
 	if (e.kbd.keycode == Common::KEYCODE_f) {
 		++_camera;
+		if (_roomScene) {
+			if (_camera>=_roomScene->getNumCameras()) {
+				_camera = 0;
+			}
+		}
 		updateBgImage = true;
 	}
 	if (e.kbd.keycode == Common::KEYCODE_v) {
@@ -268,6 +278,9 @@ void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 	if (updateRoom) {
 		destroyRoom();
 		loadRoom();
+		if (_roomScene) {
+			debug(3, "%d cameras", _roomScene->getNumCameras());
+		}
 	}
 	if (updateBgImage) {
 		destroyBgImage();
