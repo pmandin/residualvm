@@ -26,6 +26,7 @@
 #include "common/stream.h"
 #include "image/jpeg.h"
 
+#include "engines/reevengi/formats/ard.h"
 #include "engines/reevengi/formats/bss.h"
 #include "engines/reevengi/formats/rofs.h"
 #include "engines/reevengi/formats/tim.h"
@@ -177,7 +178,7 @@ void RE3Engine::loadBgImagePsx(void) {
 }
 
 void RE3Engine::loadRoom(void) {
-	debug(3, "re3: loadRoom");
+	//debug(3, "re3: loadRoom");
 
 	switch(_gameDesc.platform) {
 		case Common::kPlatformWindows:
@@ -210,13 +211,19 @@ void RE3Engine::loadRoomPc(void) {
 void RE3Engine::loadRoomPsx(void) {
 	char filePath[64];
 
-	sprintf(filePath, RE3PSX_ROOM, _country, _stage, _stage, _room);
+	sprintf(filePath, RE3PSX_ROOM, _stage, _stage, _room);
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
 	if (stream) {
-		// TODO
-		/* Read RDT file at position 8 in ARD archive */
-		//_roomScene = new Room(stream);
+		ArdArchive *ard = new ArdArchive(stream);
+		if (ard) {
+			Common::SeekableReadStream *rdtStream = ard->createReadStreamForMember(ArdArchive::kRdtFile);
+			if (rdtStream) {
+				_roomScene = new Room(rdtStream);
+			}
+			delete rdtStream;
+		}
+		delete ard;
 	}
 	delete stream;
 }
