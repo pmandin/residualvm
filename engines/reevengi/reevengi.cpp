@@ -43,6 +43,7 @@
 #include "engines/reevengi/formats/pak.h"
 #include "engines/reevengi/formats/tim.h"
 #include "engines/reevengi/game/clock.h"
+#include "engines/reevengi/game/room.h"
 #include "engines/reevengi/gfx/gfx_base.h"
 #include "engines/reevengi/gfx/gfx_opengl.h"
 #include "engines/reevengi/gfx/gfx_tinygl.h"
@@ -129,8 +130,8 @@ Common::Error ReevengiEngine::run() {
 
 	//TimDecoder *my_image = testLoadImage();
 	//testLoadMovie();
-	loadBgImage();
 	loadRoom();
+	loadBgImage();
 
 	while (!shouldQuit()) {
 

@@ -39,6 +39,10 @@ Room::~Room() {
 	_roomPtr = nullptr;
 }
 
+int Room::getNumCameras(void) {
+	return 0;
+}
+
 void Room::postLoad(void) {
 	//
 }

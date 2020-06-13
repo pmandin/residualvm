@@ -32,7 +32,9 @@ public:
 	Room(Common::SeekableReadStream *stream);
 	virtual ~Room();
 
-private:
+	virtual int getNumCameras(void);
+
+protected:
 	// raw data file for room
 	byte *_roomPtr;
 
