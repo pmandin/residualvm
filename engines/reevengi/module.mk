@@ -19,6 +19,7 @@ MODULE_OBJS := \
 	movie/mpeg.o \
 	movie/psx.o \
 	re1/re1.o \
+	re1/room.o \
 	re2/re2.o \
 	re2/room.o \
 	re3/re3.o \
