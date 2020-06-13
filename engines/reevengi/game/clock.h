@@ -30,7 +30,7 @@ class Clock;
 class Clock {
 public:
 	Clock(Clock *parent = nullptr);
-	~Clock();
+	virtual ~Clock();
 
 	void pause(void);
 	void unpause(void);

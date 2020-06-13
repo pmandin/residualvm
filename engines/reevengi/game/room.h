@@ -30,11 +30,13 @@ namespace Reevengi {
 class Room {
 public:
 	Room(Common::SeekableReadStream *stream);
-	~Room();
+	virtual ~Room();
 
 private:
 	// raw data file for room
 	byte *_roomPtr;
+
+	virtual void postLoad(void);
 };
 
 } // End of namespace Reevengi

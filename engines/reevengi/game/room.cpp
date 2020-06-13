@@ -30,11 +30,17 @@ Room::Room(Common::SeekableReadStream *stream) {
 
 	_roomPtr = new byte[strSize];
 	stream->read(_roomPtr, strSize);
+
+	postLoad();
 }
 
 Room::~Room() {
 	delete _roomPtr;
 	_roomPtr = nullptr;
+}
+
+void Room::postLoad(void) {
+	//
 }
 
 } // End of namespace Reevengi
