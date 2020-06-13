@@ -26,7 +26,6 @@
 
 #include "engines/reevengi/formats/adt.h"
 #include "engines/reevengi/formats/bss.h"
-#include "engines/reevengi/game/room.h"
 #include "engines/reevengi/re2/re2.h"
 #include "engines/reevengi/re2/room.h"
 

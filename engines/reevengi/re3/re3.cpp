@@ -30,8 +30,8 @@
 #include "engines/reevengi/formats/bss.h"
 #include "engines/reevengi/formats/rofs.h"
 #include "engines/reevengi/formats/tim.h"
-#include "engines/reevengi/game/room.h"
 #include "engines/reevengi/re3/re3.h"
+#include "engines/reevengi/re3/room.h"
 
 namespace Reevengi {
 
@@ -203,7 +203,7 @@ void RE3Engine::loadRoomPc(void) {
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
 	if (stream) {
-		_roomScene = new Room(stream);
+		_roomScene = new RE3Room(stream);
 	}
 	delete stream;
 }
@@ -219,7 +219,7 @@ void RE3Engine::loadRoomPsx(void) {
 		if (ard) {
 			Common::SeekableReadStream *rdtStream = ard->createReadStreamForMember(ArdArchive::kRdtFile);
 			if (rdtStream) {
-				_roomScene = new Room(rdtStream);
+				_roomScene = new RE3Room(rdtStream);
 			}
 			delete rdtStream;
 		}

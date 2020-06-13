@@ -23,6 +23,8 @@
 #ifndef REEVENGI_RE2ROOM_H
 #define REEVENGI_RE2ROOM_H
 
+#include "engines/reevengi/game/room.h"
+
 namespace Reevengi {
 
 class Room;
