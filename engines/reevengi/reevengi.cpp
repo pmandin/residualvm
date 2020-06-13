@@ -42,6 +42,7 @@
 #include "engines/reevengi/formats/adt.h"
 #include "engines/reevengi/formats/pak.h"
 #include "engines/reevengi/formats/tim.h"
+#include "engines/reevengi/game/clock.h"
 #include "engines/reevengi/gfx/gfx_base.h"
 #include "engines/reevengi/gfx/gfx_opengl.h"
 #include "engines/reevengi/gfx/gfx_tinygl.h"
@@ -56,6 +57,7 @@ ReevengiEngine::ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const A
 	_stage(1), _room(0), _camera(0), _bgImage(nullptr) {
 	memcpy(&_gameDesc, gameDesc, sizeof(_gameDesc));
 	g_movie = nullptr;
+	_clock = new Clock();
 }
 
 ReevengiEngine::~ReevengiEngine() {
@@ -63,6 +65,9 @@ ReevengiEngine::~ReevengiEngine() {
 
 	delete g_movie;
 	g_movie = nullptr;
+
+	delete _clock;
+	_clock = nullptr;
 }
 
 bool ReevengiEngine::hasFeature(EngineFeature f) const {
@@ -75,7 +80,7 @@ GfxBase *ReevengiEngine::createRenderer(int screenW, int screenH, bool fullscree
 	Graphics::RendererType matchingRendererType = Graphics::getBestMatchingAvailableRendererType(desiredRendererType);
 
 	_softRenderer = matchingRendererType == Graphics::kRendererTypeTinyGL;
-	_system->setupScreen(screenW, screenH, fullscreen, !_softRenderer);
+	g_system->setupScreen(screenW, screenH, fullscreen, !_softRenderer);
 
 #if defined(USE_OPENGL)
 	// Check the OpenGL context actually supports shaders
@@ -121,8 +126,6 @@ Common::Error ReevengiEngine::run() {
 	bool fullscreen = ConfMan.getBool("fullscreen");
 	g_driver = createRenderer(640, 480, fullscreen);
 
-	uint32 t=0;
-
 	//TimDecoder *my_image = testLoadImage();
 	//testLoadMovie();
 	loadBgImage();
@@ -141,11 +144,7 @@ Common::Error ReevengiEngine::run() {
 		// Get new events from the event manager so the window doesn't appear non-responsive.
 		processEvents();
 
-		// Wait a semi-arbitrary length in order to animate fluidly, but not insanely fast
-		_system->delayMillis(10);
-
-		// Increment our time variable, which doubles as our bit-shift counter.
-		t++;
+		_clock->waitGameTic();
 	}
 
 	g_driver->releaseMovieFrame();

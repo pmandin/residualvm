@@ -36,6 +36,7 @@ namespace Reevengi {
 
 class GfxBase;
 class TimDecoder;
+class Clock;
 
 enum ReevengiGameType {
 	RType_None,
@@ -55,6 +56,7 @@ public:
 protected:
 	ADGameDescription _gameDesc;
 	ReevengiGameType _gameType;
+	Clock *_clock;
 	int _character;
 	int _stage, _room, _camera;
 
@@ -62,6 +64,7 @@ protected:
 	GfxBase *createRenderer(int screenW, int screenH, bool fullscreen);
 	virtual void initPreRun(void);
 
+	// Background image
 	Image::ImageDecoder *_bgImage;
 	void destroyBgImage(void);
 	virtual void loadBgImage(void);
