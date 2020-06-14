@@ -33,7 +33,7 @@
 #include "graphics/surface.h"
 #include "image/bmp.h"
 #include "image/jpeg.h"
-#include "math/glmath.h"
+#include "math/vector3d.h"
 
 #ifdef USE_OPENGL
 #include "graphics/opengl/context.h"

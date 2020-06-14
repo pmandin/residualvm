@@ -26,7 +26,7 @@
 #include "common/rect.h"
 #include "common/scummsys.h"
 #include "graphics/surface.h"
-#include "math/glmath.h"
+#include "math/vector3d.h"
 
 namespace Reevengi {
 
