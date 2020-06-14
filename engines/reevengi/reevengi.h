@@ -87,6 +87,7 @@ private:
 	void testDisplayImage(Image::ImageDecoder *img);
 	void testLoadMovie(void);
 	void testPlayMovie(void);
+	void testDrawGrid(void);
 
 };
 

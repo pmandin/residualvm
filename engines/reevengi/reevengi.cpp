@@ -33,6 +33,7 @@
 #include "graphics/surface.h"
 #include "image/bmp.h"
 #include "image/jpeg.h"
+#include "math/glmath.h"
 
 #ifdef USE_OPENGL
 #include "graphics/opengl/context.h"
@@ -140,6 +141,7 @@ Common::Error ReevengiEngine::run() {
 		}
 		//testDisplayImage(my_image);
 		//testPlayMovie();
+		testDrawGrid();
 
 		// Tell the system to update the screen.
 		g_driver->flipBuffer();
@@ -374,6 +376,33 @@ void ReevengiEngine::testPlayMovie(void) {
 			g_driver->drawMovieFrame(0, 0);
 		else
 			g_driver->releaseMovieFrame();
+	}
+}
+
+void ReevengiEngine::testDrawGrid(void) {
+	if (!_roomScene)
+		return;
+
+	RdtCameraPos_t camera;
+	_roomScene->getCameraPos(_camera, &camera);
+
+	g_driver->setProjection(60.0f, 4.0f/3.0f, (float) GfxBase::kRenderZNear, (float) GfxBase::kRenderZFar);
+	g_driver->setModelview(
+		camera.fromX, camera.fromY, camera.fromZ,
+		camera.toX, camera.toY, camera.toZ,
+		0.0f, -1.0f, 0.0f
+	);
+
+	float i, px = camera.toX, pz = camera.toY;
+
+	for (i=-20000.0f; i<=20000.0f; i+=2000.0f) {
+		Math::Vector3d v0(px-20000.0f, 0.0f, pz+i);
+		Math::Vector3d v1(px+20000.0f, 0.0f, pz+i);
+		g_driver->line(v0, v1);
+
+		Math::Vector3d v2(px+i, 0.0f, pz-20000.0f);
+		Math::Vector3d v3(px+i, 0.0f, pz+20000.0f);
+		g_driver->line(v2, v3);
 	}
 }
 
