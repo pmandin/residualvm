@@ -47,6 +47,14 @@ void Room::getCameraPos(int numCamera, RdtCameraPos_t *cameraPos) {
 	//
 }
 
+int Room::checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos) {
+	return -1;
+}
+
+bool Room::checkCamBoundary(Math::Vector2d fromPos, Math::Vector2d toPos) {
+	return false;
+}
+
 void Room::postLoad(void) {
 	//
 }

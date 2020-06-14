@@ -48,6 +48,24 @@ typedef struct {
 	uint32	offsets[21];
 } rdt2_header_t;
 
+/* Collisions, offset 6 */
+
+typedef struct {
+	int16 cx, cz;
+	uint32 count;
+	int32 ceiling;
+	uint32 dummy;	/* constant, 0xc5c5c5c5 */
+} rdt2_sca_header_t;
+
+typedef struct {
+	int16 x,z;
+	uint16 w,h;
+	int16 type, floor;
+	uint32 flags;
+} rdt2_sca_element_t;
+
+/* Cameras, offset 7 */
+
 typedef struct {
 	uint16 unk0;
 	uint16 const0; /* 0x683c, or 0x73b7 */
@@ -56,6 +74,37 @@ typedef struct {
 	int32 toX, toY, toZ;
 	uint32 masksOffset;
 } rdt2_rid_t;
+
+/* Cameras switches, offset 8 */
+
+typedef struct {
+	uint16 const0; /* 0xff01 */
+	uint8 from,to;
+	int16 x1,y1; /* Coordinates to use to calc when player crosses switch zone */
+	int16 x2,y2;
+	int16 x3,y3;
+	int16 x4,y4;
+} rdt2_rvd_t;
+
+/* Lights, offset 9 */
+
+typedef struct {
+	uint8 r,g,b;
+} rdt2_lit_col_t;
+
+typedef struct {
+	int16 x,y,z;
+} rdt2_lit_pos_t;
+
+typedef struct {
+	uint16 type[2];
+	rdt2_lit_col_t col[3];
+	rdt2_lit_col_t ambient;
+	rdt2_lit_pos_t pos[3];
+	uint16 brightness[3];
+} rdt2_lit_t;
+
+/*--- Class --- */
 
 RE2Room::RE2Room(Common::SeekableReadStream *stream): Room(stream) {
 	//
@@ -82,6 +131,60 @@ void RE2Room::getCameraPos(int numCamera, RdtCameraPos_t *cameraPos) {
 	cameraPos->toX = FROM_LE_32( cameraPosArray[numCamera].toX );
 	cameraPos->toY = FROM_LE_32( cameraPosArray[numCamera].toY );
 	cameraPos->toZ = FROM_LE_32( cameraPosArray[numCamera].toZ );
+}
+
+int RE2Room::checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos) {
+	if (!_roomPtr)
+		return -1;
+
+	int32 offset = FROM_LE_32( ((rdt2_header_t *) _roomPtr)->offsets[RDT2_OFFSET_CAM_SWITCHES] );
+	rdt2_rvd_t *camSwitchArray = (rdt2_rvd_t *) ((byte *) &_roomPtr[offset]);
+	int prevFrom = -1;
+
+	while (FROM_LE_16(camSwitchArray->const0) != 0xffff) {
+		bool boundary = false;
+
+		if (prevFrom != camSwitchArray->from) {
+			prevFrom = camSwitchArray->from;
+			boundary = true;
+		}
+		if (boundary && (camSwitchArray->to==0)) {
+			/* boundary, not a switch */
+		} else {
+			/* Check objet triggered camera switch */
+		}
+
+		++camSwitchArray;
+	}
+
+	return -1;
+}
+
+bool RE2Room::checkCamBoundary(Math::Vector2d fromPos, Math::Vector2d toPos) {
+	if (!_roomPtr)
+		return false;
+
+	int32 offset = FROM_LE_32( ((rdt2_header_t *) _roomPtr)->offsets[RDT2_OFFSET_CAM_SWITCHES] );
+	rdt2_rvd_t *camBoundaryArray = (rdt2_rvd_t *) ((byte *) &_roomPtr[offset]);
+	int prevFrom = -1;
+
+	while (FROM_LE_16(camBoundaryArray->const0) != 0xffff) {
+		bool boundary = false;
+
+		if (prevFrom != camBoundaryArray->from) {
+			prevFrom = camBoundaryArray->from;
+			boundary = true;
+		}
+		if (boundary && (camBoundaryArray->to==0)) {
+			/* Check objet got outside boundary */
+		} else {
+			/* Switch, not a boundary */
+		}
+
+		++camBoundaryArray;
+	}
+
+	return false;
 }
 
 } // End of namespace Reevengi
