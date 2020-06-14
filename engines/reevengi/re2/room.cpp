@@ -154,10 +154,10 @@ int RE2Room::checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos) {
 		} else {
 			/* Check objet triggered camera switch */
 			Math::Vector2d quad[4];
-			quad[0] = Math::Vector2d(camSwitchArray->x1, camSwitchArray->y1);
-			quad[1] = Math::Vector2d(camSwitchArray->x2, camSwitchArray->y2);
-			quad[2] = Math::Vector2d(camSwitchArray->x3, camSwitchArray->y3);
-			quad[3] = Math::Vector2d(camSwitchArray->x4, camSwitchArray->y4);
+			quad[0] = Math::Vector2d(FROM_LE_16(camSwitchArray->x1), FROM_LE_16(camSwitchArray->y1));
+			quad[1] = Math::Vector2d(FROM_LE_16(camSwitchArray->x2), FROM_LE_16(camSwitchArray->y2));
+			quad[2] = Math::Vector2d(FROM_LE_16(camSwitchArray->x3), FROM_LE_16(camSwitchArray->y3));
+			quad[3] = Math::Vector2d(FROM_LE_16(camSwitchArray->x4), FROM_LE_16(camSwitchArray->y4));
 
 			if (!isInside(fromPos, quad) && isInside(toPos, quad)) {
 				return camSwitchArray->toCam;
@@ -188,10 +188,10 @@ bool RE2Room::checkCamBoundary(Math::Vector2d fromPos, Math::Vector2d toPos) {
 		if (boundary && (camBoundaryArray->toCam==0)) {
 			/* Check objet got outside boundary */
 			Math::Vector2d quad[4];
-			quad[0] = Math::Vector2d(camBoundaryArray->x1, camBoundaryArray->y1);
-			quad[1] = Math::Vector2d(camBoundaryArray->x2, camBoundaryArray->y2);
-			quad[2] = Math::Vector2d(camBoundaryArray->x3, camBoundaryArray->y3);
-			quad[3] = Math::Vector2d(camBoundaryArray->x4, camBoundaryArray->y4);
+			quad[0] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x1), FROM_LE_16(camBoundaryArray->y1));
+			quad[1] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x2), FROM_LE_16(camBoundaryArray->y2));
+			quad[2] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x3), FROM_LE_16(camBoundaryArray->y3));
+			quad[3] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x4), FROM_LE_16(camBoundaryArray->y4));
 
 			if (isInside(fromPos, quad) && !isInside(toPos, quad)) {
 				return true;
