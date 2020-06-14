@@ -83,6 +83,8 @@ public:
 	virtual void setModelview(float fromX, float fromY, float fromZ,
 		float toX, float toY, float toZ, float upX, float upY, float upZ) = 0;
 
+	virtual void setColor(float r, float g, float b) =0;
+
 	virtual void line(Math::Vector3d v0, Math::Vector3d v1) =0;
 
 protected:

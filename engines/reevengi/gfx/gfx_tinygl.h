@@ -54,6 +54,8 @@ public:
 		float toX, float toY, float toZ,
 		float upX, float upY, float upZ) override;
 
+	void setColor(float r, float g, float b) override;
+
 	void line(Math::Vector3d v0, Math::Vector3d v1) override;
 
 private:

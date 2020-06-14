@@ -289,12 +289,14 @@ void GfxOpenGL::setModelview(float fromX, float fromY, float fromZ,
 	glTranslatef(-fromX, -fromY, -fromZ);
 }
 
+void GfxOpenGL::setColor(float r, float g, float b) {
+	glColor3f(r, g, b);
+}
+
 void GfxOpenGL::line(Math::Vector3d v0, Math::Vector3d v1) {
 	glDisable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
-
-	glColor3f(0.6, 0.6, 0.6);
 
 	glBegin(GL_LINES);
 		glVertex3f(v0.x(), v0.y(), v0.z());

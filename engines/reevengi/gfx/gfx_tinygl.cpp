@@ -161,12 +161,14 @@ void GfxTinyGL::setModelview(float fromX, float fromY, float fromZ,
 	tglTranslatef(-fromX, -fromY, -fromZ);
 }
 
+void GfxTinyGL::setColor(float r, float g, float b) {
+	tglColor3f(r, g, b);
+}
+
 void GfxTinyGL::line(Math::Vector3d v0, Math::Vector3d v1) {
 	tglDisable(TGL_LIGHTING);
 	tglDisable(TGL_TEXTURE_2D);
 	tglDisable(TGL_DEPTH_TEST);
-
-	tglColor3f(0.6, 0.6, 0.6);
 
 	tglBegin(TGL_LINES);
 		tglVertex3f(v0.x(), v0.y(), v0.z());

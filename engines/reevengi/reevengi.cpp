@@ -393,6 +393,8 @@ void ReevengiEngine::testDrawGrid(void) {
 		0.0f, -1.0f, 0.0f
 	);
 
+	g_driver->setColor(0.6, 0.6, 0.6);
+
 	float i, px = camera.toX, pz = camera.toY;
 
 	for (i=-20000.0f; i<=20000.0f; i+=2000.0f) {
