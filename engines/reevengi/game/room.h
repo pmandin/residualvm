@@ -49,6 +49,7 @@ protected:
 	byte *_roomPtr;
 
 	virtual void postLoad(void);
+	bool isInside(Math::Vector2d pos, Math::Vector2d quad[4]);
 };
 
 } // End of namespace Reevengi

@@ -59,4 +59,22 @@ void Room::postLoad(void) {
 	//
 }
 
+bool Room::isInside(Math::Vector2d pos, Math::Vector2d quad[4]) {
+	float dx1,dy1,dx2,dy2;
+
+	for (int i=0; i<4; i++) {
+		dx1 = quad[(i+1) & 3].getX() - quad[i].getX();
+		dy1 = quad[(i+1) & 3].getY() - quad[i].getY();
+
+		dx2 = pos.getX() - quad[i].getX();
+		dy2 = pos.getY() - quad[i].getY();
+
+		if (dx1*dy2-dy1*dx2 >= 0) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 } // End of namespace Reevengi

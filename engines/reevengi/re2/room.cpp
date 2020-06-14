@@ -22,6 +22,7 @@
 
 #include "common/endian.h"
 #include "common/stream.h"
+#include "math/vector2d.h"
 
 #include "engines/reevengi/re2/room.h"
 
@@ -79,7 +80,7 @@ typedef struct {
 
 typedef struct {
 	uint16 const0; /* 0xff01 */
-	uint8 from,to;
+	uint8 fromCam,toCam;
 	int16 x1,y1; /* Coordinates to use to calc when player crosses switch zone */
 	int16 x2,y2;
 	int16 x3,y3;
@@ -144,14 +145,23 @@ int RE2Room::checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos) {
 	while (FROM_LE_16(camSwitchArray->const0) != 0xffff) {
 		bool boundary = false;
 
-		if (prevFrom != camSwitchArray->from) {
-			prevFrom = camSwitchArray->from;
+		if (prevFrom != camSwitchArray->fromCam) {
+			prevFrom = camSwitchArray->fromCam;
 			boundary = true;
 		}
-		if (boundary && (camSwitchArray->to==0)) {
+		if (boundary && (camSwitchArray->toCam==0)) {
 			/* boundary, not a switch */
 		} else {
 			/* Check objet triggered camera switch */
+			Math::Vector2d quad[4];
+			quad[0] = Math::Vector2d(camSwitchArray->x1, camSwitchArray->y1);
+			quad[1] = Math::Vector2d(camSwitchArray->x2, camSwitchArray->y2);
+			quad[2] = Math::Vector2d(camSwitchArray->x3, camSwitchArray->y3);
+			quad[3] = Math::Vector2d(camSwitchArray->x4, camSwitchArray->y4);
+
+			if (!isInside(fromPos, quad) && isInside(toPos, quad)) {
+				return camSwitchArray->toCam;
+			}
 		}
 
 		++camSwitchArray;
@@ -171,12 +181,21 @@ bool RE2Room::checkCamBoundary(Math::Vector2d fromPos, Math::Vector2d toPos) {
 	while (FROM_LE_16(camBoundaryArray->const0) != 0xffff) {
 		bool boundary = false;
 
-		if (prevFrom != camBoundaryArray->from) {
-			prevFrom = camBoundaryArray->from;
+		if (prevFrom != camBoundaryArray->fromCam) {
+			prevFrom = camBoundaryArray->fromCam;
 			boundary = true;
 		}
-		if (boundary && (camBoundaryArray->to==0)) {
+		if (boundary && (camBoundaryArray->toCam==0)) {
 			/* Check objet got outside boundary */
+			Math::Vector2d quad[4];
+			quad[0] = Math::Vector2d(camBoundaryArray->x1, camBoundaryArray->y1);
+			quad[1] = Math::Vector2d(camBoundaryArray->x2, camBoundaryArray->y2);
+			quad[2] = Math::Vector2d(camBoundaryArray->x3, camBoundaryArray->y3);
+			quad[3] = Math::Vector2d(camBoundaryArray->x4, camBoundaryArray->y4);
+
+			if (isInside(fromPos, quad) && !isInside(toPos, quad)) {
+				return true;
+			}
 		} else {
 			/* Switch, not a boundary */
 		}
