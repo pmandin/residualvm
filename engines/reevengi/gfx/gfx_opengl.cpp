@@ -30,6 +30,7 @@
 #include "common/debug.h"
 #include "common/scummsys.h"
 #include "common/system.h"
+#include "math/glmath.h"
 
 #if defined(USE_OPENGL)
 
@@ -261,6 +262,44 @@ void GfxOpenGL::releaseMovieFrame() {
 		delete[] _smushTexIds;
 		_smushNumTex = 0;
 	}
+}
+
+void GfxOpenGL::setProjection(float angle, float aspect, float zNear, float zFar) {
+	Math::Matrix4 mProjection = Math::makePerspectiveMatrix(angle, aspect, zNear, zFar);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMultMatrixf(mProjection.getData());
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+void GfxOpenGL::setModelview(float fromX, float fromY, float fromZ,
+	float toX, float toY, float toZ,
+	float upX, float upY, float upZ) {
+
+	Math::Matrix4 mLookAt = Math::makeLookAtMatrix(Math::Vector3d(fromX, fromY, fromZ),
+		Math::Vector3d(toX, toY, toZ), Math::Vector3d(upX, upY, upZ));
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMultMatrixf(mLookAt.getData());
+
+	glTranslatef(-fromX, -fromY, -fromZ);
+}
+
+void GfxOpenGL::line(Math::Vector3d v0, Math::Vector3d v1) {
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+
+	glColor3f(0.6, 0.6, 0.6);
+
+	glBegin(GL_LINES);
+		glVertex3f(v0.x(), v0.y(), v0.z());
+		glVertex3f(v1.x(), v1.y(), v1.z());
+	glEnd();
 }
 
 } // End of namespace Reevengi

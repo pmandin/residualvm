@@ -26,11 +26,15 @@
 #include "common/rect.h"
 #include "common/scummsys.h"
 #include "graphics/surface.h"
+#include "math/glmath.h"
 
 namespace Reevengi {
 
 class GfxBase {
 public:
+	static const int kRenderZNear = 16;
+	static const int kRenderZFar = 65536;
+
 	GfxBase();
 	virtual ~GfxBase() { ; }
 
@@ -74,6 +78,12 @@ public:
 	virtual void releaseMovieFrame() = 0;
 
 	bool computeScreenViewport(void);
+
+	virtual void setProjection(float angle, float aspect, float zNear, float zFar) = 0;
+	virtual void setModelview(float fromX, float fromY, float fromZ,
+		float toX, float toY, float toZ, float upX, float upY, float upZ) = 0;
+
+	virtual void line(Math::Vector3d v0, Math::Vector3d v1) =0;
 
 protected:
 	float _scaleW, _scaleH;

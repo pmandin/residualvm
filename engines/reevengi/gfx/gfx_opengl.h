@@ -58,6 +58,12 @@ public:
 	void drawMovieFrame(int offsetX, int offsetY) override;
 	void releaseMovieFrame() override;
 
+	void setProjection(float angle, float aspect, float zNear, float zFar) override;
+	void setModelview(float fromX, float fromY, float fromZ,
+		float toX, float toY, float toZ, float upX, float upY, float upZ) override;
+
+	void line(Math::Vector3d v0, Math::Vector3d v1) override;
+
 private:
 	int _smushNumTex;
 	GLuint *_smushTexIds;

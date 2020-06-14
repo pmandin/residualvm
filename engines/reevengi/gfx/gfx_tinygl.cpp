@@ -24,6 +24,7 @@
 #include "common/debug.h"
 #include "common/scummsys.h"
 #include "common/system.h"
+#include "math/glmath.h"
 
 #include "engines/reevengi/gfx/gfx_base.h"
 #include "engines/reevengi/gfx/gfx_tinygl.h"
@@ -135,6 +136,42 @@ void GfxTinyGL::drawMovieFrame(int offsetX, int offsetY) {
 
 void GfxTinyGL::releaseMovieFrame() {
 	Graphics::tglDeleteBlitImage(_smushImage);
+}
+
+void GfxTinyGL::setProjection(float angle, float aspect, float zNear, float zFar) {
+	Math::Matrix4 mProjection = Math::makePerspectiveMatrix(angle, aspect, zNear, zFar);
+
+	tglMatrixMode(TGL_PROJECTION);
+	tglLoadIdentity();
+	tglMultMatrixf(mProjection.getData());
+
+	tglMatrixMode(TGL_MODELVIEW);
+	tglLoadIdentity();
+}
+
+void GfxTinyGL::setModelview(float fromX, float fromY, float fromZ,
+	float toX, float toY, float toZ, float upX, float upY, float upZ) {
+	Math::Matrix4 mLookAt = Math::makeLookAtMatrix(Math::Vector3d(fromX, fromY, fromZ),
+		Math::Vector3d(toX, toY, toZ), Math::Vector3d(upX, upY, upZ));
+
+	tglMatrixMode(TGL_MODELVIEW);
+	tglLoadIdentity();
+	tglMultMatrixf(mLookAt.getData());
+
+	tglTranslatef(-fromX, -fromY, -fromZ);
+}
+
+void GfxTinyGL::line(Math::Vector3d v0, Math::Vector3d v1) {
+	tglDisable(TGL_LIGHTING);
+	tglDisable(TGL_TEXTURE_2D);
+	tglDisable(TGL_DEPTH_TEST);
+
+	tglColor3f(0.6, 0.6, 0.6);
+
+	tglBegin(TGL_LINES);
+		tglVertex3f(v0.x(), v0.y(), v0.z());
+		tglVertex3f(v1.x(), v1.y(), v1.z());
+	tglEnd();
 }
 
 } // End of namespace Reevengi
