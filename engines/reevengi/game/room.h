@@ -41,8 +41,8 @@ public:
 	virtual int getNumCameras(void);
 	virtual void getCameraPos(int numCamera, RdtCameraPos_t *cameraPos);
 
-	virtual int checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos);
-	virtual bool checkCamBoundary(Math::Vector2d fromPos, Math::Vector2d toPos);
+	virtual int checkCamSwitch(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos);
+	virtual bool checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos);
 
 protected:
 	// raw data file for room

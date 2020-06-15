@@ -100,7 +100,7 @@ void RE1Room::getCameraPos(int numCamera, RdtCameraPos_t *cameraPos) {
 	cameraPos->toZ = FROM_LE_32( cameraPosArray[numCamera].toZ );
 }
 
-int RE1Room::checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos) {
+int RE1Room::checkCamSwitch(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos) {
 	if (!_roomPtr)
 		return -1;
 
@@ -120,7 +120,7 @@ int RE1Room::checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos) {
 			quad[2] = Math::Vector2d(FROM_LE_16(camSwitchArray->x3), FROM_LE_16(camSwitchArray->y3));
 			quad[3] = Math::Vector2d(FROM_LE_16(camSwitchArray->x4), FROM_LE_16(camSwitchArray->y4));
 
-			if (!isInside(fromPos, quad) && isInside(toPos, quad)) {
+			if ((curCam==camSwitchArray->fromCam) && !isInside(fromPos, quad) && isInside(toPos, quad)) {
 				return camSwitchArray->toCam;
 			}
 		}
@@ -131,7 +131,7 @@ int RE1Room::checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos) {
 	return -1;
 }
 
-bool RE1Room::checkCamBoundary(Math::Vector2d fromPos, Math::Vector2d toPos) {
+bool RE1Room::checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos) {
 	if (!_roomPtr)
 		return false;
 
@@ -149,7 +149,7 @@ bool RE1Room::checkCamBoundary(Math::Vector2d fromPos, Math::Vector2d toPos) {
 			quad[2] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x3), FROM_LE_16(camBoundaryArray->y3));
 			quad[3] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x4), FROM_LE_16(camBoundaryArray->y4));
 
-			if (isInside(fromPos, quad) && !isInside(toPos, quad)) {
+			if ((curCam==camBoundaryArray->fromCam) && isInside(fromPos, quad) && !isInside(toPos, quad)) {
 				return true;
 			}
 		} else {
