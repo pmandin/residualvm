@@ -36,7 +36,7 @@ namespace Reevengi {
 #define RDT1_OFFSET_EVENTS		8
 #define RDT1_OFFSET_TEXT		11
 
-/*--- Types ---*/
+#define RDT1_RVD_BOUNDARY 9
 
 /*--- Types ---*/
 
@@ -54,6 +54,8 @@ typedef struct {
 	uint32	offsets[19];
 } rdt1_header_t;
 
+/* Cameras */
+
 typedef struct {
 	uint32 priOffset; /* see rdt_pri.h */
 	uint32 timOffset;	/* see rdt_pri.h */
@@ -61,6 +63,16 @@ typedef struct {
 	int32 toX, toY, toZ;
 	uint32 unknown[3];
 } rdt1_rid_t;
+
+/* Cameras switches, offset 0 */
+
+typedef struct {
+	uint16 toCam, fromCam;	/* to = RDT_RVD_BOUNDARY if boundary, not camera switch */
+	int16 x1,y1; /* Coordinates to use to calc when player crosses switch zone */
+	int16 x2,y2;
+	int16 x3,y3;
+	int16 x4,y4;
+} rdt1_rvd_t;
 
 RE1Room::RE1Room(Common::SeekableReadStream *stream): Room(stream) {
 	//
@@ -86,6 +98,68 @@ void RE1Room::getCameraPos(int numCamera, RdtCameraPos_t *cameraPos) {
 	cameraPos->toX = FROM_LE_32( cameraPosArray[numCamera].toX );
 	cameraPos->toY = FROM_LE_32( cameraPosArray[numCamera].toY );
 	cameraPos->toZ = FROM_LE_32( cameraPosArray[numCamera].toZ );
+}
+
+int RE1Room::checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos) {
+	if (!_roomPtr)
+		return -1;
+
+	int32 offset = FROM_LE_32( ((rdt1_header_t *) _roomPtr)->offsets[RDT1_OFFSET_CAM_SWITCHES] );
+	rdt1_rvd_t *camSwitchArray = (rdt1_rvd_t *) ((byte *) &_roomPtr[offset]);
+
+	while (FROM_LE_16(camSwitchArray->toCam) != 0xffff) {
+		bool isBoundary = (FROM_LE_16(camSwitchArray->toCam) == RDT1_RVD_BOUNDARY);
+
+		if (isBoundary) {
+			/* boundary, not a switch */
+		} else {
+			/* Check objet triggered camera switch */
+			Math::Vector2d quad[4];
+			quad[0] = Math::Vector2d(FROM_LE_16(camSwitchArray->x1), FROM_LE_16(camSwitchArray->y1));
+			quad[1] = Math::Vector2d(FROM_LE_16(camSwitchArray->x2), FROM_LE_16(camSwitchArray->y2));
+			quad[2] = Math::Vector2d(FROM_LE_16(camSwitchArray->x3), FROM_LE_16(camSwitchArray->y3));
+			quad[3] = Math::Vector2d(FROM_LE_16(camSwitchArray->x4), FROM_LE_16(camSwitchArray->y4));
+
+			if (!isInside(fromPos, quad) && isInside(toPos, quad)) {
+				return camSwitchArray->toCam;
+			}
+		}
+
+		++camSwitchArray;
+	}
+
+	return -1;
+}
+
+bool RE1Room::checkCamBoundary(Math::Vector2d fromPos, Math::Vector2d toPos) {
+	if (!_roomPtr)
+		return false;
+
+	int32 offset = FROM_LE_32( ((rdt1_header_t *) _roomPtr)->offsets[RDT1_OFFSET_CAM_SWITCHES] );
+	rdt1_rvd_t *camBoundaryArray = (rdt1_rvd_t *) ((byte *) &_roomPtr[offset]);
+
+	while (FROM_LE_16(camBoundaryArray->toCam) != 0xffff) {
+		bool isBoundary = (FROM_LE_16(camBoundaryArray->toCam) == RDT1_RVD_BOUNDARY);
+
+		if (isBoundary) {
+			/* Check objet got outside boundary */
+			Math::Vector2d quad[4];
+			quad[0] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x1), FROM_LE_16(camBoundaryArray->y1));
+			quad[1] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x2), FROM_LE_16(camBoundaryArray->y2));
+			quad[2] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x3), FROM_LE_16(camBoundaryArray->y3));
+			quad[3] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x4), FROM_LE_16(camBoundaryArray->y4));
+
+			if (isInside(fromPos, quad) && !isInside(toPos, quad)) {
+				return true;
+			}
+		} else {
+			/* Switch, not a boundary */
+		}
+
+		++camBoundaryArray;
+	}
+
+	return false;
 }
 
 } // End of namespace Reevengi

@@ -35,6 +35,9 @@ public:
 
 	int getNumCameras(void);
 	void getCameraPos(int numCamera, RdtCameraPos_t *cameraPos);
+
+	int checkCamSwitch(Math::Vector2d fromPos, Math::Vector2d toPos);
+	bool checkCamBoundary(Math::Vector2d fromPos, Math::Vector2d toPos);
 };
 
 } // End of namespace Reevengi
