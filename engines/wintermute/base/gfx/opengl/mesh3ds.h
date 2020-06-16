@@ -41,6 +41,11 @@ public:
 	bool loadFrom3DS(Common::MemoryReadStream &fileStream);
 	void render();
 	void dumpVertexCoordinates(const char *filename);
+	int faceCount();
+	uint16 *getFace(int index);
+
+	int vertexCount();
+	float *getVertexPosition(int index);
 
 private:
 	byte *_vertexData;

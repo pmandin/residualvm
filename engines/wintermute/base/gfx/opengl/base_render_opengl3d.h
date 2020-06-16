@@ -30,6 +30,7 @@
 #include "graphics/opengl/system_headers.h"
 #include "graphics/opengl/texture.h"
 #include "graphics/transform_struct.h"
+#include "math/matrix4.h"
 
 namespace Wintermute {
 
@@ -37,6 +38,11 @@ class BaseRenderOpenGL3D : public BaseRenderer {
 public:
 	BaseRenderOpenGL3D(BaseGame *inGame = nullptr);
 	~BaseRenderOpenGL3D() override;
+
+	bool setAmbientLightColor(uint32 color);
+	bool setDefaultAmbientLightColor();
+
+	void setSpriteBlendMode(Graphics::TSpriteBlendMode blendMode);
 
 	void dumpData(const char *filename) override {}
 	/**
@@ -72,9 +78,11 @@ public:
 	bool drawLine(int x1, int y1, int x2, int y2, uint32 color) override; 	// Unused outside indicator-display
 	bool drawRect(int x1, int y1, int x2, int y2, uint32 color, int width = 1) override; 	// Unused outside indicator-display
 
-	bool setProjection(float fov);
+	bool setProjection();
 	bool setProjection2D();
 	void resetModelViewTransform();
+	void pushWorldTransform(const Math::Matrix4 &transform);
+	void popWorldTransform();
 
 	bool windowedBlt() override;
 	/**
@@ -104,6 +112,12 @@ public:
 	bool setup2D(bool force = false) override;
 	bool setup3D(Camera3D *camera, bool force = false) override;
 	bool setupLines() override;
+
+	void project(const Math::Matrix4 &worldMatrix, const Math::Vector3d &point, int &x, int &y);
+
+	Math::Matrix4 lastProjectionMatrix() {
+		return _lastProjectionMatrix;
+	}
 
 	/**
 	 * Get the name of the current renderer
@@ -152,6 +166,9 @@ public:
 					  float angle, uint32 color, bool alphaDisable, Graphics::TSpriteBlendMode blendMode, bool mirrorX, bool mirrorY);
 
 private:
+	Math::Matrix4 _lastProjectionMatrix;
+	Math::Matrix4 _lastViewMatrix;
+	float _fov;
 	bool _spriteBatchMode;
 	bool _state3D;
 };

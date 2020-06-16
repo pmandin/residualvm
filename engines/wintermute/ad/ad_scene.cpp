@@ -62,7 +62,9 @@
 #include "engines/wintermute/wintermute.h"
 
 #ifdef ENABLE_WME3D
+#include "engines/wintermute/ad/ad_actor_3dx.h"
 #include "engines/wintermute/ad/ad_scene_geometry.h"
+#include "engines/wintermute/base/gfx/opengl/base_render_opengl3d.h"
 #endif
 
 namespace Wintermute {
@@ -950,7 +952,7 @@ bool AdScene::loadBuffer(char *buffer, bool complete) {
 
 #ifdef ENABLE_WME3D
 	if (_sceneGeometry && camera[0] != '\0') {
-		// TODO: set camera here
+		_sceneGeometry->setActiveCamera(camera, -1.0f, -1.0f, -1.0f);
 	}
 #endif
 
@@ -966,7 +968,7 @@ bool AdScene::loadBuffer(char *buffer, bool complete) {
 		Camera3D* activeCamera = _sceneGeometry->getActiveCamera();
 
 		if (activeCamera != nullptr) {
-			// TODO: set camera
+			_gameRef->_renderer->setup3D(activeCamera);
 		}
 	}
 #endif
@@ -1232,7 +1234,7 @@ bool AdScene::updateFreeObjects() {
 			Camera3D* activeCamera = _sceneGeometry->getActiveCamera();
 
 			if (activeCamera != nullptr) {
-				// TODO: set the camera and setup 3d
+				_gameRef->_renderer->setup3D(activeCamera);
 				is3DSet = true;
 			}
 		}
@@ -1253,7 +1255,7 @@ bool AdScene::updateFreeObjects() {
 			Camera3D* activeCamera = _sceneGeometry->getActiveCamera();
 
 			if (activeCamera != nullptr) {
-				// TODO: set the camera and setup 3d
+				_gameRef->_renderer->setup3D(activeCamera);
 				is3DSet = true;
 			}
 		}
@@ -1313,7 +1315,7 @@ bool AdScene::displayRegionContent(AdRegion *region, bool display3DOnly) {
 			Camera3D* activeCamera = _sceneGeometry->getActiveCamera();
 
 			if (activeCamera != nullptr) {
-				// TODO: set the camera and setup 3d
+				_gameRef->_renderer->setup3D(activeCamera);
 			}
 		} else {
 			_gameRef->_renderer->setup2D();
@@ -1498,7 +1500,14 @@ bool AdScene::scCallMethod(ScScript *script, ScStack *stack, ScStack *thisStack,
 	//////////////////////////////////////////////////////////////////////////
 	if (strcmp(name, "LoadActor3D") == 0) {
 		stack->correctParams(1);
-		stack->pushNULL();
+		AdActor3DX *act = new AdActor3DX(_gameRef);
+		if (act && DID_SUCCEED(act->loadFile(stack->pop()->getString()))) {
+			addObject(act);
+			stack->pushNative(act, true);
+		} else {
+			delete act;
+			stack->pushNULL();
+		}
 		return STATUS_OK;
 	}
 #endif
@@ -2747,6 +2756,12 @@ bool AdScene::persist(BasePersistenceManager *persistMgr) {
 	_waypointGroups.persist(persistMgr);
 	persistMgr->transferPtr(TMEMBER_PTR(_viewport));
 	persistMgr->transferSint32(TMEMBER(_width));
+
+#ifdef ENABLE_WME3D
+	if (_gameRef->_playing3DGame) {
+		persistMgr->transferBool(TMEMBER(_2DPathfinding));
+	}
+#endif
 
 	return STATUS_OK;
 }

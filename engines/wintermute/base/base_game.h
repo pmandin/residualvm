@@ -67,6 +67,10 @@ class VideoPlayer;
 class VideoTheoraPlayer;
 class SaveThumbHelper;
 
+#ifdef ENABLE_WME3D
+class BaseRenderOpenGL3D;
+#endif
+
 class BaseGame: public BaseObject {
 public:
 	DECLARE_PERSISTENT(BaseGame, BaseObject)
@@ -153,6 +157,10 @@ public:
 	void LOG(bool res, const char *fmt, ...);
 
 	BaseRenderer *_renderer;
+#ifdef ENABLE_WME3D
+	BaseRenderOpenGL3D *_renderer3D;
+	bool _playing3DGame;
+#endif
 	BaseSoundMgr *_soundMgr;
 #if EXTENDED_DEBUGGER_ENABLED
 	DebuggableScEngine *_scEngine;

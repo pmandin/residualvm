@@ -38,6 +38,42 @@ BaseRenderOpenGL3D::BaseRenderOpenGL3D(BaseGame *inGame)
 BaseRenderOpenGL3D::~BaseRenderOpenGL3D() {
 }
 
+bool BaseRenderOpenGL3D::setAmbientLightColor(uint32 color) {
+	byte a = RGBCOLGetA(color);
+	byte r = RGBCOLGetR(color);
+	byte g = RGBCOLGetG(color);
+	byte b = RGBCOLGetB(color);
+
+	float value[] = { r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, value);
+	return true;
+}
+
+bool BaseRenderOpenGL3D::setDefaultAmbientLightColor() {
+	setAmbientLightColor(0x00000000);
+	return true;
+}
+
+void BaseRenderOpenGL3D::setSpriteBlendMode(Graphics::TSpriteBlendMode blendMode) {
+	switch (blendMode) {
+	case Graphics::BLEND_NORMAL:
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		break;
+
+	case Graphics::BLEND_ADDITIVE:
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		break;
+
+	case Graphics::BLEND_SUBTRACTIVE:
+		// wme3d takes the color value here
+		glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+		break;
+
+	default:
+		error("BaseRenderOpenGL3D::setSpriteBlendMode unsupported blend mode %i", blendMode);
+	}
+}
+
 BaseImage *BaseRenderOpenGL3D::takeScreenshot() {
 	warning("BaseRenderOpenGL3D::takeScreenshot not yet implemented");
 	return nullptr;
@@ -59,8 +95,7 @@ bool BaseRenderOpenGL3D::setViewport(Rect32 *rect) {
 }
 
 Rect32 BaseRenderOpenGL3D::getViewPort() {
-	warning("BaseRenderOpenGL3D::getViewPort not yet implemented");
-	return Rect32(0, 0, 0, 0);
+	return _viewportRect;
 }
 
 void BaseRenderOpenGL3D::setWindowed(bool windowed) {
@@ -140,12 +175,12 @@ bool BaseRenderOpenGL3D::drawRect(int x1, int y1, int x2, int y2, uint32 color, 
 	return true;
 }
 
-bool BaseRenderOpenGL3D::setProjection(float fov) {
+bool BaseRenderOpenGL3D::setProjection() {
 	// is the viewport already set here?
 	float viewportWidth = _viewportRect.right - _viewportRect.left;
 	float viewportHeight = _viewportRect.bottom - _viewportRect.top;
 
-	float verticalViewAngle = fov;
+	float verticalViewAngle = _fov;
 	float aspectRatio = float(viewportWidth) / float(viewportHeight);
 	float nearPlane = 1.0f;
 	float farPlane = 10000.0f;
@@ -154,6 +189,7 @@ bool BaseRenderOpenGL3D::setProjection(float fov) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glFrustum(-top * aspectRatio, top * aspectRatio, -top, top, nearPlane, farPlane);
+	glGetFloatv(GL_PROJECTION_MATRIX, _lastProjectionMatrix.getData());
 	glMatrixMode(GL_MODELVIEW);
 	return true;
 }
@@ -170,6 +206,15 @@ bool BaseRenderOpenGL3D::setProjection2D() {
 void BaseRenderOpenGL3D::resetModelViewTransform() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+}
+
+void BaseRenderOpenGL3D::pushWorldTransform(const Math::Matrix4 &transform) {
+	glPushMatrix();
+	glMultMatrixf(transform.getData());
+}
+
+void BaseRenderOpenGL3D::popWorldTransform() {
+	glPopMatrix();
 }
 
 bool BaseRenderOpenGL3D::windowedBlt() {
@@ -228,7 +273,6 @@ bool BaseRenderOpenGL3D::setup2D(bool force) {
 
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
 		glDisable(GL_STENCIL_TEST);
 		glDisable(GL_CLIP_PLANE0);
 		glDisable(GL_FOG);
@@ -269,12 +313,14 @@ bool BaseRenderOpenGL3D::setup3D(Camera3D* camera, bool force) {
 		glEnable(GL_BLEND);
 		glAlphaFunc(GL_GEQUAL, 0x08);
 
-		setProjection(camera->_fov);
+		_fov = camera->_fov;
+		setProjection();
 
 		Math::Matrix4 viewMatrix;
 		camera->getViewMatrix(&viewMatrix);
 		glMultMatrixf(viewMatrix.getData());
 		glTranslatef(-camera->_position.x(), -camera->_position.y(), -camera->_position.z());
+		glGetFloatv(GL_MODELVIEW_MATRIX, _lastViewMatrix.getData());
 	}
 
 	return true;
@@ -283,6 +329,17 @@ bool BaseRenderOpenGL3D::setup3D(Camera3D* camera, bool force) {
 bool BaseRenderOpenGL3D::setupLines() {
 	warning("BaseRenderOpenGL3D::setupLines not yet implemented");
 	return true;
+}
+
+void BaseRenderOpenGL3D::project(const Math::Matrix4 &worldMatrix, const Math::Vector3d &point, int &x, int &y) {
+	Math::Vector3d windowCoords;
+	Math::Matrix4 modelMatrix = worldMatrix * _lastViewMatrix;
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	Math::gluMathProject(point, modelMatrix.getData(), _lastProjectionMatrix.getData(), viewport, windowCoords);
+	x = windowCoords.x();
+	// The Wintermute script code will expect a Direct3D viewport
+	y = viewport[3] - windowCoords.y();
 }
 
 BaseSurface *Wintermute::BaseRenderOpenGL3D::createSurface() {

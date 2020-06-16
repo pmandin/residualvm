@@ -177,7 +177,7 @@ bool BaseSurfaceOpenGL3D::endPixelOp() {
 }
 
 bool BaseSurfaceOpenGL3D::isTransparentAtLite(int x, int y) {
-	if (x < 0 || y < 0 || x >= tex->getWidth() || y >= tex->getHeight()) {
+	if (x < 0 || y < 0 || static_cast<uint>(x) >= tex->getWidth() || static_cast<uint>(y) >= tex->getHeight()) {
 		return false;
 	}
 
@@ -193,6 +193,10 @@ bool BaseSurfaceOpenGL3D::isTransparentAtLite(int x, int y) {
 	uint32 pixel = *reinterpret_cast<uint32 *>(image_data + y * tex->getWidth() * 4 + x * 4);
 	pixel &= 0x000000FF;
 	return pixel == 0;
+}
+
+void BaseSurfaceOpenGL3D::setTexture() {
+	glBindTexture(GL_TEXTURE_2D, tex->getTextureName());
 }
 
 }
