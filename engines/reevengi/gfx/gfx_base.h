@@ -82,6 +82,8 @@ public:
 	virtual void setProjection(float angle, float aspect, float zNear, float zFar) = 0;
 	virtual void setModelview(float fromX, float fromY, float fromZ,
 		float toX, float toY, float toZ, float upX, float upY, float upZ) = 0;
+	virtual void rotate(float angle, float ax, float ay, float az) = 0;
+	virtual void translate(float tx, float ty, float tz) = 0 ;
 
 	virtual void setColor(float r, float g, float b) =0;
 

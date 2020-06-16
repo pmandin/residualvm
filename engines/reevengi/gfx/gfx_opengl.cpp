@@ -289,6 +289,14 @@ void GfxOpenGL::setModelview(float fromX, float fromY, float fromZ,
 	glTranslatef(-fromX, -fromY, -fromZ);
 }
 
+void GfxOpenGL::rotate(float angle, float ax, float ay, float az) {
+	glRotatef(angle, ax, ay, az);
+}
+
+void GfxOpenGL::translate(float tx, float ty, float tz) {
+	glTranslatef(tx, ty, tz);
+}
+
 void GfxOpenGL::setColor(float r, float g, float b) {
 	glColor3f(r, g, b);
 }

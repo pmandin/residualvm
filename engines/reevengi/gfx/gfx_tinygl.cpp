@@ -161,6 +161,14 @@ void GfxTinyGL::setModelview(float fromX, float fromY, float fromZ,
 	tglTranslatef(-fromX, -fromY, -fromZ);
 }
 
+void GfxTinyGL::rotate(float angle, float ax, float ay, float az) {
+	tglRotatef(angle, ax, ay, az);
+}
+
+void GfxTinyGL::translate(float tx, float ty, float tz) {
+	tglTranslatef(tx, ty, tz);
+}
+
 void GfxTinyGL::setColor(float r, float g, float b) {
 	tglColor3f(r, g, b);
 }
