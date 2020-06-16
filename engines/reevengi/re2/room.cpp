@@ -149,15 +149,16 @@ int RE2Room::checkCamSwitch(int curCam, Math::Vector2d fromPos, Math::Vector2d t
 			prevFrom = camSwitchArray->fromCam;
 			boundary = true;
 		}
+
 		if (boundary && (camSwitchArray->toCam==0)) {
 			/* boundary, not a switch */
 		} else {
 			/* Check objet triggered camera switch */
 			Math::Vector2d quad[4];
-			quad[0] = Math::Vector2d(FROM_LE_16(camSwitchArray->x1), FROM_LE_16(camSwitchArray->y1));
-			quad[1] = Math::Vector2d(FROM_LE_16(camSwitchArray->x2), FROM_LE_16(camSwitchArray->y2));
-			quad[2] = Math::Vector2d(FROM_LE_16(camSwitchArray->x3), FROM_LE_16(camSwitchArray->y3));
-			quad[3] = Math::Vector2d(FROM_LE_16(camSwitchArray->x4), FROM_LE_16(camSwitchArray->y4));
+			quad[0] = Math::Vector2d( (int16) FROM_LE_16(camSwitchArray->x1), (int16) FROM_LE_16(camSwitchArray->y1));
+			quad[1] = Math::Vector2d( (int16) FROM_LE_16(camSwitchArray->x2), (int16) FROM_LE_16(camSwitchArray->y2));
+			quad[2] = Math::Vector2d( (int16) FROM_LE_16(camSwitchArray->x3), (int16) FROM_LE_16(camSwitchArray->y3));
+			quad[3] = Math::Vector2d( (int16) FROM_LE_16(camSwitchArray->x4), (int16) FROM_LE_16(camSwitchArray->y4));
 
 			if ((curCam==camSwitchArray->fromCam) && !isInside(fromPos, quad) && isInside(toPos, quad)) {
 				return camSwitchArray->toCam;
@@ -185,13 +186,14 @@ bool RE2Room::checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2
 			prevFrom = camBoundaryArray->fromCam;
 			boundary = true;
 		}
+
 		if (boundary && (camBoundaryArray->toCam==0)) {
 			/* Check objet got outside boundary */
 			Math::Vector2d quad[4];
-			quad[0] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x1), FROM_LE_16(camBoundaryArray->y1));
-			quad[1] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x2), FROM_LE_16(camBoundaryArray->y2));
-			quad[2] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x3), FROM_LE_16(camBoundaryArray->y3));
-			quad[3] = Math::Vector2d(FROM_LE_16(camBoundaryArray->x4), FROM_LE_16(camBoundaryArray->y4));
+			quad[0] = Math::Vector2d( (int16) FROM_LE_16(camBoundaryArray->x1), (int16) FROM_LE_16(camBoundaryArray->y1));
+			quad[1] = Math::Vector2d( (int16) FROM_LE_16(camBoundaryArray->x2), (int16) FROM_LE_16(camBoundaryArray->y2));
+			quad[2] = Math::Vector2d( (int16) FROM_LE_16(camBoundaryArray->x3), (int16) FROM_LE_16(camBoundaryArray->y3));
+			quad[3] = Math::Vector2d( (int16) FROM_LE_16(camBoundaryArray->x4), (int16) FROM_LE_16(camBoundaryArray->y4));
 
 			if ((curCam==camBoundaryArray->fromCam) && isInside(fromPos, quad) && !isInside(toPos, quad)) {
 				return true;
