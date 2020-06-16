@@ -56,10 +56,13 @@ GfxBase *g_driver = nullptr;
 
 ReevengiEngine::ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *gameDesc) :
 	Engine(syst), _gameType(gameType), _character(0), _softRenderer(true),
-	_stage(1), _room(0), _camera(0), _bgImage(nullptr), _roomScene(nullptr) {
+	_stage(1), _room(0), _camera(0), _bgImage(nullptr), _roomScene(nullptr),
+	_playerX(0), _playerY(0), _playerZ(0), _playerA(0), _playerMove(0), _playerTic(0) {
 	memcpy(&_gameDesc, gameDesc, sizeof(_gameDesc));
 	g_movie = nullptr;
 	_clock = new Clock();
+
+	_playerTic = _clock->getGameTic();
 }
 
 ReevengiEngine::~ReevengiEngine() {
@@ -132,6 +135,19 @@ Common::Error ReevengiEngine::run() {
 	//TimDecoder *my_image = testLoadImage();
 	//testLoadMovie();
 	loadRoom();
+#if 1
+	if (_roomScene) {
+		RdtCameraPos_t camera;
+		_roomScene->getCameraPos(_camera, &camera);
+
+		/* Reset player pos */
+		_playerX = (camera.toX + camera.fromX) / 2;
+		_playerY = (camera.toY + camera.fromY) / 2;
+		_playerZ = (camera.toZ + camera.fromZ) / 2;
+
+		debug(3, "%d cameras, pos %.3f,%.3f,%.3f", _roomScene->getNumCameras(), _playerX,_playerY,_playerZ);
+	}
+#endif
 	loadBgImage();
 
 	while (!shouldQuit()) {
@@ -173,6 +189,8 @@ void ReevengiEngine::processEvents(void) {
 		}
 
 		if (e.type == Common::EVENT_KEYDOWN) {
+			processEventsKeyDownRepeat(e);
+
 			if (e.kbdRepeat) {
 				continue;
 			}
@@ -199,6 +217,80 @@ void ReevengiEngine::processEvents(void) {
 			onScreenChanged();
 		}
 	}
+}
+
+void ReevengiEngine::processEventsKeyDownRepeat(Common::Event e) {
+	int curTic = _clock->getGameTic();
+	bool updatePlayer = false;
+	float nPlayerX=_playerX, nPlayerZ=_playerZ;
+
+	/* Move player */
+	if (e.kbd.keycode == Common::KEYCODE_UP) {
+		// forward
+		if (!_playerMove) {
+			_playerTic = curTic;
+			_playerMove = 1;
+		}
+
+		nPlayerX += cos((_playerA*M_PI)/2048.0f)*0.5f*(curTic-_playerTic);
+		nPlayerZ -= sin((_playerA*M_PI)/2048.0f)*0.5f*(curTic-_playerTic);
+		updatePlayer = true;
+	}
+	if (e.kbd.keycode == Common::KEYCODE_DOWN) {
+		// backward
+		if (!_playerMove) {
+			_playerTic = curTic;
+			_playerMove = 1;
+		}
+
+		nPlayerX -= cos((_playerA*M_PI)/2048.0f)*0.5f*(curTic-_playerTic);
+		nPlayerZ += sin((_playerA*M_PI)/2048.0f)*0.5f*(curTic-_playerTic);
+		updatePlayer = true;
+	}
+	if (e.kbd.keycode == Common::KEYCODE_LEFT) {
+		// turn left
+		if (!_playerMove) {
+			_playerTic = curTic;
+			_playerMove = 1;
+		}
+
+		_playerA -= 0.1f*(curTic-_playerTic);
+		while (_playerA < 0.0f) {
+			_playerA += 4096.0f;
+		}
+		updatePlayer = true;
+	}
+	if (e.kbd.keycode == Common::KEYCODE_RIGHT) {
+		// turn right
+		if (!_playerMove) {
+			_playerTic = curTic;
+			_playerMove = 1;
+		}
+
+		_playerA += 0.1f*(curTic-_playerTic);
+		while (_playerA > 4096.0f) {
+			_playerA -= 4096.0f;
+		}
+		updatePlayer = true;
+	}
+	if (!updatePlayer) {
+		_playerMove = 0;
+	}
+
+	if (_roomScene) {
+		Math::Vector2d fromPos(_playerX, _playerZ);
+		Math::Vector2d toPos(nPlayerX, nPlayerZ);
+
+		int newCamera = _roomScene->checkCamSwitch(_camera, fromPos, toPos);
+		if (newCamera != -1) {
+			_camera = newCamera;
+			destroyBgImage();
+			loadBgImage();
+		}
+	}
+
+	_playerX = nPlayerX;
+	_playerZ = nPlayerZ;
 }
 
 void ReevengiEngine::processEventsKeyDown(Common::Event e) {
@@ -281,7 +373,15 @@ void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 		destroyRoom();
 		loadRoom();
 		if (_roomScene) {
-			debug(3, "%d cameras", _roomScene->getNumCameras());
+			RdtCameraPos_t camera;
+			_roomScene->getCameraPos(_camera, &camera);
+
+			/* Reset player pos */
+			_playerX = (camera.toX + camera.fromX) / 2;
+			_playerY = (camera.toY + camera.fromY) / 2;
+			_playerZ = (camera.toZ + camera.fromZ) / 2;
+
+			debug(3, "%d cameras, pos %.3f,%.3f,%.3f", _roomScene->getNumCameras(), _playerX,_playerY,_playerZ);
 		}
 	}
 	if (updateBgImage) {
@@ -393,7 +493,7 @@ void ReevengiEngine::testDrawGrid(void) {
 		0.0f, -1.0f, 0.0f
 	);
 
-	g_driver->setColor(0.6, 0.6, 0.6);
+	g_driver->setColor(0.5, 0.5, 0.5);
 
 	float i, px = camera.toX, pz = camera.toY;
 
@@ -406,6 +506,33 @@ void ReevengiEngine::testDrawGrid(void) {
 		Math::Vector3d v3(px+i, 0.0f, pz+20000.0f);
 		g_driver->line(v2, v3);
 	}
+
+	/* Draw lines as player */
+	g_driver->translate(_playerX, _playerY, _playerZ);
+	g_driver->rotate((_playerA * 360.0f) / 4096.0f, 0.0f, 1.0f, 0.0f);
+
+	g_driver->setColor(1.0, 0.0, 0.0);
+	{
+		Math::Vector3d v0(-1000.0f, 0.0f, 0.0f);
+		Math::Vector3d v1( 1000.0f, 0.0f, 0.0f);
+		g_driver->line(v0, v1);
+	}
+
+	g_driver->setColor(0.0, 1.0, 0.0);
+	{
+		Math::Vector3d v0(0.0f, -1000.0f, 0.0f);
+		Math::Vector3d v1(0.0f,  1000.0f, 0.0f);
+		g_driver->line(v0, v1);
+	}
+
+	g_driver->setColor(0.0, 0.0, 1.0);
+	{
+		Math::Vector3d v0(0.0f, 0.0f, -1000.0f);
+		Math::Vector3d v1(0.0f, 0.0f,  1000.0f);
+		g_driver->line(v0, v1);
+	}
+
+	g_driver->setColor(1.0, 1.0, 1.0);
 }
 
 } // End of namespace Reevengi

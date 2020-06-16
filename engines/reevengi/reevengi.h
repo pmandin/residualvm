@@ -75,6 +75,10 @@ protected:
 	void destroyRoom(void);
 	virtual void loadRoom(void);
 
+	// Player
+	float _playerX, _playerY, _playerZ, _playerA;
+	int _playerTic, _playerMove;
+
 private:
 	bool _softRenderer;
 
@@ -82,6 +86,7 @@ private:
 	void onScreenChanged(void);
 
 	void processEventsKeyDown(Common::Event e);
+	void processEventsKeyDownRepeat(Common::Event e);
 
 	TimDecoder *testLoadImage(void);
 	void testDisplayImage(Image::ImageDecoder *img);
