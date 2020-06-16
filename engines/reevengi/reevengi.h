@@ -92,7 +92,12 @@ private:
 	void testDisplayImage(Image::ImageDecoder *img);
 	void testLoadMovie(void);
 	void testPlayMovie(void);
+
+	void testView3DBegin(void);
+	void testDrawOrigin(void);
 	void testDrawGrid(void);
+	void testDrawPlayer(void);
+	void testView3DEnd(void);
 
 };
 

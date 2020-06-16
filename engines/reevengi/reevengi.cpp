@@ -157,7 +157,11 @@ Common::Error ReevengiEngine::run() {
 		}
 		//testDisplayImage(my_image);
 		//testPlayMovie();
+		testView3DBegin();
 		testDrawGrid();
+		testDrawOrigin();
+		testDrawPlayer();
+		testView3DEnd();
 
 		// Tell the system to update the screen.
 		g_driver->flipBuffer();
@@ -254,7 +258,7 @@ void ReevengiEngine::processEventsKeyDownRepeat(Common::Event e) {
 			_playerMove = 1;
 		}
 
-		_playerA -= 0.1f*(curTic-_playerTic);
+		_playerA -= 0.3f*(curTic-_playerTic);
 		while (_playerA < 0.0f) {
 			_playerA += 4096.0f;
 		}
@@ -267,7 +271,7 @@ void ReevengiEngine::processEventsKeyDownRepeat(Common::Event e) {
 			_playerMove = 1;
 		}
 
-		_playerA += 0.1f*(curTic-_playerTic);
+		_playerA += 0.3f*(curTic-_playerTic);
 		while (_playerA > 4096.0f) {
 			_playerA -= 4096.0f;
 		}
@@ -479,7 +483,7 @@ void ReevengiEngine::testPlayMovie(void) {
 	}
 }
 
-void ReevengiEngine::testDrawGrid(void) {
+void ReevengiEngine::testView3DBegin(void) {
 	if (!_roomScene)
 		return;
 
@@ -492,8 +496,38 @@ void ReevengiEngine::testDrawGrid(void) {
 		camera.toX, camera.toY, camera.toZ,
 		0.0f, -1.0f, 0.0f
 	);
+}
 
-	g_driver->setColor(0.5, 0.5, 0.5);
+void ReevengiEngine::testDrawOrigin(void) {
+	Math::Vector3d v0(0, 0, 0);
+
+	g_driver->setColor(1.0, 0.0, 0.0);	/* x red */
+	{
+		Math::Vector3d v1(3000, 0, 0);
+		g_driver->line(v0, v1);
+	}
+
+	g_driver->setColor(0.0, 1.0, 0.0);	/* y green */
+	{
+		Math::Vector3d v1(0, 3000, 0);
+		g_driver->line(v0, v1);
+	}
+
+	g_driver->setColor(0.0, 0.0, 1.0);	/* z blue */
+	{
+		Math::Vector3d v1(0, 0, 3000);
+		g_driver->line(v0, v1);
+	}
+}
+
+void ReevengiEngine::testDrawGrid(void) {
+	if (!_roomScene)
+		return;
+
+	RdtCameraPos_t camera;
+	_roomScene->getCameraPos(_camera, &camera);
+
+	g_driver->setColor(0.3, 0.3, 0.3);
 
 	float i, px = camera.toX, pz = camera.toY;
 
@@ -506,32 +540,51 @@ void ReevengiEngine::testDrawGrid(void) {
 		Math::Vector3d v3(px+i, 0.0f, pz+20000.0f);
 		g_driver->line(v2, v3);
 	}
+}
 
-	/* Draw lines as player */
-	g_driver->translate(_playerX, _playerY, _playerZ);
-	g_driver->rotate((_playerA * 360.0f) / 4096.0f, 0.0f, 1.0f, 0.0f);
+void ReevengiEngine::testDrawPlayer(void) {
+	const float radius = 2000.0f;
+	float x = _playerX;
+	float y = _playerZ;
+	float angle = _playerA;
 
-	g_driver->setColor(1.0, 0.0, 0.0);
+	Math::Vector3d v1(
+		x + radius * cos((-angle * M_PI) / 2048.0f) * 0.5f,
+		0.0f,
+		y + radius * sin((-angle * M_PI) / 2048.0f) * 0.5f
+	);
+
+	g_driver->setColor(0, 1.0, 0);
+
 	{
-		Math::Vector3d v0(-1000.0f, 0.0f, 0.0f);
-		Math::Vector3d v1( 1000.0f, 0.0f, 0.0f);
+		Math::Vector3d v0(
+			x - radius * cos((-angle * M_PI) / 2048.0f) * 0.5f,
+			0.0f,
+			y - radius * sin((-angle * M_PI) / 2048.0f) * 0.5f
+		);
 		g_driver->line(v0, v1);
 	}
 
-	g_driver->setColor(0.0, 1.0, 0.0);
 	{
-		Math::Vector3d v0(0.0f, -1000.0f, 0.0f);
-		Math::Vector3d v1(0.0f,  1000.0f, 0.0f);
+		Math::Vector3d v0(
+			x + radius * cos((-(angle-224.0f) * M_PI) / 2048.0f) * 0.5f * 0.80f,
+			0.0f,
+			y + radius * sin((-(angle-224.0f) * M_PI) / 2048.0f) * 0.5f * 0.80f
+		);
 		g_driver->line(v0, v1);
 	}
 
-	g_driver->setColor(0.0, 0.0, 1.0);
 	{
-		Math::Vector3d v0(0.0f, 0.0f, -1000.0f);
-		Math::Vector3d v1(0.0f, 0.0f,  1000.0f);
+		Math::Vector3d v0(
+			x + radius * cos((-(angle+224.0f) * M_PI) / 2048.0f) * 0.5f * 0.80f,
+			0.0f,
+			y + radius * sin((-(angle+224.0f) * M_PI) / 2048.0f) * 0.5f * 0.80f
+		);
 		g_driver->line(v0, v1);
 	}
+}
 
+void ReevengiEngine::testView3DEnd(void) {
 	g_driver->setColor(1.0, 1.0, 1.0);
 }
 
