@@ -241,7 +241,7 @@ void RE2Room::drawMasks(int numCamera) {
 	rdt2_rid_t *cameraPosArray = (rdt2_rid_t *) ((byte *) &_roomPtr[offset]);
 
 	offset = FROM_LE_32( cameraPosArray[numCamera].priOffset );
-	if (offset == 0xffffffffUL)
+	if (offset == -1)
 		return;
 
 	rdt2_pri_header_t *maskHeaderArray = (rdt2_pri_header_t *) ((byte *) &_roomPtr[offset]);
@@ -288,7 +288,7 @@ void RE2Room::drawMasks(int numCamera) {
 				offset += sizeof(rdt2_pri_square_t);
 			}
 
-			//debug(3, "mask %d,%d %dx%d to %dx%d, depth %d", srcX,srcY,width,height, dstX,dstY, 32*depth);
+			debug(3, "mask %d,%d %dx%d to %dx%d, depth %d", srcX,srcY,width,height, dstX,dstY, 32*depth);
 
 			/*rdr_mask->addZone(rdr_mask, num_camera,
 				src_x,src_y, width,height,
