@@ -285,6 +285,11 @@ void ReevengiEngine::processEventsKeyDownRepeat(Common::Event e) {
 		Math::Vector2d fromPos(_playerX, _playerZ);
 		Math::Vector2d toPos(nPlayerX, nPlayerZ);
 
+		if (_roomScene->checkCamBoundary(_camera, fromPos, toPos)) {
+			//debug(3, "reached boundary for this camera");
+			return;
+		}
+
 		int newCamera = _roomScene->checkCamSwitch(_camera, fromPos, toPos);
 		if (newCamera != -1) {
 			_camera = newCamera;
