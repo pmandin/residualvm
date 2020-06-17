@@ -54,15 +54,41 @@ typedef struct {
 	uint32	offsets[19];
 } rdt1_header_t;
 
-/* Cameras */
+/* Cameras and masks */
 
 typedef struct {
-	uint32 priOffset; /* see rdt_pri.h */
-	uint32 timOffset;	/* see rdt_pri.h */
+	uint32 priOffset;
+	uint32 timOffset;
 	int32 fromX, fromY, fromZ;
 	int32 toX, toY, toZ;
 	uint32 unknown[3];
 } rdt1_rid_t;
+
+typedef struct {
+	uint16 numOffset;
+	uint16 numMasks;
+} rdt1_pri_header_t;
+
+typedef struct {
+	uint16 count;
+	uint16 unknown;
+	int16 dstX, dstY;
+} rdt1_pri_offset_t;
+
+typedef struct {
+	uint8 srcX, srcY;
+	uint8 dstX, dstY;
+	uint16 depth;
+	uint8 unknown;
+	uint8 size;
+} rdt1_pri_square_t;
+
+typedef struct {
+	uint8 srcX, srcY;
+	uint8 dstX, dstY;
+	uint16 depth, zero;
+	uint16 width, height;
+} rdt1_pri_rect_t;
 
 /* Cameras switches, offset 0 */
 

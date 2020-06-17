@@ -44,6 +44,8 @@ public:
 	virtual int checkCamSwitch(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos);
 	virtual bool checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos);
 
+	virtual void drawMasks(int numCamera);
+
 protected:
 	// raw data file for room
 	byte *_roomPtr;

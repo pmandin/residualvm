@@ -55,6 +55,10 @@ bool Room::checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2d t
 	return false;
 }
 
+void Room::drawMasks(int numCamera) {
+	//
+}
+
 void Room::postLoad(void) {
 	//
 }

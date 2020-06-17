@@ -20,6 +20,7 @@
  *
  */
 
+#include "common/debug.h"
 #include "common/endian.h"
 #include "common/stream.h"
 #include "math/vector2d.h"
@@ -65,7 +66,7 @@ typedef struct {
 	uint32 flags;
 } rdt2_sca_element_t;
 
-/* Cameras, offset 7 */
+/* Cameras and masks, offset 7 */
 
 typedef struct {
 	uint16 unk0;
@@ -73,8 +74,32 @@ typedef struct {
 	/* const0>>7 used for engine */
 	int32 fromX, fromY, fromZ;
 	int32 toX, toY, toZ;
-	uint32 masksOffset;
+	uint32 priOffset;
 } rdt2_rid_t;
+
+typedef struct {
+	uint16 numOffset;
+	uint16 numMasks;
+} rdt2_pri_header_t;
+
+typedef struct {
+	uint16 count;
+	uint16 unknown;
+	uint16 dstX, dstY;
+} rdt2_pri_offset_t;
+
+typedef struct {
+	uint8 srcX, srcY;
+	uint8 dstX, dstY;
+	uint16 depth, size;
+} rdt2_pri_square_t;
+
+typedef struct {
+	uint8 srcX, srcY;
+	uint8 dstX, dstY;
+	uint16 depth, zero;
+	uint16 width, height;
+} rdt2_pri_rect_t;
 
 /* Cameras switches, offset 8 */
 
@@ -206,6 +231,72 @@ bool RE2Room::checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2
 	}
 
 	return false;
+}
+
+void RE2Room::drawMasks(int numCamera) {
+	if (!_roomPtr)
+		return;
+
+	int32 offset = FROM_LE_32( ((rdt2_header_t *) _roomPtr)->offsets[RDT2_OFFSET_CAMERAS] );
+	rdt2_rid_t *cameraPosArray = (rdt2_rid_t *) ((byte *) &_roomPtr[offset]);
+
+	offset = FROM_LE_32( cameraPosArray[numCamera].priOffset );
+	if (offset == 0xffffffffUL)
+		return;
+
+	rdt2_pri_header_t *maskHeaderArray = (rdt2_pri_header_t *) ((byte *) &_roomPtr[offset]);
+	offset += sizeof(rdt2_pri_header_t);
+
+	rdt2_pri_offset_t *maskOffsetArray = (rdt2_pri_offset_t *) ((byte *) &_roomPtr[offset]);
+	int count = (int16) FROM_LE_16(maskOffsetArray->count);
+	if (count<0)
+		return;
+
+	offset += sizeof(rdt2_pri_offset_t) * count;
+
+	for (int numOffset=0; numOffset<FROM_LE_16(maskHeaderArray->numOffset); numOffset++) {
+		for (int numMask=0; numMask<FROM_LE_16(maskOffsetArray->count); numMask++) {
+			rdt2_pri_square_t *squareMask = (rdt2_pri_square_t *) ((byte *) &_roomPtr[offset]);
+
+			int srcX, srcY, width, height, depth;
+			int dstX = FROM_LE_16(maskOffsetArray->dstX);
+			int dstY = FROM_LE_16(maskOffsetArray->dstY);
+
+			if (squareMask->size == 0) {
+				/* Rect mask */
+				rdt2_pri_rect_t *rectMask = (rdt2_pri_rect_t *) squareMask;
+
+				srcX = rectMask->srcX;
+				srcY = rectMask->srcY;
+				dstX += rectMask->dstX;
+				dstY += rectMask->dstY;
+				width = FROM_LE_16(rectMask->width);
+				height = FROM_LE_16(rectMask->height);
+				depth = FROM_LE_16(rectMask->depth);
+
+				offset += sizeof(rdt2_pri_rect_t);
+			} else {
+				/* Square mask */
+
+				srcX = squareMask->srcX;
+				srcY = squareMask->srcY;
+				dstX += squareMask->dstX;
+				dstY += squareMask->dstY;
+				width = height = FROM_LE_16(squareMask->size);
+				depth = FROM_LE_16(squareMask->depth);
+
+				offset += sizeof(rdt2_pri_square_t);
+			}
+
+			//debug(3, "mask %d,%d %dx%d to %dx%d, depth %d", srcX,srcY,width,height, dstX,dstY, 32*depth);
+
+			/*rdr_mask->addZone(rdr_mask, num_camera,
+				src_x,src_y, width,height,
+				dst_x,dst_y, 32*depth);*/
+		}
+
+		maskOffsetArray++;
+	}
 }
 
 } // End of namespace Reevengi
