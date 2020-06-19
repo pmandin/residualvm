@@ -288,11 +288,7 @@ void RE2Room::drawMasks(int numCamera) {
 				offset += sizeof(rdt2_pri_square_t);
 			}
 
-			debug(3, "mask %d,%d %dx%d to %dx%d, depth %d", srcX,srcY,width,height, dstX,dstY, 32*depth);
-
-			/*rdr_mask->addZone(rdr_mask, num_camera,
-				src_x,src_y, width,height,
-				dst_x,dst_y, 32*depth);*/
+			drawMask(srcX,srcY, width,height, dstX,dstY, 32*depth);
 		}
 
 		maskOffsetArray++;

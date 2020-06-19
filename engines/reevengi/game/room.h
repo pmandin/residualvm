@@ -52,6 +52,8 @@ protected:
 
 	virtual void postLoad(void);
 	bool isInside(Math::Vector2d pos, Math::Vector2d quad[4]);
+
+	void drawMask(int srcX, int srcY, int w, int h, int dstX, int dstY, int depth);
 };
 
 } // End of namespace Reevengi

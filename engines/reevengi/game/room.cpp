@@ -20,6 +20,8 @@
  *
  */
 
+#include "common/debug.h"
+
 #include "engines/reevengi/game/room.h"
 
 namespace Reevengi {
@@ -79,6 +81,10 @@ bool Room::isInside(Math::Vector2d pos, Math::Vector2d quad[4]) {
 	}
 
 	return true;
+}
+
+void Room::drawMask(int srcX, int srcY, int w, int h, int dstX, int dstY, int depth) {
+	debug(3, "mask %d,%d %dx%d to %dx%d, depth %d", srcX,srcY,w,h, dstX,dstY, depth);
 }
 
 } // End of namespace Reevengi
