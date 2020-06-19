@@ -173,6 +173,19 @@ void GfxTinyGL::setColor(float r, float g, float b) {
 	tglColor3f(r, g, b);
 }
 
+void GfxTinyGL::setBlending(bool enable) {
+	if (enable) {
+		tglEnable(TGL_BLEND);
+		tglBlendFunc(TGL_SRC_ALPHA, TGL_ONE_MINUS_SRC_ALPHA);
+
+		tglEnable(TGL_ALPHA_TEST);
+		tglAlphaFunc(TGL_GREATER, 0.5f);
+	} else {
+		tglDisable(TGL_BLEND);
+		tglDisable(TGL_ALPHA_TEST);
+	}
+}
+
 void GfxTinyGL::line(Math::Vector3d v0, Math::Vector3d v1) {
 	tglDisable(TGL_LIGHTING);
 	tglDisable(TGL_TEXTURE_2D);

@@ -301,6 +301,19 @@ void GfxOpenGL::setColor(float r, float g, float b) {
 	glColor3f(r, g, b);
 }
 
+void GfxOpenGL::setBlending(bool enable) {
+	if (enable) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glEnable(GL_ALPHA_TEST);
+		glAlphaFunc(GL_GREATER, 0.5f);
+	} else {
+		glDisable(GL_BLEND);
+		glDisable(GL_ALPHA_TEST);
+	}
+}
+
 void GfxOpenGL::line(Math::Vector3d v0, Math::Vector3d v1) {
 	glDisable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
