@@ -169,10 +169,6 @@ void GfxTinyGL::translate(float tx, float ty, float tz) {
 	tglTranslatef(tx, ty, tz);
 }
 
-void GfxTinyGL::setColor(float r, float g, float b) {
-	tglColor3f(r, g, b);
-}
-
 void GfxTinyGL::setBlending(bool enable) {
 	if (enable) {
 		tglEnable(TGL_BLEND);
@@ -183,6 +179,23 @@ void GfxTinyGL::setBlending(bool enable) {
 	} else {
 		tglDisable(TGL_BLEND);
 		tglDisable(TGL_ALPHA_TEST);
+	}
+}
+
+void GfxTinyGL::setColor(float r, float g, float b) {
+	tglColor3f(r, g, b);
+}
+
+void GfxTinyGL::setColorMask(bool enable) {
+	tglColorMask(enable ? TGL_TRUE : TGL_FALSE, enable ? TGL_TRUE : TGL_FALSE,
+		enable ? TGL_TRUE : TGL_FALSE, enable ? TGL_TRUE : TGL_FALSE);
+}
+
+void GfxTinyGL::setDepth(bool enable) {
+	if (enable) {
+		tglEnable(TGL_DEPTH_TEST);
+	} else {
+		tglDisable(TGL_DEPTH_TEST);
 	}
 }
 

@@ -64,8 +64,10 @@ public:
 	void rotate(float angle, float ax, float ay, float az) override;
 	void translate(float tx, float ty, float tz) override;
 
+	void setBlending(bool enable) override;
 	void setColor(float r, float g, float b) override;
-	void setBlending(bool enable); override;
+	void setColorMask(bool enable) override;
+	void setDepth(bool enable) override;
 
 	void line(Math::Vector3d v0, Math::Vector3d v1) override;
 

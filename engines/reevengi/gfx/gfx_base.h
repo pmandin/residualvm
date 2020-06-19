@@ -85,8 +85,10 @@ public:
 	virtual void rotate(float angle, float ax, float ay, float az) = 0;
 	virtual void translate(float tx, float ty, float tz) = 0 ;
 
-	virtual void setColor(float r, float g, float b) =0;
 	virtual void setBlending(bool enable) =0;
+	virtual void setColor(float r, float g, float b) =0;
+	virtual void setColorMask(bool enable) =0;
+	virtual void setDepth(bool enable) =0;
 
 	virtual void line(Math::Vector3d v0, Math::Vector3d v1) =0;
 

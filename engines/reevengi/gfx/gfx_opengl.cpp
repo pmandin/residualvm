@@ -297,10 +297,6 @@ void GfxOpenGL::translate(float tx, float ty, float tz) {
 	glTranslatef(tx, ty, tz);
 }
 
-void GfxOpenGL::setColor(float r, float g, float b) {
-	glColor3f(r, g, b);
-}
-
 void GfxOpenGL::setBlending(bool enable) {
 	if (enable) {
 		glEnable(GL_BLEND);
@@ -311,6 +307,23 @@ void GfxOpenGL::setBlending(bool enable) {
 	} else {
 		glDisable(GL_BLEND);
 		glDisable(GL_ALPHA_TEST);
+	}
+}
+
+void GfxOpenGL::setColor(float r, float g, float b) {
+	glColor3f(r, g, b);
+}
+
+void GfxOpenGL::setColorMask(bool enable) {
+	glColorMask(enable ? GL_TRUE : GL_FALSE, enable ? GL_TRUE : GL_FALSE,
+		enable ? GL_TRUE : GL_FALSE, enable ? GL_TRUE : GL_FALSE);
+}
+
+void GfxOpenGL::setDepth(bool enable) {
+	if (enable) {
+		glEnable(GL_DEPTH_TEST);
+	} else {
+		glDisable(GL_DEPTH_TEST);
 	}
 }
 
