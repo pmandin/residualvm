@@ -29,6 +29,7 @@
 #include "engines/reevengi/formats/ard.h"
 #include "engines/reevengi/formats/bss.h"
 #include "engines/reevengi/formats/rofs.h"
+#include "engines/reevengi/formats/sld.h"
 #include "engines/reevengi/formats/tim.h"
 #include "engines/reevengi/re3/re3.h"
 #include "engines/reevengi/re3/room.h"
@@ -39,6 +40,7 @@ namespace Reevengi {
 
 static const char *RE3PCROFS_DAT = "rofs%d.dat";
 static const char *RE3PC_BG = "data_a/bss/r%d%02x%02x.jpg";
+static const char *RE3PC_BGMASK = "data_a/bss/r%d%02x.sld";
 static const char *RE3PC_ROOM = "data_%c/rdt/r%d%02x.rdt";
 
 static const char *RE3PSX_BG = "cd_data/stage%d/r%d%02x.bss";
@@ -175,6 +177,48 @@ void RE3Engine::loadBgImagePsx(void) {
 		delete imgStream;
 	}
 	delete arcStream;
+}
+
+void RE3Engine::loadBgMaskImage(void) {
+//	debug(3, "re3: loadBgMaskImage");
+
+	switch(_gameDesc.platform) {
+		case Common::kPlatformWindows:
+			{
+				loadBgMaskImagePc();
+			}
+			break;
+		case Common::kPlatformPSX:
+			{
+				//loadBgImagePsx();
+			}
+			break;
+		default:
+			return;
+	}
+
+	ReevengiEngine::loadBgMaskImage();
+}
+
+void RE3Engine::loadBgMaskImagePc(void) {
+	char filePath[64];
+
+	sprintf(filePath, RE3PC_BGMASK, _stage, _room);
+
+	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
+	if (stream) {
+		SldArchive *sldArchive = new SldArchive(stream);
+		if (sldArchive) {
+			Common::SeekableReadStream *imgStream = sldArchive->createReadStreamForMember(_camera);
+			if (imgStream) {
+				_bgMaskImage = new TimDecoder();
+				((TimDecoder *) _bgMaskImage)->loadStream(*imgStream);
+			}
+			delete imgStream;
+		}
+		delete sldArchive;
+	}
+	delete stream;
 }
 
 void RE3Engine::loadRoom(void) {

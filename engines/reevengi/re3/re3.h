@@ -37,6 +37,7 @@ public:
 protected:
 	void initPreRun(void);
 	void loadBgImage(void);
+	void loadBgMaskImage(void);
 	void loadRoom(void);
 
 private:
@@ -44,6 +45,8 @@ private:
 
 	void loadBgImagePc(void);
 	void loadBgImagePsx(void);
+
+	void loadBgMaskImagePc(void);
 
 	void loadRoomPc(void);
 	void loadRoomPsx(void);
