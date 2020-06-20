@@ -37,6 +37,7 @@ public:
 protected:
 	void initPreRun(void);
 	void loadBgImage(void);
+	void loadBgMaskImage(void);
 	void loadRoom(void);
 
 private:
@@ -45,6 +46,8 @@ private:
 	void loadBgImagePcDemo(void);
 	void loadBgImagePcGame(void);
 	void loadBgImagePsx(void);
+
+	void loadBgMaskImagePcDemo(void);
 };
 
 } // end of namespace Reevengi

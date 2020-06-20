@@ -36,6 +36,7 @@ namespace Reevengi {
 static const char *RE2_ROOM = "pl%d/rd%c/room%d%02x%d.rdt";
 
 static const char *RE2PCDEMO_BG = "common/stage%d/rc%d%02x%1x.adt";
+static const char *RE2PCDEMO_BGMASK = "common/stage%d/rs%d%02x%1x.adt";
 
 static const char *RE2PSX_BG = "common/bss/room%d%02x.bss";
 
@@ -202,6 +203,48 @@ void RE2Engine::loadBgImagePsx(void) {
 		delete imgStream;
 	}
 	delete arcStream;
+}
+
+void RE2Engine::loadBgMaskImage(void) {
+	//debug(3, "re2: loadBgMaskImage");
+
+	if ((_gameDesc.flags & ADGF_DEMO)==ADGF_DEMO) {
+		if (_stage>2) { _stage=1; }
+	}
+
+	switch(_gameDesc.platform) {
+		case Common::kPlatformWindows:
+			{
+				if ((_gameDesc.flags & ADGF_DEMO)==ADGF_DEMO) {
+					loadBgMaskImagePcDemo();
+				} else {
+					//loadBgImagePcGame();
+				}
+			}
+			break;
+		case Common::kPlatformPSX:
+			{
+				//loadBgImagePsx();
+			}
+			break;
+		default:
+			return;
+	}
+
+	ReevengiEngine::loadBgMaskImage();
+}
+
+void RE2Engine::loadBgMaskImagePcDemo(void) {
+	char filePath[64];
+
+	sprintf(filePath, RE2PCDEMO_BGMASK, _stage, _stage, _room, _camera);
+
+	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
+	if (stream) {
+		_bgImage = new AdtDecoder();
+		((AdtDecoder *) _bgImage)->loadStream(*stream);
+	}
+	delete stream;
 }
 
 void RE2Engine::loadRoom(void) {
