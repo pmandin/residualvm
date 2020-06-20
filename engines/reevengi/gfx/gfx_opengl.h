@@ -78,7 +78,7 @@ public:
 private:
 	int _smushNumTex;
 	GLuint *_smushTexIds;
-	byte *_storedDisplay;
+	//byte *_storedDisplay;
 
 };
 

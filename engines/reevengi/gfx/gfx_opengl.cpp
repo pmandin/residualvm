@@ -51,7 +51,7 @@ GfxOpenGL::GfxOpenGL() : _smushNumTex(0),
 
 GfxOpenGL::~GfxOpenGL() {
 	releaseMovieFrame();
-	delete[] _storedDisplay;
+	//delete[] _storedDisplay;
 }
 
 byte *GfxOpenGL::setupScreen(int screenW, int screenH, bool fullscreen) {
@@ -64,9 +64,9 @@ byte *GfxOpenGL::setupScreen(int screenW, int screenH, bool fullscreen) {
 
 	g_system->setWindowCaption("ResidualVM: OpenGL Renderer");
 
-	int screenSize = _screenWidth * _screenHeight * 4;
-	_storedDisplay = new byte[screenSize];
-	memset(_storedDisplay, 0, screenSize);
+	//int screenSize = _screenWidth * _screenHeight * 4;
+	//_storedDisplay = new byte[screenSize];
+	//memset(_storedDisplay, 0, screenSize);
 	_smushNumTex = 0;
 
 	glViewport(0, 0, _screenWidth, _screenHeight);
