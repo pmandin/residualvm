@@ -56,7 +56,7 @@ GfxBase *g_driver = nullptr;
 
 ReevengiEngine::ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const ADGameDescription *gameDesc) :
 	Engine(syst), _gameType(gameType), _character(0), _softRenderer(true),
-	_stage(1), _room(0), _camera(0), _bgImage(nullptr), _roomScene(nullptr),
+	_stage(1), _room(0), _camera(0), _bgImage(nullptr),_bgMaskImage(nullptr), _roomScene(nullptr),
 	_playerX(0), _playerY(0), _playerZ(0), _playerA(0), _playerMove(0), _playerTic(0) {
 	memcpy(&_gameDesc, gameDesc, sizeof(_gameDesc));
 	g_movie = nullptr;
@@ -67,6 +67,7 @@ ReevengiEngine::ReevengiEngine(OSystem *syst, ReevengiGameType gameType, const A
 
 ReevengiEngine::~ReevengiEngine() {
 	destroyBgImage();
+	destroyBgMaskImage();
 	destroyRoom();
 
 	delete g_movie;
@@ -149,6 +150,7 @@ Common::Error ReevengiEngine::run() {
 	}
 #endif
 	loadBgImage();
+	loadBgMaskImage();
 
 	while (!shouldQuit()) {
 
@@ -295,6 +297,9 @@ void ReevengiEngine::processEventsKeyDownRepeat(Common::Event e) {
 			_camera = newCamera;
 			destroyBgImage();
 			loadBgImage();
+
+			destroyBgMaskImage();
+			loadBgMaskImage();
 		}
 	}
 
@@ -416,6 +421,22 @@ void ReevengiEngine::loadBgImage(void) {
 	Graphics::Surface *bgSurf = (Graphics::Surface *) _bgImage->getSurface();
 	if (bgSurf) {
 		g_driver->prepareMovieFrame(bgSurf);
+	}
+}
+
+void ReevengiEngine::destroyBgMaskImage(void) {
+	delete _bgMaskImage;
+	_bgMaskImage = nullptr;
+}
+
+void ReevengiEngine::loadBgMaskImage(void) {
+	if (!_bgMaskImage) {
+		return;
+	}
+
+	Graphics::Surface *bgSurf = (Graphics::Surface *) _bgMaskImage->getSurface();
+	if (bgSurf) {
+		g_driver->prepareMaskedFrame(bgSurf);
 	}
 }
 

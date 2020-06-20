@@ -77,6 +77,11 @@ public:
 	 */
 	virtual void releaseMovieFrame() = 0;
 
+	/* Draw mask (only to depth buffer), using alpha */
+	virtual void prepareMaskedFrame(Graphics::Surface *frame) = 0;
+	virtual void drawMaskedFrame(void) = 0;
+	virtual void releaseMaskedFrame(void) = 0;
+
 	bool computeScreenViewport(void);
 
 	virtual void setProjection(float angle, float aspect, float zNear, float zFar) = 0;

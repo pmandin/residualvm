@@ -138,6 +138,15 @@ void GfxTinyGL::releaseMovieFrame() {
 	Graphics::tglDeleteBlitImage(_smushImage);
 }
 
+void GfxTinyGL::prepareMaskedFrame(Graphics::Surface *frame) {
+}
+
+void GfxTinyGL::drawMaskedFrame(void) {
+}
+
+void GfxTinyGL::releaseMaskedFrame(void) {
+}
+
 void GfxTinyGL::setProjection(float angle, float aspect, float zNear, float zFar) {
 	Math::Matrix4 mProjection = Math::makePerspectiveMatrix(angle, aspect, zNear, zFar);
 

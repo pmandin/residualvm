@@ -264,6 +264,15 @@ void GfxOpenGL::releaseMovieFrame() {
 	}
 }
 
+void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame) {
+}
+
+void GfxOpenGL::drawMaskedFrame(void) {
+}
+
+void GfxOpenGL::releaseMaskedFrame(void) {
+}
+
 void GfxOpenGL::setProjection(float angle, float aspect, float zNear, float zFar) {
 	Math::Matrix4 mProjection = Math::makePerspectiveMatrix(angle, aspect, zNear, zFar);
 

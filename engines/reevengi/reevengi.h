@@ -70,6 +70,11 @@ protected:
 	void destroyBgImage(void);
 	virtual void loadBgImage(void);
 
+	// Background mask image
+	Image::ImageDecoder *_bgMaskImage;
+	void destroyBgMaskImage(void);
+	virtual void loadBgMaskImage(void);
+
 	// Room data
 	Room *_roomScene;
 	void destroyRoom(void);

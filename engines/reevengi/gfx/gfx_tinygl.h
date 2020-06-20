@@ -49,6 +49,10 @@ public:
 	void drawMovieFrame(int offsetX, int offsetY) override;
 	void releaseMovieFrame() override;
 
+	void prepareMaskedFrame(Graphics::Surface *frame) override;
+	void drawMaskedFrame(void) override;
+	void releaseMaskedFrame(void) override;
+
 	void setProjection(float angle, float aspect, float zNear, float zFar) override;
 	void setModelview(float fromX, float fromY, float fromZ,
 		float toX, float toY, float toZ,
