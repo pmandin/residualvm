@@ -27,7 +27,8 @@
 
 namespace Reevengi {
 
-GfxBase::GfxBase() : _gameWidth(320), _gameHeight(240), _smushWidth(0), _smushHeight(0) {
+GfxBase::GfxBase() : _gameWidth(320), _gameHeight(240), _smushWidth(0), _smushHeight(0),
+	_maskWidth(0), _maskHeight(0) {
 }
 
 bool GfxBase::computeScreenViewport(void) {

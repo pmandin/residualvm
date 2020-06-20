@@ -80,6 +80,8 @@ private:
 	GLuint *_smushTexIds;
 	//byte *_storedDisplay;
 
+	int _maskNumTex;
+	GLuint *_maskTexIds;
 };
 
 } // End of namespace Reevengi

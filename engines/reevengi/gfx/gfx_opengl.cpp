@@ -45,12 +45,13 @@ GfxBase *CreateGfxOpenGL() {
 	return new GfxOpenGL();
 }
 
-GfxOpenGL::GfxOpenGL() : _smushNumTex(0),
-		_smushTexIds(nullptr) {
+GfxOpenGL::GfxOpenGL() : _smushNumTex(0), _smushTexIds(nullptr),
+	_maskNumTex(0), _maskTexIds(nullptr) {
 }
 
 GfxOpenGL::~GfxOpenGL() {
 	releaseMovieFrame();
+	releaseMaskedFrame();
 	//delete[] _storedDisplay;
 }
 
@@ -265,6 +266,90 @@ void GfxOpenGL::releaseMovieFrame() {
 }
 
 void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame) {
+	int height = frame->h;
+	int width = frame->w;
+	byte *bitmap = (byte *)frame->getPixels();
+
+	GLenum format;
+	GLenum dataType;
+	int bytesPerPixel = frame->format.bytesPerPixel;
+
+	// Aspyr Logo format
+	if (frame->format == Graphics::PixelFormat(4, 8, 8, 8, 0, 8, 16, 24, 0)) {
+#if !defined(__amigaos4__)
+		format = GL_BGRA;
+		dataType = GL_UNSIGNED_INT_8_8_8_8;
+#else
+		// AmigaOS' MiniGL does not understand GL_UNSIGNED_INT_8_8_8_8 yet.
+		format = GL_BGRA;
+		dataType = GL_UNSIGNED_BYTE;
+#endif
+	} else if (frame->format == Graphics::PixelFormat(4, 8, 8, 8, 0, 16, 8, 0, 0)) {
+		format = GL_BGRA;
+		dataType = GL_UNSIGNED_INT_8_8_8_8_REV;
+	} else if (frame->format == Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0)) {
+		format = GL_RGB;
+		dataType = GL_UNSIGNED_SHORT_5_6_5;
+	} else if (frame->format == Graphics::PixelFormat(2, 5, 5, 5, 1, 11, 6, 1, 0)) {
+		format = GL_RGBA;
+		dataType = GL_UNSIGNED_SHORT_5_5_5_1;
+	} else if (frame->format == Graphics::PixelFormat(4, 8, 8, 8, 8, 0, 8, 16, 24)) {
+		format = GL_RGBA;
+		dataType = GL_UNSIGNED_INT_8_8_8_8_REV;
+	} else if (frame->format == Graphics::PixelFormat(3, 8, 8, 8, 0, 0, 8, 16, 0)) {
+		format = GL_RGB;
+		dataType = GL_UNSIGNED_BYTE;
+	} else {
+		error("Unknown pixelformat: Bpp: %d RBits: %d GBits: %d BBits: %d ABits: %d RShift: %d GShift: %d BShift: %d AShift: %d",
+			frame->format.bytesPerPixel,
+			-(frame->format.rLoss - 8),
+			-(frame->format.gLoss - 8),
+			-(frame->format.bLoss - 8),
+			-(frame->format.aLoss - 8),
+			frame->format.rShift,
+			frame->format.gShift,
+			frame->format.bShift,
+			frame->format.aShift);
+	}
+
+	// remove if already exist
+	if (_maskNumTex > 0) {
+		glDeleteTextures(_maskNumTex, _maskTexIds);
+		delete[] _maskTexIds;
+		_maskNumTex = 0;
+	}
+
+	// create texture
+	_maskNumTex = ((width + (BITMAP_TEXTURE_SIZE - 1)) / BITMAP_TEXTURE_SIZE) *
+				   ((height + (BITMAP_TEXTURE_SIZE - 1)) / BITMAP_TEXTURE_SIZE);
+	_maskTexIds = new GLuint[_maskNumTex];
+	glGenTextures(_maskNumTex, _maskTexIds);
+	for (int i = 0; i < _maskNumTex; i++) {
+		glBindTexture(GL_TEXTURE_2D, _maskTexIds[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, BITMAP_TEXTURE_SIZE, BITMAP_TEXTURE_SIZE, 0, format, dataType, nullptr);
+	}
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, bytesPerPixel); // 16 bit RGB 565 bitmap/32 bit BGR
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, width);
+
+	int curTexIdx = 0;
+	for (int y = 0; y < height; y += BITMAP_TEXTURE_SIZE) {
+		for (int x = 0; x < width; x += BITMAP_TEXTURE_SIZE) {
+			int t_width = (x + BITMAP_TEXTURE_SIZE >= width) ? (width - x) : BITMAP_TEXTURE_SIZE;
+			int t_height = (y + BITMAP_TEXTURE_SIZE >= height) ? (height - y) : BITMAP_TEXTURE_SIZE;
+			glBindTexture(GL_TEXTURE_2D, _maskTexIds[curTexIdx]);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, t_width, t_height, format, dataType, bitmap + (y * bytesPerPixel * width) + (bytesPerPixel * x));
+			curTexIdx++;
+		}
+	}
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+	_maskWidth = width; //(int)(width * _scaleW);
+	_maskHeight = height; //(int)(height * _scaleH);
 }
 
 void GfxOpenGL::drawMaskedFrame(void) {

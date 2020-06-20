@@ -102,6 +102,7 @@ protected:
 	int _screenWidth, _screenHeight;
 
 	int _smushWidth, _smushHeight;
+	int _maskWidth, _maskHeight;
 
 	Common::Rect _screenViewport;
 };
