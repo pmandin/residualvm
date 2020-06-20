@@ -8,6 +8,7 @@ MODULE_OBJS := \
 	formats/bss.o \
 	formats/pak.o \
 	formats/rofs.o \
+	formats/sld.o \
 	formats/tim.o \
 	game/clock.o \
 	game/room.o \
