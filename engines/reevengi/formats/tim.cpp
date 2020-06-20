@@ -71,8 +71,10 @@ TimDecoder::~TimDecoder() {
 
 void TimDecoder::destroy() {
 	_surface.free();
-	delete[] _colorMap;
-	delete[] _timPalette;
+	delete _colorMap;
+	_colorMap = nullptr;
+	delete _timPalette;
+	_timPalette = nullptr;
 }
 
 void TimDecoder::setSize(int w, int h) {
@@ -178,7 +180,7 @@ bool TimDecoder::readColorMap(Common::SeekableReadStream &tim, byte imageType) {
 	_timPalette = new uint16[256];
 
 	for (int j = 0; j < _colorMapCount; j++) {
-		for (int i = 0; i < _colorMapLength * 3; i += 3) {
+		for (int i = 0; i < _colorMapLength; i++) {
 			byte r, g, b, a;
 			Graphics::PixelFormat format(2, 5, 5, 5, 1, 11, 6, 1, 0);
 

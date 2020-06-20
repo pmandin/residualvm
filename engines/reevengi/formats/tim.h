@@ -56,7 +56,7 @@ protected:
 
 private:
 	int _forcedW, _forcedH;
-	uint16 *_timPalette;
+	uint16 *_timPalette;	/* Original palette, needed for masking using alpha component */
 
 	// Color-map:
 	byte *_colorMap;
