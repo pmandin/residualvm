@@ -262,6 +262,7 @@ void RE2Room::drawMasks(int numCamera) {
 			int srcX, srcY, width, height, depth;
 			int dstX = FROM_LE_16(maskOffsetArray->dstX);
 			int dstY = FROM_LE_16(maskOffsetArray->dstY);
+			int curOffset = offset;
 
 			if (squareMask->size == 0) {
 				/* Rect mask */
@@ -289,6 +290,12 @@ void RE2Room::drawMasks(int numCamera) {
 				offset += sizeof(rdt2_pri_square_t);
 			}
 
+			if ((width>256) || (height>256)) {
+				debug(3, "invalid size offset 0x%08x", curOffset);
+				continue;
+			}
+
+			//debug(3, "%d,%d %dx%d", dstX, dstY, width, height);
 			Common::Rect rect(dstX, dstY, dstX+width, dstY+height);
 			g_driver->drawMaskedFrame(rect, 32*depth);
 
