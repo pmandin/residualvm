@@ -157,6 +157,9 @@ Common::Error ReevengiEngine::run() {
 		if (_bgImage) {
 			testDisplayImage(_bgImage);
 		}
+		if (_bgMaskImage) {
+			testDisplayMaskImage(_bgMaskImage);
+		}
 		//testDisplayImage(my_image);
 		//testPlayMovie();
 		testView3DBegin();
@@ -401,6 +404,9 @@ void ReevengiEngine::processEventsKeyDown(Common::Event e) {
 	if (updateBgImage) {
 		destroyBgImage();
 		loadBgImage();
+
+		destroyBgMaskImage();
+		loadBgMaskImage();
 	}
 }
 
@@ -477,6 +483,13 @@ TimDecoder *ReevengiEngine::testLoadImage(void) {
 
 void ReevengiEngine::testDisplayImage(Image::ImageDecoder *img) {
 	g_driver->drawMovieFrame(0, 0);
+}
+
+void ReevengiEngine::testDisplayMaskImage(Image::ImageDecoder *img) {
+	if (!_roomScene)
+		return;
+
+	_roomScene->drawMasks(_camera);
 }
 
 void ReevengiEngine::testLoadMovie(void) {

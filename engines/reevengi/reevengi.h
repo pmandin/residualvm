@@ -95,6 +95,7 @@ private:
 
 	TimDecoder *testLoadImage(void);
 	void testDisplayImage(Image::ImageDecoder *img);
+	void testDisplayMaskImage(Image::ImageDecoder *img);
 	void testLoadMovie(void);
 	void testPlayMovie(void);
 

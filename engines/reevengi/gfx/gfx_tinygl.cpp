@@ -142,6 +142,7 @@ void GfxTinyGL::prepareMaskedFrame(Graphics::Surface *frame) {
 }
 
 void GfxTinyGL::drawMaskedFrame(Common::Rect rect, int depth) {
+	debug(3, "tglMask: %d,%d %dx%d %d", rect.top, rect.left, rect.width(), rect.height(), depth);
 }
 
 void GfxTinyGL::releaseMaskedFrame(void) {

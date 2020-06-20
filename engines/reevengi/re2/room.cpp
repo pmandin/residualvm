@@ -289,7 +289,7 @@ void RE2Room::drawMasks(int numCamera) {
 				offset += sizeof(rdt2_pri_square_t);
 			}
 
-			Common::Rect rect(dstX, dstY, dstX+width-1, dstY+height-1);
+			Common::Rect rect(dstX, dstY, dstX+width, dstY+height);
 			g_driver->drawMaskedFrame(rect, 32*depth);
 
 			//drawMask(srcX,srcY, width,height, dstX,dstY, 32*depth);
