@@ -24,6 +24,7 @@
 #include "common/endian.h"
 #include "common/stream.h"
 
+#include "engines/reevengi/gfx/gfx_base.h"
 #include "engines/reevengi/re1/room.h"
 
 namespace Reevengi {
@@ -242,7 +243,9 @@ void RE1Room::drawMasks(int numCamera) {
 				offset += sizeof(rdt1_pri_square_t);
 			}
 
-			drawMask(srcX,srcY, width,height, dstX,dstY, 16*depth);
+			Common::Rect rect(dstX, dstY, dstX+width-1, dstY+height-1);
+			g_driver->drawMaskedFrame(rect, 16*depth);
+			//drawMask(srcX,srcY, width,height, dstX,dstY, 16*depth);
 		}
 
 		maskOffsetArray++;
