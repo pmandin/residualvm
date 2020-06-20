@@ -138,7 +138,7 @@ void GfxTinyGL::releaseMovieFrame() {
 	Graphics::tglDeleteBlitImage(_smushImage);
 }
 
-void GfxTinyGL::prepareMaskedFrame(Graphics::Surface *frame) {
+void GfxTinyGL::prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette) {
 }
 
 void GfxTinyGL::drawMaskedFrame(Common::Rect rect, int depth) {

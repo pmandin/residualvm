@@ -440,9 +440,11 @@ void ReevengiEngine::loadBgMaskImage(void) {
 		return;
 	}
 
+	uint16 *timPalette = _bgMaskImage->getTimPalette();
+
 	Graphics::Surface *bgSurf = (Graphics::Surface *) _bgMaskImage->getSurface();
 	if (bgSurf) {
-		g_driver->prepareMaskedFrame(bgSurf);
+		g_driver->prepareMaskedFrame(bgSurf, timPalette);
 	}
 }
 

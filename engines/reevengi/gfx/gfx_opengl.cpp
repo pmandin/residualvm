@@ -265,7 +265,7 @@ void GfxOpenGL::releaseMovieFrame() {
 	}
 }
 
-void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame) {
+void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette) {
 	int height = frame->h;
 	int width = frame->w;
 	byte *bitmap = (byte *)frame->getPixels();
@@ -298,6 +298,9 @@ void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame) {
 		dataType = GL_UNSIGNED_INT_8_8_8_8_REV;
 	} else if (frame->format == Graphics::PixelFormat(3, 8, 8, 8, 0, 0, 8, 16, 0)) {
 		format = GL_RGB;
+		dataType = GL_UNSIGNED_BYTE;
+ 	} else if (frame->format == Graphics::PixelFormat(1, 0, 0, 0, 0, 0, 0, 0, 0)) {
+		format = GL_COLOR_INDEX;
 		dataType = GL_UNSIGNED_BYTE;
 	} else {
 		error("Unknown pixelformat: Bpp: %d RBits: %d GBits: %d BBits: %d ABits: %d RShift: %d GShift: %d BShift: %d AShift: %d",
@@ -336,6 +339,32 @@ void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame) {
 	glPixelStorei(GL_UNPACK_ALIGNMENT, bytesPerPixel); // 16 bit RGB 565 bitmap/32 bit BGR
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, width);
 
+	// Upload palette
+	if ((bytesPerPixel==1) && timPalette) {
+		GLfloat mapR[256], mapG[256], mapB[256], mapA[256];
+		Graphics::PixelFormat fmtTimPal(2, 5, 5, 5, 1, 11, 6, 1, 0);
+
+		memset(mapR, 0, sizeof(mapR));
+		memset(mapG, 0, sizeof(mapG));
+		memset(mapB, 0, sizeof(mapB));
+		memset(mapA, 0, sizeof(mapA));
+		for (int i=0; i<256; i++) {
+			byte r, g, b, a;
+			uint16 color = *timPalette++;
+			fmtTimPal.colorToARGB(color, a, r, g, b);
+
+			mapR[i] = r / 255.0f;
+			mapG[i] = g / 255.0f;
+			mapB[i] = b / 255.0f;
+			mapA[i] = a / 255.0f;
+		}
+		glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
+		glPixelMapfv(GL_PIXEL_MAP_I_TO_R, 256, mapR);
+		glPixelMapfv(GL_PIXEL_MAP_I_TO_G, 256, mapG);
+		glPixelMapfv(GL_PIXEL_MAP_I_TO_B, 256, mapB);
+		glPixelMapfv(GL_PIXEL_MAP_I_TO_A, 256, mapA);
+	}
+
 	int curTexIdx = 0;
 	for (int y = 0; y < height; y += BITMAP_TEXTURE_SIZE) {
 		for (int x = 0; x < width; x += BITMAP_TEXTURE_SIZE) {
@@ -346,14 +375,17 @@ void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame) {
 			curTexIdx++;
 		}
 	}
+
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+	glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
+
 	_maskWidth = width; //(int)(width * _scaleW);
 	_maskHeight = height; //(int)(height * _scaleH);
 }
 
 void GfxOpenGL::drawMaskedFrame(Common::Rect rect, int depth) {
-	debug(3, "glMask: %d,%d %dx%d %d", rect.top, rect.left, rect.width(), rect.height(), depth);
+	//debug(3, "glMask: %d,%d %dx%d %d", rect.top, rect.left, rect.width(), rect.height(), depth);
 }
 
 void GfxOpenGL::releaseMaskedFrame(void) {

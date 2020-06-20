@@ -49,7 +49,7 @@ public:
 	void drawMovieFrame(int offsetX, int offsetY) override;
 	void releaseMovieFrame() override;
 
-	void prepareMaskedFrame(Graphics::Surface *frame) override;
+	void prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette = nullptr) override;
 	void drawMaskedFrame(Common::Rect rect, int depth) override;
 	void releaseMaskedFrame(void) override;
 

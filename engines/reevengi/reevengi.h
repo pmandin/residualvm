@@ -71,7 +71,7 @@ protected:
 	virtual void loadBgImage(void);
 
 	// Background mask image
-	Image::ImageDecoder *_bgMaskImage;
+	TimDecoder *_bgMaskImage;
 	void destroyBgMaskImage(void);
 	virtual void loadBgMaskImage(void);
 
