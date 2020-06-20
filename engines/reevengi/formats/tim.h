@@ -40,6 +40,7 @@ public:
 	void setSize(int w, int h);
 
 	void CreateTimSurface(int w, int h, Graphics::PixelFormat &fmt);
+	uint16 *getTimPalette(void) const { return _timPalette; };
 
 	// ImageDecoder API
 	virtual void destroy();
@@ -55,6 +56,7 @@ protected:
 
 private:
 	int _forcedW, _forcedH;
+	uint16 *_timPalette;
 
 	// Color-map:
 	byte *_colorMap;

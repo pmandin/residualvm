@@ -62,7 +62,7 @@ typedef struct {
 /*--- Class ---*/
 
 TimDecoder::TimDecoder(): _colorMapCount(0), _colorMapLength(0), _colorMap(nullptr),
-	_forcedW(0), _forcedH(0) {
+	_forcedW(0), _forcedH(0), _timPalette(nullptr) {
 }
 
 TimDecoder::~TimDecoder() {
@@ -72,6 +72,7 @@ TimDecoder::~TimDecoder() {
 void TimDecoder::destroy() {
 	_surface.free();
 	delete[] _colorMap;
+	delete[] _timPalette;
 }
 
 void TimDecoder::setSize(int w, int h) {
@@ -174,6 +175,7 @@ uint16 TimDecoder::readPixel(uint16 color) {
 bool TimDecoder::readColorMap(Common::SeekableReadStream &tim, byte imageType) {
 	_colorMap = new byte[3 * _colorMapCount * _colorMapLength];
 	byte *_colorMapFill = _colorMap;
+	_timPalette = new uint16[256];
 
 	for (int j = 0; j < _colorMapCount; j++) {
 		for (int i = 0; i < _colorMapLength * 3; i += 3) {
@@ -181,6 +183,9 @@ bool TimDecoder::readColorMap(Common::SeekableReadStream &tim, byte imageType) {
 			Graphics::PixelFormat format(2, 5, 5, 5, 1, 11, 6, 1, 0);
 
 			uint16 color = readPixel(tim);
+			if (j==0) {
+				_timPalette[i] = color;
+			}
 			format.colorToARGB(color, a, r, g, b);
 
 #ifdef SCUMM_LITTLE_ENDIAN
