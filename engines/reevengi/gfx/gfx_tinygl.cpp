@@ -141,7 +141,7 @@ void GfxTinyGL::releaseMovieFrame() {
 void GfxTinyGL::prepareMaskedFrame(Graphics::Surface *frame) {
 }
 
-void GfxTinyGL::drawMaskedFrame(void) {
+void GfxTinyGL::drawMaskedFrame(Common::Rect rect, int depth) {
 }
 
 void GfxTinyGL::releaseMaskedFrame(void) {

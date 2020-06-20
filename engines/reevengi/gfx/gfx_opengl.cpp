@@ -352,10 +352,15 @@ void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame) {
 	_maskHeight = height; //(int)(height * _scaleH);
 }
 
-void GfxOpenGL::drawMaskedFrame(void) {
+void GfxOpenGL::drawMaskedFrame(Common::Rect rect, int depth) {
 }
 
 void GfxOpenGL::releaseMaskedFrame(void) {
+	if (_maskNumTex > 0) {
+		glDeleteTextures(_maskNumTex, _maskTexIds);
+		delete[] _maskTexIds;
+		_maskNumTex = 0;
+	}
 }
 
 void GfxOpenGL::setProjection(float angle, float aspect, float zNear, float zFar) {

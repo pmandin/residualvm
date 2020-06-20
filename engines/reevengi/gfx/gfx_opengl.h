@@ -59,7 +59,7 @@ public:
 	void releaseMovieFrame() override;
 
 	void prepareMaskedFrame(Graphics::Surface *frame) override;
-	void drawMaskedFrame(void) override;
+	void drawMaskedFrame(Common::Rect rect, int depth) override;
 	void releaseMaskedFrame(void) override;
 
 	void setProjection(float angle, float aspect, float zNear, float zFar) override;
