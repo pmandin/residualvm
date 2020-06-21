@@ -200,23 +200,23 @@ void RE1Room::drawMasks(int numCamera) {
 		return;
 
 	rdt1_pri_header_t *maskHeaderArray = (rdt1_pri_header_t *) ((byte *) &_roomPtr[offset]);
+	int16 countOffsets = FROM_LE_16(maskHeaderArray->numOffset);
+	if (countOffsets == -1)
+		return;
 	offset += sizeof(rdt1_pri_header_t);
 
 	rdt1_pri_offset_t *maskOffsetArray = (rdt1_pri_offset_t *) ((byte *) &_roomPtr[offset]);
-	int count = (int16) FROM_LE_16(maskOffsetArray->count);
-	if (count<0)
-		return;
+	offset += sizeof(rdt1_pri_offset_t) * countOffsets;
 
-	offset += sizeof(rdt1_pri_offset_t) * count;
+	for (int numOffset=0; numOffset<countOffsets; numOffset++) {
+		int16 maskCount = FROM_LE_16(maskOffsetArray[numOffset].count);
+		int16 maskDstX = FROM_LE_16(maskOffsetArray[numOffset].dstX);
+		int16 maskDstY = FROM_LE_16(maskOffsetArray[numOffset].dstY);
 
-	for (int numOffset=0; numOffset<FROM_LE_16(maskHeaderArray->numOffset); numOffset++) {
-		for (int numMask=0; numMask<FROM_LE_16(maskOffsetArray->count); numMask++) {
+		for (int numMask=0; numMask<maskCount; numMask++) {
 			rdt1_pri_square_t *squareMask = (rdt1_pri_square_t *) ((byte *) &_roomPtr[offset]);
 
-			int srcX, srcY, width, height, depth;
-			int dstX = FROM_LE_16(maskOffsetArray->dstX);
-			int dstY = FROM_LE_16(maskOffsetArray->dstY);
-			int curOffset = offset;
+			int srcX,srcY, width,height, dstX=maskDstX,dstY=maskDstY, depth;
 
 			if (squareMask->size == 0) {
 				/* Rect mask */
@@ -244,17 +244,11 @@ void RE1Room::drawMasks(int numCamera) {
 				offset += sizeof(rdt1_pri_square_t);
 			}
 
-			if ((width>256) || (height>256)) {
-				debug(3, "invalid size offset 0x%08x", curOffset);
-				continue;
-			}
-
 			Common::Rect rect(dstX, dstY, dstX+width, dstY+height);
 			g_driver->drawMaskedFrame(rect, 16*depth);
+
 			//drawMask(srcX,srcY, width,height, dstX,dstY, 16*depth);
 		}
-
-		maskOffsetArray++;
 	}
 }
 
