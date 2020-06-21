@@ -141,8 +141,8 @@ void GfxTinyGL::releaseMovieFrame() {
 void GfxTinyGL::prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette) {
 }
 
-void GfxTinyGL::drawMaskedFrame(Common::Rect rect, int depth) {
-	debug(3, "tglMask: %d,%d %dx%d %d", rect.top, rect.left, rect.width(), rect.height(), depth);
+void GfxTinyGL::drawMaskedFrame(int srcX, int srcY, int dstX, int dstY, int w, int h, int depth) {
+	//debug(3, "tglMask: %d,%d %dx%d %d", rect.top, rect.left, rect.width(), rect.height(), depth);
 }
 
 void GfxTinyGL::releaseMaskedFrame(void) {

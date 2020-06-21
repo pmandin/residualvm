@@ -50,7 +50,7 @@ public:
 	void releaseMovieFrame() override;
 
 	void prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette = nullptr) override;
-	void drawMaskedFrame(Common::Rect rect, int depth) override;
+	void drawMaskedFrame(int srcX, int srcY, int dstX, int dstY, int w, int h, int depth) override;
 	void releaseMaskedFrame(void) override;
 
 	void setProjection(float angle, float aspect, float zNear, float zFar) override;
