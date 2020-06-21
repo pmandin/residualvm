@@ -46,7 +46,7 @@ GfxBase *CreateGfxOpenGL() {
 }
 
 GfxOpenGL::GfxOpenGL() : _smushNumTex(0), _smushTexIds(nullptr),
-	_maskNumTex(0), _maskTexIds(nullptr) {
+	_maskNumTex(0), _maskTexPitch(0), _maskTexIds(nullptr) {
 }
 
 GfxOpenGL::~GfxOpenGL() {
@@ -323,9 +323,11 @@ void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette)
 	}
 
 	// create texture
-	_maskNumTex = ((width + (BITMAP_TEXTURE_SIZE - 1)) / BITMAP_TEXTURE_SIZE) *
+	_maskTexPitch = ((width + (BITMAP_TEXTURE_SIZE - 1)) / BITMAP_TEXTURE_SIZE);
+	_maskNumTex = _maskTexPitch *
 				   ((height + (BITMAP_TEXTURE_SIZE - 1)) / BITMAP_TEXTURE_SIZE);
 	_maskTexIds = new GLuint[_maskNumTex];
+	//debug(3, "mask tex: pitch %d count %d",_maskTexPitch, _maskNumTex);
 	glGenTextures(_maskNumTex, _maskTexIds);
 	for (int i = 0; i < _maskNumTex; i++) {
 		glBindTexture(GL_TEXTURE_2D, _maskTexIds[i]);
@@ -386,31 +388,32 @@ void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette)
 }
 
 void GfxOpenGL::drawMaskedFrame(int srcX, int srcY, int dstX, int dstY, int w, int h, int depth) {
-	//debug(3, "glMask: %d,%d %dx%d %d", rect.top, rect.left, rect.width(), rect.height(), depth);
+	//debug(3, "glMask: %d,%d->%d,%d %dx%d %d", srcX,srcY, dstX,dstY, w,h, depth);
 
-	int sysW = g_system->getWidth();
-	int sysH = g_system->getHeight();
-	int offsetX=0, offsetY=0;
+	int sysW = _screenWidth;
+	int sysH = _screenHeight;
 
-	float movScale = MIN<float>((float) sysW / _maskWidth, (float) sysH / _maskHeight);
-	int movW = _maskWidth * movScale;
-	int movH = _maskHeight * movScale;
+	float movScale = MIN<float>((float) sysW / 320, (float) sysH / 240);
+	int movW = 320 * movScale;
+	int movH = 240 * movScale;
 
 	float bitmapDepth= 1.0f - (kRenderZNear / (float) depth);
 	bitmapDepth *= kRenderZFar / (kRenderZFar - kRenderZNear);
 
- 	glViewport(0, 0, sysW, sysH);
+ 	glViewport(_screenViewport.left, _screenViewport.top, _screenWidth, _screenHeight);
 
 	// prepare view
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0, sysW, sysH, 0, 0, 1);
+	glOrtho(0, _screenWidth, _screenHeight, 0, 0, 1);
 
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
+	glScalef(1.0f / BITMAP_TEXTURE_SIZE, 1.0f / BITMAP_TEXTURE_SIZE, 1.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	glScalef(movScale, movScale, 1.0f);
 	glTranslatef(0.0f, 0.0f, -bitmapDepth);
 
 	// A lot more may need to be put there : disabling Alpha test, blending, ...
@@ -419,46 +422,67 @@ void GfxOpenGL::drawMaskedFrame(int srcX, int srcY, int dstX, int dstY, int w, i
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 	// draw
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 	//glEnable(GL_SCISSOR_TEST);
-	//glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
-	offsetX = (int)(offsetX * movScale);
-	offsetY = (int)(offsetY * movScale);
-
-	offsetX += (sysW-movW)>>1;
-	offsetY += (sysH-movH)>>1;
+	dstX += (sysW-movW)>>1;
+	dstY += (sysH-movH)>>1;
 
 	//glScissor(offsetX, _screenHeight - (offsetY + movH), movW, movH);
 
+	//glColor3f(0.6, 0.4, 0.2);
+
+	// FIXME: Handle several textures for mask
+	glBegin(GL_QUADS);
+	glTexCoord2f(srcX, srcY);
+	glVertex2f(dstX, dstY);
+	glTexCoord2f(srcX + w, srcY);
+	glVertex2f(dstX + w, dstY);
+	glTexCoord2f(srcX + w, srcY + h);
+	glVertex2f(dstX + w, dstY + h);
+	glTexCoord2f(srcX, srcY + h);
+	glVertex2f(dstX, dstY + h);
+	glEnd();
+#if 0
 	int curTexIdx = 0;
-	for (int y = 0; y < movH; y += (int)(BITMAP_TEXTURE_SIZE * movScale)) {
-		for (int x = 0; x < movW; x += (int)(BITMAP_TEXTURE_SIZE * movScale)) {
-			glBindTexture(GL_TEXTURE_2D, _maskTexIds[curTexIdx]);
+	for (int y = srcY / BITMAP_TEXTURE_SIZE; y < srcY+h; y += BITMAP_TEXTURE_SIZE) {
+		int _rowTexNum = y / BITMAP_TEXTURE_SIZE;
+		for (int x = srcX / BITMAP_TEXTURE_SIZE; x < srcX+w; x += BITMAP_TEXTURE_SIZE) {
+			glBindTexture(GL_TEXTURE_2D, _maskTexIds[_rowTexNum*_maskTexPitch + (x/BITMAP_TEXTURE_SIZE)]);
+
+			int tx = srcX % BITMAP_TEXTURE_SIZE;
+			int ty = srcY % BITMAP_TEXTURE_SIZE;
+
+			//debug(3, "tex %d,%d %dx%d", tx,ty,w,h);
+
 			glBegin(GL_QUADS);
 			glTexCoord2f(0, 0);
+			//glTexCoord2f(tx, ty);
 			glVertex2f(x + offsetX, y + offsetY);
 			glTexCoord2f(1.0f, 0.0f);
+			//glTexCoord2f(tx+w, ty);
 			glVertex2f(x + offsetX + BITMAP_TEXTURE_SIZE * movScale, y + offsetY);
 			glTexCoord2f(1.0f, 1.0f);
+			//glTexCoord2f(tx+w, ty+h);
 			glVertex2f(x + offsetX + BITMAP_TEXTURE_SIZE * movScale, y + offsetY + BITMAP_TEXTURE_SIZE * movScale);
 			glTexCoord2f(0.0f, 1.0f);
+			//glTexCoord2f(tx, ty+h);
 			glVertex2f(x + offsetX, y + offsetY + BITMAP_TEXTURE_SIZE * movScale);
 			glEnd();
-			curTexIdx++;
 		}
 	}
+#endif
+
+	//glColor3f(1.0, 1.0, 1.0);
 
 	//glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_TEXTURE_2D);
-	glDepthMask(GL_TRUE);
-	glEnable(GL_DEPTH_TEST);
+	//glDepthMask(GL_TRUE);
+	//glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
-	//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-	glViewport(_screenViewport.left, _screenViewport.top, _screenWidth, _screenHeight);
-
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
 
 void GfxOpenGL::releaseMaskedFrame(void) {

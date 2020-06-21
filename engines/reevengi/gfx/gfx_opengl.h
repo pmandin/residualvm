@@ -80,7 +80,7 @@ private:
 	GLuint *_smushTexIds;
 	//byte *_storedDisplay;
 
-	int _maskNumTex;
+	int _maskNumTex, _maskTexPitch;
 	GLuint *_maskTexIds;
 };
 
