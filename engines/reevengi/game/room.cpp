@@ -21,6 +21,7 @@
  */
 
 #include "common/debug.h"
+//#include "common/file.h"
 
 #include "engines/reevengi/game/room.h"
 
@@ -32,7 +33,12 @@ Room::Room(Common::SeekableReadStream *stream) {
 
 	_roomPtr = new byte[strSize];
 	stream->read(_roomPtr, strSize);
-
+/*
+	Common::DumpFile adf;
+	adf.open("room.rdt");
+	adf.write(_roomPtr, strSize);
+	adf.close();
+*/
 	postLoad();
 }
 
