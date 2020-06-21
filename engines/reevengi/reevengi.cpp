@@ -153,6 +153,7 @@ Common::Error ReevengiEngine::run() {
 	loadBgMaskImage();
 
 	while (!shouldQuit()) {
+		g_driver->clearScreen();
 
 		if (_bgImage) {
 			testDisplayImage(_bgImage);
@@ -512,7 +513,7 @@ void ReevengiEngine::testPlayMovie(void) {
 		if (g_movie->isUpdateNeeded()) {
 			Graphics::Surface *frame = g_movie->getDstSurface();
 			if (frame) {
-				g_driver->clearScreen();
+				//g_driver->clearScreen();
 				g_driver->prepareMovieFrame(frame);
 			}
 			g_movie->clearUpdateNeeded();
