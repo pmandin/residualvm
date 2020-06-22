@@ -335,7 +335,7 @@ void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, BITMAP_TEXTURE_SIZE, BITMAP_TEXTURE_SIZE, 0, format, dataType, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, BITMAP_TEXTURE_SIZE, BITMAP_TEXTURE_SIZE, 0, format, dataType, nullptr);
 	}
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, bytesPerPixel); // 16 bit RGB 565 bitmap/32 bit BGR
@@ -426,13 +426,12 @@ void GfxOpenGL::drawMaskedFrame(int srcX, int srcY, int dstX, int dstY, int w, i
 	glDepthMask(GL_TRUE);
 	//glEnable(GL_SCISSOR_TEST);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	setBlending(true);
 
 	dstX += (sysW-movW)>>1;
 	dstY += (sysH-movH)>>1;
 
 	//glScissor(offsetX, _screenHeight - (offsetY + movH), movW, movH);
-
-	//glColor3f(0.6, 0.4, 0.2);
 
 	// FIXME: Handle several textures for mask
 	glBegin(GL_QUADS);
@@ -445,42 +444,11 @@ void GfxOpenGL::drawMaskedFrame(int srcX, int srcY, int dstX, int dstY, int w, i
 	glTexCoord2f(srcX, srcY + h);
 	glVertex2f(dstX, dstY + h);
 	glEnd();
-#if 0
-	int curTexIdx = 0;
-	for (int y = srcY / BITMAP_TEXTURE_SIZE; y < srcY+h; y += BITMAP_TEXTURE_SIZE) {
-		int _rowTexNum = y / BITMAP_TEXTURE_SIZE;
-		for (int x = srcX / BITMAP_TEXTURE_SIZE; x < srcX+w; x += BITMAP_TEXTURE_SIZE) {
-			glBindTexture(GL_TEXTURE_2D, _maskTexIds[_rowTexNum*_maskTexPitch + (x/BITMAP_TEXTURE_SIZE)]);
 
-			int tx = srcX % BITMAP_TEXTURE_SIZE;
-			int ty = srcY % BITMAP_TEXTURE_SIZE;
-
-			//debug(3, "tex %d,%d %dx%d", tx,ty,w,h);
-
-			glBegin(GL_QUADS);
-			glTexCoord2f(0, 0);
-			//glTexCoord2f(tx, ty);
-			glVertex2f(x + offsetX, y + offsetY);
-			glTexCoord2f(1.0f, 0.0f);
-			//glTexCoord2f(tx+w, ty);
-			glVertex2f(x + offsetX + BITMAP_TEXTURE_SIZE * movScale, y + offsetY);
-			glTexCoord2f(1.0f, 1.0f);
-			//glTexCoord2f(tx+w, ty+h);
-			glVertex2f(x + offsetX + BITMAP_TEXTURE_SIZE * movScale, y + offsetY + BITMAP_TEXTURE_SIZE * movScale);
-			glTexCoord2f(0.0f, 1.0f);
-			//glTexCoord2f(tx, ty+h);
-			glVertex2f(x + offsetX, y + offsetY + BITMAP_TEXTURE_SIZE * movScale);
-			glEnd();
-		}
-	}
-#endif
-
-	//glColor3f(1.0, 1.0, 1.0);
+	setBlending(false);
 
 	//glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_TEXTURE_2D);
-	//glDepthMask(GL_TRUE);
-	//glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
