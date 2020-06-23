@@ -433,18 +433,57 @@ void GfxOpenGL::drawMaskedFrame(int srcX, int srcY, int dstX, int dstY, int w, i
 
 	//glScissor(offsetX, _screenHeight - (offsetY + movH), movW, movH);
 
+#if 0
 	// FIXME: Handle several textures for mask
+	for (int y=0; y<h; y+=BITMAP_TEXTURE_SIZE) {
+		int rowTexNum = (srcY+y) / BITMAP_TEXTURE_SIZE;
+		int ty = (srcY+y) % BITMAP_TEXTURE_SIZE;
+		int th = h;
+		if (ty+th>BITMAP_TEXTURE_SIZE) {
+			th = BITMAP_TEXTURE_SIZE-ty;	// Need to render extra part with another texture
+		}
+
+		//if (dstY+y<120) continue;
+		//if (dstY+y>128) continue;
+		//debug(3, "ty %d, th %d", ty,th);
+
+		for (int x=0; x<w; x+=BITMAP_TEXTURE_SIZE) {
+			int colTexNum = (srcX+x) / BITMAP_TEXTURE_SIZE;
+			int tx = (srcX+x) % BITMAP_TEXTURE_SIZE;
+			int tw = w;
+			if (tx+tw>BITMAP_TEXTURE_SIZE) {
+				tw = BITMAP_TEXTURE_SIZE-tx;	// Need to render extra part with another texture
+			}
+
+			//if (dstX+x>=64) continue;
+			//debug(3, "tex %d", rowTexNum*_maskTexPitch + colTexNum);
+
+			glBindTexture(GL_TEXTURE_2D, _maskTexIds[rowTexNum*_maskTexPitch + colTexNum]);
+
+			glBegin(GL_QUADS);
+			glTexCoord2i(tx, ty);
+			glVertex2i(dstX+x, dstY+y);
+			glTexCoord2i(tx + tw, ty);
+			glVertex2i(dstX+x + tw, dstY+y);
+			glTexCoord2i(tx + tw, ty + th);
+			glVertex2i(dstX+x + tw, dstY+y + th);
+			glTexCoord2i(tx, ty + th);
+			glVertex2i(dstX+x, dstY+y + th);
+			glEnd();
+		}
+	}
+#else
 	glBegin(GL_QUADS);
-	glTexCoord2f(srcX, srcY);
+	glTexCoord2f(srcX+0.5, srcY+0.5);
 	glVertex2f(dstX, dstY);
-	glTexCoord2f(srcX + w, srcY);
+	glTexCoord2f(srcX-0.5 + w, srcY+0.5);
 	glVertex2f(dstX + w, dstY);
-	glTexCoord2f(srcX + w, srcY + h);
+	glTexCoord2f(srcX-0.5 + w, srcY-0.5 + h);
 	glVertex2f(dstX + w, dstY + h);
-	glTexCoord2f(srcX, srcY + h);
+	glTexCoord2f(srcX+0.5, srcY-0.5 + h);
 	glVertex2f(dstX, dstY + h);
 	glEnd();
-
+#endif
 	setBlending(false);
 
 	//glDisable(GL_SCISSOR_TEST);
