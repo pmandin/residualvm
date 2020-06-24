@@ -73,6 +73,8 @@ private:
 	Graphics::PixelBuffer _storedDisplay;
 	Graphics::BlitImage *_smushImage;
 
+	int _maskNumTex, _maskTexPitch;
+	TGLuint *_maskTexIds;
 };
 
 } // End of namespace Reevengi
