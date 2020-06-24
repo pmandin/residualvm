@@ -49,6 +49,7 @@ public:
 protected:
 	// raw data file for room
 	byte *_roomPtr;
+	int32 _roomSize;
 
 	virtual void postLoad(void);
 	bool isInside(Math::Vector2d pos, Math::Vector2d quad[4]);

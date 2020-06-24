@@ -29,14 +29,14 @@ namespace Reevengi {
 
 Room::Room(Common::SeekableReadStream *stream) {
 	stream->seek(0);
-	int32 strSize = stream->size();
+	_roomSize = stream->size();
 
-	_roomPtr = new byte[strSize];
-	stream->read(_roomPtr, strSize);
+	_roomPtr = new byte[_roomSize];
+	stream->read(_roomPtr, _roomSize);
 /*
 	Common::DumpFile adf;
 	adf.open("room.rdt");
-	adf.write(_roomPtr, strSize);
+	adf.write(_roomPtr, _roomSize);
 	adf.close();
 */
 	postLoad();
@@ -45,6 +45,7 @@ Room::Room(Common::SeekableReadStream *stream) {
 Room::~Room() {
 	delete _roomPtr;
 	_roomPtr = nullptr;
+	_roomSize = 0;
 }
 
 int Room::getNumCameras(void) {
