@@ -538,6 +538,8 @@ void ReevengiEngine::testView3DBegin(void) {
 		camera.toX, camera.toY, camera.toZ,
 		0.0f, -1.0f, 0.0f
 	);
+
+	g_driver->setDepth(true);
 }
 
 void ReevengiEngine::testDrawOrigin(void) {
@@ -569,7 +571,7 @@ void ReevengiEngine::testDrawGrid(void) {
 	RdtCameraPos_t camera;
 	_roomScene->getCameraPos(_camera, &camera);
 
-	g_driver->setColor(0.3, 0.3, 0.3);
+	g_driver->setColor(0.9, 0.9, 0.9);
 
 	float i, px = camera.toX, pz = camera.toY;
 
