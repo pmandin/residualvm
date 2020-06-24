@@ -327,7 +327,6 @@ void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette)
 	_maskNumTex = _maskTexPitch *
 				   ((height + (BITMAP_TEXTURE_SIZE - 1)) / BITMAP_TEXTURE_SIZE);
 	_maskTexIds = new GLuint[_maskNumTex];
-	//debug(3, "mask tex: pitch %d count %d",_maskTexPitch, _maskNumTex);
 	glGenTextures(_maskNumTex, _maskTexIds);
 	for (int i = 0; i < _maskNumTex; i++) {
 		glBindTexture(GL_TEXTURE_2D, _maskTexIds[i]);
@@ -384,7 +383,6 @@ void GfxOpenGL::prepareMaskedFrame(Graphics::Surface *frame, uint16* timPalette)
 
 	_maskWidth = width; //(int)(width * _scaleW);
 	_maskHeight = height; //(int)(height * _scaleH);
-	//debug(3, "mask img: %dx%d", width, height);
 }
 
 void GfxOpenGL::drawMaskedFrame(int srcX, int srcY, int dstX, int dstY, int w, int h, int depth) {
@@ -433,59 +431,44 @@ void GfxOpenGL::drawMaskedFrame(int srcX, int srcY, int dstX, int dstY, int w, i
 
 	//glScissor(offsetX, _screenHeight - (offsetY + movH), movW, movH);
 
-#if 0
-	// FIXME: Handle several textures for mask
-	for (int y=0; y<h; y+=BITMAP_TEXTURE_SIZE) {
+	int y=0;
+	while (y<h) {
 		int rowTexNum = (srcY+y) / BITMAP_TEXTURE_SIZE;
 		int ty = (srcY+y) % BITMAP_TEXTURE_SIZE;
-		int th = h;
+		int th = h-y;
 		if (ty+th>BITMAP_TEXTURE_SIZE) {
 			th = BITMAP_TEXTURE_SIZE-ty;	// Need to render extra part with another texture
 		}
 
-		//if (dstY+y<120) continue;
-		//if (dstY+y>128) continue;
-		//debug(3, "ty %d, th %d", ty,th);
-
-		for (int x=0; x<w; x+=BITMAP_TEXTURE_SIZE) {
+		int x=0;
+		while (x<w) {
 			int colTexNum = (srcX+x) / BITMAP_TEXTURE_SIZE;
 			int tx = (srcX+x) % BITMAP_TEXTURE_SIZE;
-			int tw = w;
+			int tw = w-x;
 			if (tx+tw>BITMAP_TEXTURE_SIZE) {
 				tw = BITMAP_TEXTURE_SIZE-tx;	// Need to render extra part with another texture
 			}
 
-			//if (dstX+x>=64) continue;
-			//debug(3, "tex %d", rowTexNum*_maskTexPitch + colTexNum);
-
 			glBindTexture(GL_TEXTURE_2D, _maskTexIds[rowTexNum*_maskTexPitch + colTexNum]);
 
 			glBegin(GL_QUADS);
-			glTexCoord2i(tx, ty);
-			glVertex2i(dstX+x, dstY+y);
-			glTexCoord2i(tx + tw, ty);
-			glVertex2i(dstX+x + tw, dstY+y);
-			glTexCoord2i(tx + tw, ty + th);
-			glVertex2i(dstX+x + tw, dstY+y + th);
-			glTexCoord2i(tx, ty + th);
-			glVertex2i(dstX+x, dstY+y + th);
+			glTexCoord2f(tx+0.5, ty+0.5);
+			glVertex2f(dstX+x, dstY+y);
+			glTexCoord2f(tx-0.5 + tw, ty+0.5);
+			glVertex2f(dstX+x + tw, dstY+y);
+			glTexCoord2f(tx-0.5 + tw, ty-0.5 + th);
+			glVertex2f(dstX+x + tw, dstY+y + th);
+			glTexCoord2f(tx+0.5, ty-0.5 + th);
+			glVertex2f(dstX+x, dstY+y + th);
 			glEnd();
-		}
-	}
-#else
-	glBegin(GL_QUADS);
-	glTexCoord2f(srcX+0.5, srcY+0.5);
-	glVertex2f(dstX, dstY);
-	glTexCoord2f(srcX-0.5 + w, srcY+0.5);
-	glVertex2f(dstX + w, dstY);
-	glTexCoord2f(srcX-0.5 + w, srcY-0.5 + h);
-	glVertex2f(dstX + w, dstY + h);
-	glTexCoord2f(srcX+0.5, srcY-0.5 + h);
-	glVertex2f(dstX, dstY + h);
-	glEnd();
-#endif
-	setBlending(false);
 
+			x += tw;
+		}
+
+		y += th;
+	}
+
+	setBlending(false);
 	//glDisable(GL_SCISSOR_TEST);
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
@@ -566,7 +549,7 @@ void GfxOpenGL::setDepth(bool enable) {
 void GfxOpenGL::line(Math::Vector3d v0, Math::Vector3d v1) {
 	glDisable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
 
 	glBegin(GL_LINES);
 		glVertex3f(v0.x(), v0.y(), v0.z());
