@@ -241,8 +241,8 @@ void RE2Engine::loadBgMaskImagePcDemo(void) {
 
 	Common::SeekableReadStream *stream = SearchMan.createReadStreamForMember(filePath);
 	if (stream) {
-		_bgImage = new AdtDecoder();
-		((AdtDecoder *) _bgImage)->loadStream(*stream);
+		_bgMaskImage = new AdtDecoder();
+		((AdtDecoder *) _bgMaskImage)->loadStream(*stream);
 	}
 	delete stream;
 }
