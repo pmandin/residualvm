@@ -210,6 +210,21 @@ void RE1Engine::loadBgImagePsx(int stage, int width, int height) {
 	delete arcStream;
 }
 
+void RE1Engine::loadBgMaskImage(void) {
+	//debug(3, "re1: loadBgMaskImage");
+
+	if (_roomScene) {
+		Common::SeekableReadStream *stream = ((RE1Room *)_roomScene)->getTimMask(_camera);
+		if (stream) {
+			_bgMaskImage = new TimDecoder();
+			((TimDecoder *) _bgMaskImage)->loadStream(*stream);
+		}
+		delete stream;
+	}
+
+	ReevengiEngine::loadBgMaskImage();
+}
+
 void RE1Engine::loadRoom(void) {
 	char filePath[64];
 	bool isPsx = (_gameDesc.platform == Common::kPlatformPSX);

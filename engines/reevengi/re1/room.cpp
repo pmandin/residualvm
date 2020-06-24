@@ -22,6 +22,7 @@
 
 #include "common/debug.h"
 #include "common/endian.h"
+#include "common/memstream.h"
 #include "common/stream.h"
 
 #include "engines/reevengi/gfx/gfx_base.h"
@@ -247,6 +248,18 @@ void RE1Room::drawMasks(int numCamera) {
 			g_driver->drawMaskedFrame(srcX,srcY, dstX,dstY, width,height, 16*depth);
 		}
 	}
+}
+
+Common::SeekableReadStream *RE1Room::getTimMask(int numCamera) {
+	if (!_roomPtr)
+		return nullptr;
+
+	rdt1_rid_t *cameraPosArray = (rdt1_rid_t *) ((byte *) &_roomPtr[sizeof(rdt1_header_t)]);
+	int32 offset = FROM_LE_32( cameraPosArray[numCamera].timOffset );
+	if (offset == 0)
+		return nullptr;
+
+	return new Common::MemoryReadStream(&_roomPtr[offset], _roomSize);
 }
 
 } // End of namespace Reevengi

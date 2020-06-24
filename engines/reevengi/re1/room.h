@@ -40,6 +40,7 @@ public:
 	bool checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos);
 
 	void drawMasks(int numCamera);
+	Common::SeekableReadStream *getTimMask(int numCamera);
 };
 
 } // End of namespace Reevengi

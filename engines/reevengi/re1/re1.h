@@ -37,6 +37,7 @@ public:
 protected:
 	void initPreRun(void);
 	void loadBgImage(void);
+	void loadBgMaskImage(void);
 	void loadRoom(void);
 
 private:
