@@ -97,7 +97,7 @@ bool TimDecoder::loadStream(Common::SeekableReadStream &tim) {
 		success = readData(tim, imageType);
 	}
 	if (tim.err() || !success) {
-		warning("Failed reading TIM-file");
+		//warning("Failed reading TIM-file");
 		return false;
 	}
 	return success;
@@ -110,7 +110,7 @@ bool TimDecoder::readHeader(Common::SeekableReadStream &tim, byte &imageType) {
 	bool success;
 
 	if (!tim.seek(0)) {
-		warning("Failed reading TIM-file");
+		//warning("Failed reading TIM-file");
 		return false;
 	}
 
