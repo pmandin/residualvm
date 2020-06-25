@@ -273,9 +273,10 @@ void RE2Engine::loadBgMaskImagePcGame(void) {
 		Common::SeekableReadStream *imgStream = new Common::MemoryReadStream(imgBuffer, imageLen,
 			DisposeAfterUse::YES
 		);
+
 		if (imgStream) {
-			_bgImage = new AdtDecoder();
-			((AdtDecoder *) _bgImage)->loadStreamNumber(*imgStream, 1);
+			_bgMaskImage = new AdtDecoder();
+			((AdtDecoder *) _bgMaskImage)->loadStreamNumber(*imgStream, 1);
 		}
 		delete imgStream;
 	}
