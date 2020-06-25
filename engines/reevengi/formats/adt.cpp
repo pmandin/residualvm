@@ -88,6 +88,33 @@ bool AdtDecoder::loadStream(Common::SeekableReadStream &adt) {
 */
 }
 
+bool AdtDecoder::loadStream(Common::SeekableReadStream &adt, int numFile) {
+	if (numFile==0)
+		return loadStream(adt);
+
+	if (numFile!=1)
+		return false;
+
+	/* File following first raw image 320x256x16 bits is TIM file */
+	destroy();
+
+	depack(adt);
+	if (!_dstPointer) {
+		return false;
+	}
+
+	Common::SeekableReadStream *mem_str = new Common::MemoryReadStream(&_dstPointer[0x28000], _dstBufLen-0x28000);
+	if (!mem_str) {
+		return false;
+	}
+
+	if (!TimDecoder::loadStream(*mem_str)) {
+		ProcessRawImage();
+	}
+
+	return true;
+}
+
 /*--- Raw image and reorganize ---*/
 
 void AdtDecoder::ProcessRawImage()
