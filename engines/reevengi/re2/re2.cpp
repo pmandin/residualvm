@@ -247,7 +247,7 @@ void RE2Engine::loadBgMaskImagePcDemo(void) {
 	delete stream;
 }
 
-void RE2Engine::loadBgMaskImagePcMask(void) {
+void RE2Engine::loadBgMaskImagePcGame(void) {
 	int num_image, max_images;
 	int32 archiveLen;
 	uint32 streamPos[2], imageLen;
@@ -275,7 +275,7 @@ void RE2Engine::loadBgMaskImagePcMask(void) {
 		);
 		if (imgStream) {
 			_bgImage = new AdtDecoder();
-			((AdtDecoder *) _bgImage)->loadStream(*imgStream, 1);
+			((AdtDecoder *) _bgImage)->loadStreamNumber(*imgStream, 1);
 		}
 		delete imgStream;
 	}

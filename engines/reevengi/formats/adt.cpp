@@ -88,7 +88,7 @@ bool AdtDecoder::loadStream(Common::SeekableReadStream &adt) {
 */
 }
 
-bool AdtDecoder::loadStream(Common::SeekableReadStream &adt, int numFile) {
+bool AdtDecoder::loadStreamNumber(Common::SeekableReadStream &adt, int numFile) {
 	if (numFile==0)
 		return loadStream(adt);
 

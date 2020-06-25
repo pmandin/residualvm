@@ -65,7 +65,7 @@ public:
 	virtual bool loadStream(Common::SeekableReadStream &adt) override;
 	virtual const Graphics::Surface *getSurface() const { return TimDecoder::getSurface(); } override;
 
-	virtual bool loadStream(Common::SeekableReadStream &adt, int numFile = 0);
+	virtual bool loadStreamNumber(Common::SeekableReadStream &adt, int numFile = 0);
 
 private:
 	// Reorganize raw image
