@@ -218,7 +218,7 @@ void RE2Engine::loadBgMaskImage(void) {
 				if ((_gameDesc.flags & ADGF_DEMO)==ADGF_DEMO) {
 					loadBgMaskImagePcDemo();
 				} else {
-					//loadBgImagePcGame();
+					loadBgMaskImagePcGame();
 				}
 			}
 			break;
@@ -245,6 +245,42 @@ void RE2Engine::loadBgMaskImagePcDemo(void) {
 		((AdtDecoder *) _bgMaskImage)->loadStream(*stream);
 	}
 	delete stream;
+}
+
+void RE2Engine::loadBgMaskImagePcMask(void) {
+	int num_image, max_images;
+	int32 archiveLen;
+	uint32 streamPos[2], imageLen;
+	byte *imgBuffer;
+
+	num_image = (_stage-1)*512 + _room*16 + _camera;
+
+	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember("common/bin/roomcut.bin");
+	archiveLen = arcStream->size();
+
+	max_images = arcStream->readUint32LE() >> 2;
+	if (num_image<max_images) {
+		arcStream->seek(num_image<<2);
+
+		streamPos[0] = arcStream->readUint32LE();
+		streamPos[1] = (arcStream->pos() == (max_images<<2) ? archiveLen : arcStream->readUint32LE());
+		imageLen = streamPos[1]-streamPos[0];
+
+		imgBuffer = new byte[imageLen];
+		arcStream->seek(streamPos[0]);
+		arcStream->read(imgBuffer, imageLen);
+
+		Common::SeekableReadStream *imgStream = new Common::MemoryReadStream(imgBuffer, imageLen,
+			DisposeAfterUse::YES
+		);
+		if (imgStream) {
+			_bgImage = new AdtDecoder();
+			((AdtDecoder *) _bgImage)->loadStream(*imgStream, 1);
+		}
+		delete imgStream;
+	}
+
+	delete arcStream;
 }
 
 void RE2Engine::loadRoom(void) {
