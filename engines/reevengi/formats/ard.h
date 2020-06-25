@@ -30,6 +30,7 @@ namespace Reevengi {
 class ArdArchive {
 public:
 	static const int kRdtFile = 8;
+	static const int kVbFile = 9;
 
 	ArdArchive(Common::SeekableReadStream *stream);
 	virtual ~ArdArchive();
