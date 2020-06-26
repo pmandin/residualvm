@@ -190,7 +190,7 @@ void RE3Engine::loadBgMaskImage(void) {
 			break;
 		case Common::kPlatformPSX:
 			{
-				//loadBgImagePsx();
+				loadBgMaskImagePsx();
 			}
 			break;
 		default:
@@ -219,6 +219,39 @@ void RE3Engine::loadBgMaskImagePc(void) {
 		delete sldArchive;
 	}
 	delete stream;
+}
+
+void RE3Engine::loadBgMaskImagePsx(void) {
+	char filePath[64];
+	const char timHeader[5]={0x10, 0x00, 0x00, 0x00, 0x09};
+
+	sprintf(filePath, RE3PSX_BG, _stage, _stage, _room);
+
+	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember(filePath);
+	if (arcStream) {
+		byte *imgBuffer = new byte[65536];
+		memset(imgBuffer, 0, 65536);
+
+		arcStream->seek(65536 * _camera);
+		arcStream->read(imgBuffer, 65536);
+
+		/* Search 5 first bytes of a TIM image in this buffer */
+		/* Should be better if we could skip compressed size of PSX video stream image */
+		int fileOffset = 0;
+		bool fileFound = false;
+		while (fileOffset<65536-5) {
+			if (memcmp(&imgBuffer[fileOffset], timHeader, sizeof(timHeader))==0) {
+				fileFound = true;
+				break;
+			}
+			++fileOffset;
+		}
+
+		if (fileFound) {
+			//debug(3, "re3: found compressed tim at 0x%08x", fileOffset);
+		}
+	}
+	delete arcStream;
 }
 
 void RE3Engine::loadRoom(void) {

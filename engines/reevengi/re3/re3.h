@@ -47,6 +47,7 @@ private:
 	void loadBgImagePsx(void);
 
 	void loadBgMaskImagePc(void);
+	void loadBgMaskImagePsx(void);
 
 	void loadRoomPc(void);
 	void loadRoomPsx(void);

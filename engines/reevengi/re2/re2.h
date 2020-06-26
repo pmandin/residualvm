@@ -49,6 +49,7 @@ private:
 
 	void loadBgMaskImagePcDemo(void);
 	void loadBgMaskImagePcGame(void);
+	void loadBgMaskImagePsx(void);
 };
 
 } // end of namespace Reevengi
