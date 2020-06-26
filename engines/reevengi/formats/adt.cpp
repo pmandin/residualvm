@@ -102,7 +102,12 @@ bool AdtDecoder::loadStreamNumber(Common::SeekableReadStream &adt, int numFile) 
 	if (!_dstPointer) {
 		return false;
 	}
-
+/*
+	Common::DumpFile adf;
+	adf.open("re2.tim");
+	adf.write(&_dstPointer[0x28000], _dstBufLen-0x28000);
+	adf.close();
+*/
 	Common::SeekableReadStream *mem_str = new Common::MemoryReadStream(&_dstPointer[0x28000], _dstBufLen-0x28000);
 	if (!mem_str) {
 		return false;

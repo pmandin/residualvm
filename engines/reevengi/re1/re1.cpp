@@ -110,13 +110,13 @@ void RE1Engine::loadBgImage(void) {
 			}
 		} else if (_room==7) {
 			/* All cameras angles for this room */
-				width -= 4; height -= 4;
+			width -= 4; height -= 4;
 		} else if (_room==0x0b) {
 			/* All cameras angles for this room */
-				width -= 4; height -= 4;
+			width -= 4; height -= 4;
 		} else if (_room==0x0f) {
 			/* All cameras angles for this room */
-				width -= 4; height -= 4;
+			width -= 4; height -= 4;
 		}
 	} else if (stage==5) {
 		if (_room==0x0d) {
