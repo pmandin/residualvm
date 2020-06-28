@@ -672,33 +672,33 @@ bool AdSceneGeometry::directPathExists(Math::Vector3d *p1, Math::Vector3d *p2) {
 
 //////////////////////////////////////////////////////////////////////////
 Math::Vector3d AdSceneGeometry::getBlockIntersection(Math::Vector3d *p1, Math::Vector3d *p2) {
-	Math::Vector3d v0;
-	Math::Vector3d v1;
-	Math::Vector3d v2;
+	// test blocks
+	for (uint i = 0; i < _blocks.size(); i++) {
+		if (!_blocks[i]->_active) {
+			continue;
+		}
 
-	warning("AdSceneGeometry::getBlockIntersection not yet implemented");
+		for (int j = 0; j < _blocks[i]->_mesh->faceCount(); j++) {
+			uint16 *triangle = _blocks[i]->_mesh->getFace(j);
+			float *v0 = _blocks[i]->_mesh->getVertexPosition(triangle[0]);
+			float *v1 = _blocks[i]->_mesh->getVertexPosition(triangle[1]);
+			float *v2 = _blocks[i]->_mesh->getVertexPosition(triangle[2]);
 
-	//	// test blocks
-	//	for(int i=0; i<_blocks.size(); i++)
-	//	{
-	//		if(!_blocks[i]->m_Active) continue;
-	//		for(int j=0; j<_blocks[i]->m_Mesh->m_NumFaces; j++)
-	//		{
-	//			v0 = _blocks[i]->m_Mesh->m_Vertices[_blocks[i]->m_Mesh->m_Faces[j].m_Vertices[0]].m_Pos;
-	//			v1 = _blocks[i]->m_Mesh->m_Vertices[_blocks[i]->m_Mesh->m_Faces[j].m_Vertices[1]].m_Pos;
-	//			v2 = _blocks[i]->m_Mesh->m_Vertices[_blocks[i]->m_Mesh->m_Faces[j].m_Vertices[2]].m_Pos;
+			Math::Vector3d intersection;
+			float dist;
 
-	//			D3DXPLANE plane;
-	//			Math::Vector3d intersection;
-	//			float dist;
+			if (lineSegmentIntersectsTriangle(*p1, *p2, v0, v1, v2, intersection, dist)) {
+				if (lineIntersectsTriangle(*p1, *p1 - *p2, v0, v1, v2, intersection.x(), intersection.y(), intersection.z())) {
+					return intersection;
+				}
 
-	//			if(C3DUtils::PickGetIntersect(*p1, *p2, v0, v1, v2, &intersection, &dist))
-	//			{
-	//				if(C3DUtils::IntersectTriangle(*p1, *p1-*p2, v0, v1, v2, &intersection.x, &intersection.y, &intersection.z)) return intersection;
-	//				if(C3DUtils::IntersectTriangle(*p2, *p2-*p1, v0, v1, v2, &intersection.x, &intersection.y, &intersection.z)) return intersection;
-	//			}
-	//		}
-	//	}
+				if (lineIntersectsTriangle(*p2, *p2 - *p1, v0, v1, v2, intersection.x(), intersection.y(), intersection.z())) {
+					return intersection;
+				}
+			}
+		}
+	}
+
 	return Math::Vector3d(0, 0, 0);
 }
 
@@ -793,11 +793,11 @@ bool AdSceneGeometry::convert2Dto3D(int x, int y, Math::Vector3d *pos) {
 
 	Math::Vector3d direction((((2.0f * x) / viewport.width()) - 1) / projectionMatrix(0, 0),
 	                         -(((2.0f * y) / viewport.height()) - 1) / projectionMatrix(1, 1),
-	                         1.0f);
+	                         -1.0f);
 	Math::Matrix4 m = _viewMatrix;
 	m.inverse();
+	m.transpose();
 	m.transform(&direction, false);
-	direction.z() *= -1.0f;
 
 	bool intFound = false;
 	float minDist = FLT_MAX;
@@ -1206,7 +1206,7 @@ bool AdSceneGeometry::correctTargetPoint(const Math::Vector3d &source, Math::Vec
 }
 
 //////////////////////////////////////////////////////////////////////////
-bool AdSceneGeometry::enableNode(char *nodeName, bool enable) {
+bool AdSceneGeometry::enableNode(const char *nodeName, bool enable) {
 	bool ret = false;
 
 	uint i;
@@ -1235,7 +1235,7 @@ bool AdSceneGeometry::enableNode(char *nodeName, bool enable) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-bool AdSceneGeometry::isNodeEnabled(char *nodeName) {
+bool AdSceneGeometry::isNodeEnabled(const char *nodeName) {
 	for (uint i = 0; i < _blocks.size(); i++) {
 		if (scumm_stricmp(nodeName, _blocks[i]->getName()) == 0) {
 			return _blocks[i]->_active;

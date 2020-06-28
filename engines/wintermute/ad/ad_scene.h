@@ -47,7 +47,6 @@ class AdPathPoint;
 #ifdef ENABLE_WME3D
 class AdSceneGeometry;
 #endif
-
 class AdScene : public BaseObject {
 public:
 
@@ -58,6 +57,11 @@ public:
 
 #ifdef ENABLE_WME3D
 	bool _2DPathfinding;
+	float _waypointHeight;
+
+	float _fov;
+	float _nearPlane;
+	float _farPlane;
 #endif
 	bool afterLoad();
 

@@ -182,7 +182,8 @@ bool BaseRenderOpenGL3D::setProjection() {
 
 	float verticalViewAngle = _fov;
 	float aspectRatio = float(viewportWidth) / float(viewportHeight);
-	float nearPlane = 1.0f;
+	// same defaults as wme
+	float nearPlane = 90.0f;
 	float farPlane = 10000.0f;
 	float top = nearPlane * tanf(verticalViewAngle * 0.5f);
 
@@ -287,12 +288,13 @@ bool BaseRenderOpenGL3D::setup2D(bool force) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glActiveTexture(GL_TEXTURE0);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_TEXTURE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_PREVIOUS);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_RGB, GL_PRIMARY_COLOR);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_MODULATE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_TEXTURE);
-		glTexEnvf(GL_TEXTURE_ENV, GL_SRC1_ALPHA, GL_PREVIOUS);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SRC1_ALPHA, GL_TEXTURE);
+		glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PRIMARY_COLOR);
 
 		glActiveTexture(GL_TEXTURE1);
 		glDisable(GL_TEXTURE_2D);
@@ -312,6 +314,8 @@ bool BaseRenderOpenGL3D::setup3D(Camera3D* camera, bool force) {
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glAlphaFunc(GL_GEQUAL, 0x08);
+
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 		_fov = camera->_fov;
 		setProjection();
@@ -350,33 +354,67 @@ void BaseRenderOpenGL3D::endSaveLoad() {
 	warning("BaseRenderOpenGL3D::endLoad not yet implemented");
 }
 
-bool BaseRenderOpenGL3D::drawSprite(const OpenGL::Texture &tex, const Wintermute::Rect32 &rect,
-                                                float zoomX, float zoomY, const Wintermute::Vector2 &pos,
-                                                uint32 color, bool alphaDisable, Graphics::TSpriteBlendMode blendMode,
-                                                bool mirrorX, bool mirrorY) {
+bool BaseRenderOpenGL3D::drawSprite(BaseSurfaceOpenGL3D &tex, const Wintermute::Rect32 &rect,
+                                    float zoomX, float zoomY, const Wintermute::Vector2 &pos,
+                                    uint32 color, bool alphaDisable, Graphics::TSpriteBlendMode blendMode,
+                                    bool mirrorX, bool mirrorY) {
 	Vector2 scale(zoomX / 100.0f, zoomY / 100.0f);
 	return drawSpriteEx(tex, rect, pos, Vector2(0.0f, 0.0f), scale, 0.0f, color, alphaDisable, blendMode, mirrorX, mirrorY);
 }
 
-bool BaseRenderOpenGL3D::drawSpriteEx(const OpenGL::Texture &tex, const Wintermute::Rect32 &rect,
-                                                  const Wintermute::Vector2 &pos, const Wintermute::Vector2 &rot, const Wintermute::Vector2 &scale,
-                                                  float angle, uint32 color, bool alphaDisable, Graphics::TSpriteBlendMode blendMode,
-                                                  bool mirrorX, bool mirrorY) {
+#include "common/pack-start.h"
+
+struct SpriteVertex {
+	float u;
+	float v;
+	uint8 r;
+	uint8 g;
+	uint8 b;
+	uint8 a;
+	float x;
+	float y;
+	float z;
+} PACKED_STRUCT;
+
+#include "common/pack-end.h"
+
+bool BaseRenderOpenGL3D::drawSpriteEx(BaseSurfaceOpenGL3D &tex, const Wintermute::Rect32 &rect,
+                                      const Wintermute::Vector2 &pos, const Wintermute::Vector2 &rot, const Wintermute::Vector2 &scale,
+                                      float angle, uint32 color, bool alphaDisable, Graphics::TSpriteBlendMode blendMode,
+                                      bool mirrorX, bool mirrorY) {
 	// original wme has a batch mode for sprites, we ignore this for the moment
 
 	// The ShaderSurfaceRenderer sets an array buffer which appearently conflicts with us
 	// Reset it!
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	if (_forceAlphaColor != 0) {
+		color = _forceAlphaColor;
+	}
+
 	float width = (rect.right - rect.left) * scale.x;
 	float height = (rect.bottom - rect.top) * scale.y;
 
-	float texLeft = (float)rect.left / (float)tex.getWidth();
-	float texTop = (float)rect.top / (float)tex.getHeight();
-	float texRight = (float)rect.right / (float)tex.getWidth();
-	float texBottom = (float)rect.bottom / (float)tex.getHeight();
+	glBindTexture(GL_TEXTURE_2D, tex.getTextureName());
+
+	// for sprites we clamp to the edge, to avoid line fragments at the edges
+	// this is not done by wme, though
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// might as well provide getters for those
+	int texWidth;
+	int texHeight;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &texWidth);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texHeight);
+
+	float texLeft = (float)rect.left / (float)texWidth;
+	float texTop = (float)rect.top / (float)texHeight;
+	float texRight = (float)rect.right / (float)texWidth;
+	float texBottom = (float)rect.bottom / (float)texHeight;
 
 	float offset = _viewportRect.height() / 2.0f;
-	float corrected_y = (pos.y - offset) * -1.0f + offset;
+	float correctedYPos = (pos.y - offset) * -1.0f + offset;
 
 	// to be implemented
 	if (mirrorX) {
@@ -387,35 +425,37 @@ bool BaseRenderOpenGL3D::drawSpriteEx(const OpenGL::Texture &tex, const Wintermu
 		warning("BaseRenderOpenGL3D::SpriteEx y mirroring is not yet implemented");
 	}
 
-	// provide space for 3d position coords, 2d texture coords and a 32 bit color value
-	const int vertexSize = 24;
-	byte vertices[vertexSize * 4] = {};
-
-	float *vertexCoords = reinterpret_cast<float *>(vertices);
+	SpriteVertex vertices[4] = {};
 
 	// texture coords
-	vertexCoords[0 * 6 + 0] = texLeft;
-	vertexCoords[0 * 6 + 1] = texTop;
-	vertexCoords[1 * 6 + 0] = texLeft;
-	vertexCoords[1 * 6 + 1] = texBottom;
-	vertexCoords[2 * 6 + 0] = texRight;
-	vertexCoords[2 * 6 + 1] = texTop;
-	vertexCoords[3 * 6 + 0] = texRight;
-	vertexCoords[3 * 6 + 1] = texBottom;
+	vertices[0].u = texLeft;
+	vertices[0].v = texTop;
+
+	vertices[1].u = texLeft;
+	vertices[1].v = texBottom;
+
+	vertices[2].u = texRight;
+	vertices[2].v = texTop;
+
+	vertices[3].u = texRight;
+	vertices[3].v = texBottom;
 
 	// position coords
-	vertexCoords[0 * 6 + 3] = pos.x - 0.5f;
-	vertexCoords[0 * 6 + 4] = corrected_y - 0.5f;
-	vertexCoords[0 * 6 + 5] = -1.1f;
-	vertexCoords[1 * 6 + 3] = pos.x - 0.5f;
-	vertexCoords[1 * 6 + 4] = corrected_y - height - 0.5f;
-	vertexCoords[1 * 6 + 5] = -1.1f;
-	vertexCoords[2 * 6 + 3] = pos.x + width - 0.5f;
-	vertexCoords[2 * 6 + 4] = corrected_y - 0.5f;
-	vertexCoords[2 * 6 + 5] = -1.1f;
-	vertexCoords[3 * 6 + 3] = pos.x + width - 0.5f;
-	vertexCoords[3 * 6 + 4] = corrected_y - height - 0.5;
-	vertexCoords[3 * 6 + 5] = -1.1f;
+	vertices[0].x = pos.x - 0.5f;
+	vertices[0].y = correctedYPos - 0.5f;
+	vertices[0].z = -0.9f;
+
+	vertices[1].x = pos.x - 0.5f;
+	vertices[1].y = correctedYPos - height - 0.5f;
+	vertices[1].z = -0.9f;
+
+	vertices[2].x = pos.x + width - 0.5f;
+	vertices[2].y = correctedYPos - 0.5f;
+	vertices[2].z = -0.9f;
+
+	vertices[3].x = pos.x + width - 0.5f;
+	vertices[3].y = correctedYPos - height - 0.5;
+	vertices[3].z = -0.9f;
 
 	// not exactly sure about the color format, but this seems to work
 	byte a = RGBCOLGetA(color);
@@ -423,22 +463,12 @@ bool BaseRenderOpenGL3D::drawSpriteEx(const OpenGL::Texture &tex, const Wintermu
 	byte g = RGBCOLGetG(color);
 	byte b = RGBCOLGetB(color);
 
-	vertices[0 * vertexSize + 8 + 0] = r;
-	vertices[0 * vertexSize + 8 + 1] = g;
-	vertices[0 * vertexSize + 8 + 2] = b;
-	vertices[0 * vertexSize + 8 + 3] = a;
-	vertices[1 * vertexSize + 8 + 0] = r;
-	vertices[1 * vertexSize + 8 + 1] = g;
-	vertices[1 * vertexSize + 8 + 2] = b;
-	vertices[1 * vertexSize + 8 + 3] = a;
-	vertices[2 * vertexSize + 8 + 0] = r;
-	vertices[2 * vertexSize + 8 + 1] = g;
-	vertices[2 * vertexSize + 8 + 2] = b;
-	vertices[2 * vertexSize + 8 + 3] = a;
-	vertices[3 * vertexSize + 8 + 0] = r;
-	vertices[3 * vertexSize + 8 + 2] = g;
-	vertices[3 * vertexSize + 8 + 2] = b;
-	vertices[3 * vertexSize + 8 + 3] = a;
+	for (int i = 0; i < 4; ++i) {
+		vertices[i].r = r;
+		vertices[i].g = g;
+		vertices[i].b = b;
+		vertices[i].a = a;
+	}
 
 	// transform vertices here if necessary, add offset
 
@@ -447,20 +477,12 @@ bool BaseRenderOpenGL3D::drawSpriteEx(const OpenGL::Texture &tex, const Wintermu
 	}
 
 	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	glEnableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	glVertexPointer(3, GL_FLOAT, 24, vertices + 12);
-	glColorPointer(4, GL_UNSIGNED_BYTE, 24, vertices + 8);
-	glTexCoordPointer(2, GL_FLOAT, 24, vertices);
-
-	glBindTexture(GL_TEXTURE_2D, tex.getTextureName());
-
-	// we probably should do this in a vertex buffer anyways
-	//glInterleavedArrays(GL_T2F_C4UB_V3F, 0, vertices);
+	glInterleavedArrays(GL_T2F_C4UB_V3F, 0, vertices);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	if (alphaDisable) {

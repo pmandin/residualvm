@@ -34,6 +34,7 @@ class BaseRenderOpenGL3D;
 class BaseSurfaceOpenGL3D : public BaseSurface {
 public:
 	BaseSurfaceOpenGL3D(BaseGame* game, BaseRenderOpenGL3D* renderer);
+	~BaseSurfaceOpenGL3D();
 
 	bool invalidate() override;
 
@@ -49,9 +50,7 @@ public:
 	bool restore() override;
 	bool create(const Common::String &filename, bool defaultCK, byte ckRed, byte ckGreen, byte ckBlue, int lifeTime = -1, bool keepLoaded = false) override;
 	bool create(int width, int height) override;
-	bool putSurface(const Graphics::Surface &surface, bool hasAlpha = false) override {
-		return STATUS_FAILED;
-	}
+	bool putSurface(const Graphics::Surface &surface, bool hasAlpha = false) override;
 	bool putPixel(int x, int y, byte r, byte g, byte b, int a = -1) override;
 	bool getPixel(int x, int y, byte *r, byte *g, byte *b, byte *a = nullptr) override;
 	bool comparePixel(int x, int y, byte r, byte g, byte b, int a = -1) override;
@@ -59,19 +58,18 @@ public:
 	bool endPixelOp() override;
 	bool isTransparentAtLite(int x, int y) override;
 
-	int getWidth() override {
-		return tex->getWidth();
-	}
-	int getHeight() override {
-		return tex->getHeight();
-	}
-
 	void setTexture();
 
+	GLuint getTextureName() {
+		return _tex;
+	}
+
 private:
-	OpenGL::Texture* tex;
-	BaseRenderOpenGL3D* renderer;
-	bool pixelOpReady;
+	GLuint _tex;
+	BaseRenderOpenGL3D *_renderer;
+	uint8 *_imageData;
+	uint _texWidth;
+	uint _texHeight;
 };
 
 }

@@ -94,10 +94,13 @@ void AdScene::setDefaults() {
 	_pfTargetPath = nullptr;
 	_pfRequester = nullptr;
 	_mainLayer = nullptr;
-
 #ifdef ENABLE_WME3D
 	_sceneGeometry = nullptr;
 	_showGeometry = false;
+
+	_fov = -1.0f;
+	_nearPlane = -1.0f;
+	_farPlane = -1.0f;
 #endif
 
 	_pfPointsNum = 0;
@@ -191,7 +194,6 @@ void AdScene::cleanup() {
 		_gameRef->unregisterObject(_objects[i]);
 	}
 	_objects.clear();
-
 #ifdef ENABLE_WME3D
 	delete _sceneGeometry;
 #endif
@@ -552,7 +554,6 @@ bool AdScene::initLoop() {
 		return _sceneGeometry->initLoop();
 	}
 #endif
-
 	return STATUS_OK;
 }
 
@@ -624,7 +625,8 @@ TOKEN_DEF(EDITOR_SHOW_GEOMETRY) // WME3D
 TOKEN_DEF(EDITOR_RESOLUTION_WIDTH) // WME3D
 TOKEN_DEF(EDITOR_RESOLUTION_HEIGHT) // WME3D
 TOKEN_DEF(FOV_OVERRIDE) // WME3D
-TOKEN_DEF(NEARCLIPPING_PLANE) // WME3D
+TOKEN_DEF(WAYPOINT_HEIGHT) // WME3D
+TOKEN_DEF(NEAR_CLIPPING_PLANE) // WME3D
 TOKEN_DEF(FAR_CLIPPING_PLANE) // WME3D
 TOKEN_DEF(2D_PATHFINDING) // WME3D
 TOKEN_DEF(MAX_SHADOW_TYPE) // WME3D
@@ -676,7 +678,8 @@ bool AdScene::loadBuffer(char *buffer, bool complete) {
 	TOKEN_TABLE(EDITOR_RESOLUTION_WIDTH) // WME3D
 	TOKEN_TABLE(EDITOR_RESOLUTION_HEIGHT) // WME3D
 	TOKEN_TABLE(FOV_OVERRIDE) // WME3D
-	TOKEN_TABLE(NEARCLIPPING_PLANE) // WME3D
+	TOKEN_TABLE(WAYPOINT_HEIGHT) // WME3D
+	TOKEN_TABLE(NEAR_CLIPPING_PLANE) // WME3D
 	TOKEN_TABLE(FAR_CLIPPING_PLANE) // WME3D
 	TOKEN_TABLE(2D_PATHFINDING) // WME3D
 	TOKEN_TABLE(MAX_SHADOW_TYPE) // WME3D
@@ -811,6 +814,22 @@ bool AdScene::loadBuffer(char *buffer, bool complete) {
 				cmd = PARSERR_GENERIC;
 			}
 
+			break;
+
+		case TOKEN_WAYPOINT_HEIGHT:
+			parser.scanStr(params, "%f", &_waypointHeight);
+			break;
+
+		case TOKEN_FOV_OVERRIDE:
+			parser.scanStr(params, "%f", &_fov);
+			break;
+
+		case TOKEN_NEAR_CLIPPING_PLANE:
+			parser.scanStr(params, "%f", &_nearPlane);
+			break;
+
+		case TOKEN_FAR_CLIPPING_PLANE:
+			parser.scanStr(params, "%f", &_farPlane);
 			break;
 #endif
 		case TOKEN_CAMERA:
@@ -952,7 +971,7 @@ bool AdScene::loadBuffer(char *buffer, bool complete) {
 
 #ifdef ENABLE_WME3D
 	if (_sceneGeometry && camera[0] != '\0') {
-		_sceneGeometry->setActiveCamera(camera, -1.0f, -1.0f, -1.0f);
+		_sceneGeometry->setActiveCamera(camera, _fov, _nearPlane, _farPlane);
 	}
 #endif
 
@@ -963,7 +982,10 @@ bool AdScene::loadBuffer(char *buffer, bool complete) {
 
 #ifdef ENABLE_WME3D
 	if (_sceneGeometry) {
-		// TODO: original wme code does a check on waypoint height here
+		if (_waypointHeight >= 0.0f) {
+			_sceneGeometry->_waypointHeight = _waypointHeight;
+			_sceneGeometry->dropWaypoints();
+		}
 
 		Camera3D* activeCamera = _sceneGeometry->getActiveCamera();
 
@@ -1186,7 +1208,7 @@ bool AdScene::traverseNodes(bool doUpdate) {
 #ifdef ENABLE_WME3D
 	if (!doUpdate && _sceneGeometry) {
 		// always display geometry for the moment
-		_sceneGeometry->render(true);
+		_sceneGeometry->render(_showGeometry);
 	}
 #endif
 
@@ -1239,7 +1261,6 @@ bool AdScene::updateFreeObjects() {
 			}
 		}
 #endif
-
 		adGame->_objects[i]->update();
 		adGame->_objects[i]->_drawn = false;
 	}
@@ -1249,7 +1270,6 @@ bool AdScene::updateFreeObjects() {
 		if (!_objects[i]->_active) {
 			continue;
 		}
-
 #ifdef ENABLE_WME3D
 		if (_objects[i]->_is3D && _sceneGeometry) {
 			Camera3D* activeCamera = _sceneGeometry->getActiveCamera();
@@ -1355,8 +1375,6 @@ bool AdScene::compareObjs(const AdObject *obj1, const AdObject *obj2) {
 
 //////////////////////////////////////////////////////////////////////////
 bool AdScene::displayRegionContentOld(AdRegion *region) {
-	// is this function actually used?
-
 	AdGame *adGame = (AdGame *)_gameRef;
 	AdObject *obj;
 
@@ -1861,7 +1879,16 @@ bool AdScene::scCallMethod(ScScript *script, ScStack *stack, ScStack *thisStack,
 	//////////////////////////////////////////////////////////////////////////
 	else if (strcmp(name, "EnableNode3D") == 0) {
 		stack->correctParams(1);
-		stack->pushBool(false);
+		const char *nodeName = stack->pop()->getString();
+
+		if (!_sceneGeometry) {
+			script->runtimeError("Scene.EnableNode3D: Scene doesn't contain any geometry");
+			stack->pushBool(false);
+		} else {
+			bool ret = _sceneGeometry->enableNode(nodeName, true);
+			stack->pushBool(ret);
+		}
+
 		return STATUS_OK;
 	}
 
@@ -1870,7 +1897,16 @@ bool AdScene::scCallMethod(ScScript *script, ScStack *stack, ScStack *thisStack,
 	//////////////////////////////////////////////////////////////////////////
 	else if (strcmp(name, "DisableNode3D") == 0) {
 		stack->correctParams(1);
-		stack->pushBool(false);
+		const char *nodeName = stack->pop()->getString();
+
+		if (!_sceneGeometry) {
+			script->runtimeError("Scene.EnableNode3D: Scene doesn't contain any geometry");
+			stack->pushBool(false);
+		} else {
+			bool ret = _sceneGeometry->enableNode(nodeName, false);
+			stack->pushBool(ret);
+		}
+
 		return STATUS_OK;
 	}
 
@@ -1879,7 +1915,16 @@ bool AdScene::scCallMethod(ScScript *script, ScStack *stack, ScStack *thisStack,
 	//////////////////////////////////////////////////////////////////////////
 	else if (strcmp(name, "IsNode3DEnabled") == 0) {
 		stack->correctParams(1);
-		stack->pushBool(false);
+		const char *nodeName = stack->pop()->getString();
+
+		if (!_sceneGeometry) {
+			script->runtimeError("Scene.EnableNode3D: Scene doesn't contain any geometry");
+			stack->pushBool(false);
+		} else {
+			bool ret = _sceneGeometry->isNodeEnabled(nodeName);
+			stack->pushBool(ret);
+		}
+
 		return STATUS_OK;
 	}
 
