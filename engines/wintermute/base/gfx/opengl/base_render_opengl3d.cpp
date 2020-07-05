@@ -32,7 +32,7 @@ BaseRenderer *makeOpenGL3DRenderer(BaseGame *inGame) {
 }
 
 BaseRenderOpenGL3D::BaseRenderOpenGL3D(BaseGame *inGame)
-    : _spriteBatchMode(false) {
+	: BaseRenderer(inGame), _spriteBatchMode(false) {
 }
 
 BaseRenderOpenGL3D::~BaseRenderOpenGL3D() {
@@ -346,8 +346,22 @@ void BaseRenderOpenGL3D::project(const Math::Matrix4 &worldMatrix, const Math::V
 	y = viewport[3] - windowCoords.y();
 }
 
+Math::Ray BaseRenderOpenGL3D::rayIntoScene(int x, int y) {
+	Math::Vector3d direction((((2.0f * x) / _viewportRect.width()) - 1) / _lastProjectionMatrix(0, 0),
+	                         -(((2.0f * y) / _viewportRect.height()) - 1) / _lastProjectionMatrix(1, 1),
+	                         -1.0f);
+
+	Math::Matrix4 m = _lastViewMatrix;
+	m.inverse();
+	m.transpose();
+	m.transform(&direction, false);
+
+	Math::Vector3d origin = m.getPosition();
+	return Math::Ray(origin, direction);
+}
+
 BaseSurface *Wintermute::BaseRenderOpenGL3D::createSurface() {
-	return new BaseSurfaceOpenGL3D(nullptr, this);
+	return new BaseSurfaceOpenGL3D(_gameRef, this);
 }
 
 void BaseRenderOpenGL3D::endSaveLoad() {
@@ -475,6 +489,8 @@ bool BaseRenderOpenGL3D::drawSpriteEx(BaseSurfaceOpenGL3D &tex, const Wintermute
 	if (alphaDisable) {
 		glDisable(GL_ALPHA_TEST);
 	}
+
+	setSpriteBlendMode(blendMode);
 
 	glEnable(GL_TEXTURE_2D);
 

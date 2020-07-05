@@ -154,12 +154,14 @@ bool AdActor3DX::update() {
 			float turnVel = _directTurnVelocity == 0.0f ? _angVelocity : _directTurnVelocity;
 
 			if (_directTurnMode == DIRECT_TURN_CW) {
-				_angle += turnVel * (float)_gameRef->_deltaTime / 1000.f;
+				// we have a right handed coordinate system now, so we subtract
+				_angle -= turnVel * (float)_gameRef->_deltaTime / 1000.f;
 				_angle.normalize(0.0f);
 			}
 
 			if (_directTurnMode == DIRECT_TURN_CCW) {
-				_angle -= turnVel * (float)_gameRef->_deltaTime / 1000.f;
+				// we have a right handed coordinate system now, so we add
+				_angle += turnVel * (float)_gameRef->_deltaTime / 1000.f;
 				_angle.normalize(0.0f);
 			}
 
@@ -195,7 +197,7 @@ bool AdActor3DX::update() {
 				}
 
 				if (canWalk) {
-					if (_directWalkAnim != nullptr) {
+					if (!_directWalkAnim.empty()) {
 						_modelX->playAnim(0, _directWalkAnim, _defaultTransTime, false, _defaultStopTransTime);
 					} else {
 						_modelX->playAnim(0, _walkAnimName, _defaultTransTime, false, _defaultStopTransTime);
@@ -383,6 +385,8 @@ bool AdActor3DX::display() {
 
 	_gameRef->_renderer3D->setSpriteBlendMode(_blendMode);
 	_gameRef->_renderer3D->pushWorldTransform(_worldMatrix);
+	_modelX->_lastWorldMat = _worldMatrix;
+
 	bool res = _modelX->render();
 
 	if (_registrable) {
@@ -432,6 +436,12 @@ bool AdActor3DX::renderModel() {
 	} else {
 		res = _modelX->render();
 	}
+
+	if (!res) {
+		return false;
+	}
+
+	_modelX->_lastWorldMat = _worldMatrix;
 
 	displayAttachments(false);
 	_gameRef->_renderer3D->popWorldTransform();

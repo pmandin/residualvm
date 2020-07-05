@@ -37,6 +37,7 @@
 #include "engines/wintermute/base/gfx/x/loader_x.h"
 #include "engines/wintermute/base/gfx/x/modelx.h"
 #include "engines/wintermute/dcgf.h"
+#include "engines/wintermute/math/math_util.h"
 
 namespace Wintermute {
 
@@ -215,6 +216,9 @@ bool MeshX::update(FrameNode *parentFrame) {
 	} else { // update static
 		warning("MeshX::update update of static mesh is not implemented yet");
 	}
+
+	updateBoundingBox();
+
 	return res;
 }
 
@@ -268,7 +272,24 @@ bool MeshX::pickPoly(Math::Vector3d *pickRayOrig, Math::Vector3d *pickRayDir) {
 
 	bool res = false;
 
-	// to be implemented
+	for (uint16 i = 0; i < _indexCount; i += 3) {
+		uint16 index1 = _indexData[i + 0];
+		uint16 index2 = _indexData[i + 1];
+		uint16 index3 = _indexData[i + 2];
+
+		Math::Vector3d v0;
+		v0.setData(&_vertexData[index1 * kVertexComponentCount + kPositionOffset]);
+		Math::Vector3d v1;
+		v1.setData(&_vertexData[index2 * kVertexComponentCount + kPositionOffset]);
+		Math::Vector3d v2;
+		v2.setData(&_vertexData[index3 * kVertexComponentCount + kPositionOffset]);
+
+		Math::Vector3d intersection;
+		if (lineIntersectsTriangle(*pickRayOrig, *pickRayDir, v0, v1, v2, intersection.x(), intersection.y(), intersection.z())) {
+			res = true;
+			break;
+		}
+	}
 
 	return res;
 }
@@ -500,6 +521,29 @@ bool MeshX::parseSkinWeights(XFileLexer &lexer) {
 	lexer.advanceToNextToken(); // closed braces of skin weights object
 
 	return true;
+}
+
+void MeshX::updateBoundingBox() {
+	if (_vertexData == nullptr || _vertexCount == 0) {
+		return;
+	}
+
+	_BBoxStart.setData(&_vertexData[0 + kPositionOffset]);
+	_BBoxEnd.setData(&_vertexData[0 + kPositionOffset]);
+
+	for (uint16 i = 1; i < _vertexCount; ++i) {
+
+		Math::Vector3d v;
+		v.setData(&_vertexData[i * kVertexComponentCount + kPositionOffset]);
+
+		_BBoxStart.x() = MIN(_BBoxStart.x(), v.x());
+		_BBoxStart.y() = MIN(_BBoxStart.y(), v.y());
+		_BBoxStart.z() = MIN(_BBoxStart.z(), v.z());
+
+		_BBoxEnd.x() = MAX(_BBoxEnd.x(), v.x());
+		_BBoxEnd.y() = MAX(_BBoxEnd.y(), v.y());
+		_BBoxEnd.z() = MAX(_BBoxEnd.z(), v.z());
+	}
 }
 
 } // namespace Wintermute

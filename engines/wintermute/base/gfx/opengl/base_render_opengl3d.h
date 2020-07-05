@@ -31,6 +31,7 @@
 #include "graphics/opengl/texture.h"
 #include "graphics/transform_struct.h"
 #include "math/matrix4.h"
+#include "math/ray.h"
 
 namespace Wintermute {
 
@@ -80,7 +81,7 @@ public:
 	bool drawLine(int x1, int y1, int x2, int y2, uint32 color) override; 	// Unused outside indicator-display
 	bool drawRect(int x1, int y1, int x2, int y2, uint32 color, int width = 1) override; 	// Unused outside indicator-display
 
-	bool setProjection();
+	bool setProjection() override;
 	bool setProjection2D();
 	void resetModelViewTransform();
 	void pushWorldTransform(const Math::Matrix4 &transform);
@@ -116,6 +117,7 @@ public:
 	bool setupLines() override;
 
 	void project(const Math::Matrix4 &worldMatrix, const Math::Vector3d &point, int &x, int &y);
+	Math::Ray rayIntoScene(int x, int y);
 
 	Math::Matrix4 lastProjectionMatrix() {
 		return _lastProjectionMatrix;
