@@ -190,13 +190,13 @@ void ReevengiEngine::processEvents(void) {
 	while (g_system->getEventManager()->pollEvent(e)) {
 		// Handle any buttons, keys and joystick operations
 
-		if (isPaused()) {
+		/*if (isPaused()) {
 			// Only pressing key P to resume the game is allowed when the game is paused
 			if (e.type == Common::EVENT_KEYDOWN && e.kbd.keycode == Common::KEYCODE_p) {
 				pauseEngine(false);
 			}
 			continue;
-		}
+		}*/
 
 		if (e.type == Common::EVENT_KEYDOWN) {
 			processEventsKeyDownRepeat(e);
