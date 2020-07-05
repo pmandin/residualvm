@@ -28,6 +28,7 @@
 
 #include "engines/reevengi/formats/ard.h"
 #include "engines/reevengi/formats/bss.h"
+#include "engines/reevengi/formats/bss_sld.h"
 #include "engines/reevengi/formats/rofs.h"
 #include "engines/reevengi/formats/sld.h"
 #include "engines/reevengi/formats/tim.h"
@@ -223,33 +224,61 @@ void RE3Engine::loadBgMaskImagePc(void) {
 
 void RE3Engine::loadBgMaskImagePsx(void) {
 	char filePath[64];
-	const char timHeader[5]={0x10, 0x00, 0x00, 0x00, 0x09};
+	const char blkEnd[8]={0x01,0x00,0x00,0x00, 0x00,0x00,0x00,0x00};
 
 	sprintf(filePath, RE3PSX_BG, _stage, _stage, _room);
 
 	Common::SeekableReadStream *arcStream = SearchMan.createReadStreamForMember(filePath);
 	if (arcStream) {
-		byte *imgBuffer = new byte[65536];
-		memset(imgBuffer, 0, 65536);
+		byte *blkBuffer = new byte[65536];
+		memset(blkBuffer, 0, 65536);
 
 		arcStream->seek(65536 * _camera);
-		arcStream->read(imgBuffer, 65536);
+		arcStream->read(blkBuffer, 65536);
 
-		/* Search 5 first bytes of a TIM image in this buffer */
+		/* Search markers for pointer to TIM image, start from end of block */
 		/* Should be better if we could skip compressed size of PSX video stream image */
-		int fileOffset = 0;
+		unsigned int fileOffset = 65536-sizeof(blkEnd);
 		bool fileFound = false;
-		while (fileOffset<65536-5) {
-			if (memcmp(&imgBuffer[fileOffset], timHeader, sizeof(timHeader))==0) {
+		while (fileOffset>0) {
+			if (memcmp(&blkBuffer[fileOffset], blkEnd, sizeof(blkEnd))==0) {
 				fileFound = true;
 				break;
 			}
-			++fileOffset;
+			--fileOffset;
 		}
 
 		if (fileFound) {
-			//debug(3, "re3: found compressed tim at 0x%08x", fileOffset);
+			/* Go back to start of header, offset.le32, count.le32 */
+			unsigned int endFileOffset = fileOffset-4;
+
+			/* Read compressed TIM offset for mask */
+			fileOffset = FROM_LE_32( *((uint32 *) &blkBuffer[endFileOffset]) );
+
+			int imageLen = endFileOffset-fileOffset;
+			byte *imgBuffer = new byte[imageLen];
+			memcpy(imgBuffer, &blkBuffer[fileOffset], imageLen);
+
+			//debug(3, "re3: offset 0x%08x, length %d", fileOffset, imageLen);
+/*
+			Common::DumpFile adf;
+			adf.open("re3comptim.bin");
+			adf.write(imgBuffer, imageLen);
+			adf.close();
+*/
+			Common::SeekableReadStream *imgStream = new Common::MemoryReadStream(imgBuffer, imageLen,
+				DisposeAfterUse::YES
+			);
+
+			if (imgStream) {
+				// FIXME
+				/*_bgMaskImage = new BssSldDecoder();
+				((BssSldDecoder *) _bgMaskImage)->loadStream(*imgStream);*/
+			}
+			delete imgStream;
 		}
+
+		delete blkBuffer;
 	}
 	delete arcStream;
 }
