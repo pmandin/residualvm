@@ -6,6 +6,7 @@ MODULE_OBJS := \
 	formats/adt.o \
 	formats/ard.o \
 	formats/bss.o \
+	formats/bss_sld.o \
 	formats/pak.o \
 	formats/rofs.o \
 	formats/sld.o \
