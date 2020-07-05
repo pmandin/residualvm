@@ -36,7 +36,7 @@ namespace Reevengi {
 
 class BssSldDecoder : public TimDecoder {
 public:
-	BssSldDecoder();
+	BssSldDecoder(int depackMode);
 	virtual ~BssSldDecoder();
 
 	// ImageDecoder API
@@ -45,6 +45,8 @@ public:
 	virtual const Graphics::Surface *getSurface() const { return TimDecoder::getSurface(); } override;
 
 private:
+	int _depackMode;	// 2 for RE2, 3 for RE3
+
 	uint8 *_dstPointer;
 	int _dstBufLen;
 

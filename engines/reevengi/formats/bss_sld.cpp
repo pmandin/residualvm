@@ -30,7 +30,8 @@
 
 namespace Reevengi {
 
-BssSldDecoder::BssSldDecoder(): _dstPointer(nullptr), _dstBufLen(0) {
+BssSldDecoder::BssSldDecoder(int depackMode): _dstPointer(nullptr), _dstBufLen(0),
+	_depackMode(depackMode) {
 }
 
 BssSldDecoder::~BssSldDecoder() {
@@ -49,16 +50,19 @@ void BssSldDecoder::destroy() {
 bool BssSldDecoder::loadStream(Common::SeekableReadStream &bsssld) {
 	destroy();
 
-	depack(bsssld);
+	if (_depackMode==2) {
+		depack(bsssld);
+	}
+
 	if (!_dstPointer) {
 		return false;
 	}
-
+/*
 	Common::DumpFile adf;
 	adf.open("img.tim");
 	adf.write(_dstPointer, _dstBufLen);
 	adf.close();
-
+*/
 	Common::SeekableReadStream *mem_str = new Common::MemoryReadStream(_dstPointer, _dstBufLen);
 	if (!mem_str) {
 		return false;

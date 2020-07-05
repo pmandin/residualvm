@@ -271,9 +271,8 @@ void RE3Engine::loadBgMaskImagePsx(void) {
 			);
 
 			if (imgStream) {
-				// FIXME
-				/*_bgMaskImage = new BssSldDecoder();
-				((BssSldDecoder *) _bgMaskImage)->loadStream(*imgStream);*/
+				_bgMaskImage = new BssSldDecoder(3);
+				((BssSldDecoder *) _bgMaskImage)->loadStream(*imgStream);
 			}
 			delete imgStream;
 		}

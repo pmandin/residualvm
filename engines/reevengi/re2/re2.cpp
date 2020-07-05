@@ -335,7 +335,7 @@ void RE2Engine::loadBgMaskImagePsx(void) {
 			);
 
 			if (imgStream) {
-				_bgMaskImage = new BssSldDecoder();
+				_bgMaskImage = new BssSldDecoder(2);
 				((BssSldDecoder *) _bgMaskImage)->loadStream(*imgStream);
 			}
 			delete imgStream;
