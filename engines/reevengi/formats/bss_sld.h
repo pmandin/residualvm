@@ -50,7 +50,8 @@ private:
 	uint8 *_dstPointer;
 	int _dstBufLen;
 
-	void depack(Common::SeekableReadStream &bsssld);
+	void depack_re2(Common::SeekableReadStream &bsssld);
+	void depack_re3(Common::SeekableReadStream &bsssld);
 	void memcpyOverlap(uint8 *dest, uint8 *src, int count);
 };
 
