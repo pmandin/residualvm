@@ -126,8 +126,11 @@ void BssSldDecoder::depack_re3(Common::SeekableReadStream &bsssld)
 
 	int count, offset, dstPos = 0;
 
-	while ((bsssld.pos()<bsssld.size()) && (dstPos<_dstBufLen)) {
+	while ((bsssld.pos()<bsssld.size()) /* && (dstPos<_dstBufLen)*/) {
 		byte srcByte = bsssld.readByte();
+		if (srcByte == 0x00) {
+			break;
+		}
 
 		if ((srcByte & 0x80) != 0) {
 			count = srcByte & 0x7f;
