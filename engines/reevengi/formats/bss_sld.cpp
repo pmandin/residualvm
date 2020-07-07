@@ -120,17 +120,14 @@ void BssSldDecoder::depack_re2(Common::SeekableReadStream &bsssld)
 
 void BssSldDecoder::depack_re3(Common::SeekableReadStream &bsssld)
 {
-	_dstBufLen = bsssld.readUint32LE();
-	_dstPointer = (uint8 *) malloc(_dstBufLen + bsssld.size());
+	_dstBufLen = bsssld.readUint32LE() + bsssld.size();
+	_dstPointer = (uint8 *) malloc(_dstBufLen);
 	memset(_dstPointer, 0, _dstBufLen);
 
 	int count, offset, dstPos = 0;
 
-	while ((bsssld.pos()<bsssld.size()) /* && (dstPos<_dstBufLen)*/) {
+	while ((bsssld.pos()<bsssld.size()) && (dstPos<_dstBufLen)) {
 		byte srcByte = bsssld.readByte();
-		if (srcByte == 0x00) {
-			break;
-		}
 
 		if ((srcByte & 0x80) != 0) {
 			count = srcByte & 0x7f;
