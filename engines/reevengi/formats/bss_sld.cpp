@@ -120,17 +120,23 @@ void BssSldDecoder::depack_re2(Common::SeekableReadStream &bsssld)
 
 void BssSldDecoder::depack_re3(Common::SeekableReadStream &bsssld)
 {
-	_dstBufLen = bsssld.readUint32LE() + 65536 /*bsssld.size()*/;
+	int numBlocks = bsssld.readUint32LE();
+	int count, offset, dstPos = 0;
+
+	_dstBufLen = 65536;
 	_dstPointer = (uint8 *) malloc(_dstBufLen);
 	memset(_dstPointer, 0, _dstBufLen);
 
-	int count, offset, dstPos = 0;
-
-	while ((bsssld.pos()<bsssld.size()) && (dstPos<_dstBufLen)) {
+	for(int i=0; (i<numBlocks) && (bsssld.pos()<bsssld.size()); i++) {
 		byte srcByte = bsssld.readByte();
 
 		if ((srcByte & 0x80) != 0) {
 			count = srcByte & 0x7f;
+
+			if (dstPos+count >= _dstBufLen) {
+				_dstBufLen += 65536;
+				_dstPointer = (byte *) realloc(_dstPointer, _dstBufLen);
+			}
 
 			bsssld.read(&_dstPointer[dstPos], count);
 			dstPos += count;
@@ -141,10 +147,18 @@ void BssSldDecoder::depack_re3(Common::SeekableReadStream &bsssld)
 			count = (offset>>11)+2;
 			offset &= 0x7ff;
 
+			if (dstPos+count >= _dstBufLen) {
+				_dstBufLen += 65536;
+				_dstPointer = (byte *) realloc(_dstPointer, _dstBufLen);
+			}
+
 			memcpyOverlap(&_dstPointer[dstPos], &_dstPointer[dstPos-(offset+4)], count);
 			dstPos += count;
 		}
 	}
+
+	_dstBufLen = dstPos;
+	_dstPointer = (byte *) realloc(_dstPointer, _dstBufLen);
 }
 
 void BssSldDecoder::memcpyOverlap(uint8 *dest, uint8 *src, int count) {
