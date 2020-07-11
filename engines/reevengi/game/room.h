@@ -42,7 +42,10 @@ public:
 	virtual void getCameraPos(int numCamera, RdtCameraPos_t *cameraPos);
 
 	virtual int checkCamSwitch(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos);
+	virtual void drawCamSwitch(int curCam);
+
 	virtual bool checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos);
+	virtual void drawCamBoundary(int curCam);
 
 	virtual void drawMasks(int numCamera);
 

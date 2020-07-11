@@ -571,7 +571,7 @@ void ReevengiEngine::testDrawGrid(void) {
 	RdtCameraPos_t camera;
 	_roomScene->getCameraPos(_camera, &camera);
 
-	g_driver->setColor(0.9, 0.9, 0.9);
+	g_driver->setColor(0.75, 0.75, 0.75);
 
 	float i, px = camera.toX, pz = camera.toY;
 
@@ -584,6 +584,10 @@ void ReevengiEngine::testDrawGrid(void) {
 		Math::Vector3d v3(px+i, 0.0f, pz+20000.0f);
 		g_driver->line(v2, v3);
 	}
+
+	// Draw camera boundary and switches
+	_roomScene->drawCamBoundary(_camera);
+	_roomScene->drawCamSwitch(_camera);
 }
 
 void ReevengiEngine::testDrawPlayer(void) {

@@ -60,8 +60,16 @@ int Room::checkCamSwitch(int curCam, Math::Vector2d fromPos, Math::Vector2d toPo
 	return -1;
 }
 
+void Room::drawCamSwitch(int curCam) {
+	//
+}
+
 bool Room::checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos) {
 	return false;
+}
+
+void Room::drawCamBoundary(int curCam) {
+	//
 }
 
 void Room::drawMasks(int numCamera) {

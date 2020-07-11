@@ -160,6 +160,39 @@ int RE1Room::checkCamSwitch(int curCam, Math::Vector2d fromPos, Math::Vector2d t
 	return -1;
 }
 
+void RE1Room::drawCamSwitch(int curCam) {
+	if (!_roomPtr)
+		return;
+
+	g_driver->setColor(1.0, 0.75, 0.5);
+
+	int32 offset = FROM_LE_32( ((rdt1_header_t *) _roomPtr)->offsets[RDT1_OFFSET_CAM_SWITCHES] );
+	rdt1_rvd_t *camSwitchArray = (rdt1_rvd_t *) ((byte *) &_roomPtr[offset]);
+
+	while (FROM_LE_16(camSwitchArray->toCam) != 0xffff) {
+		bool isBoundary = (FROM_LE_16(camSwitchArray->toCam) == RDT1_RVD_BOUNDARY);
+
+		if (isBoundary) {
+			/* boundary, not a switch */
+		} else {
+			Math::Vector3d quad[4];
+			quad[0] = Math::Vector3d(FROM_LE_16(camSwitchArray->x1), 0, FROM_LE_16(camSwitchArray->y1));
+			quad[1] = Math::Vector3d(FROM_LE_16(camSwitchArray->x2), 0, FROM_LE_16(camSwitchArray->y2));
+			quad[2] = Math::Vector3d(FROM_LE_16(camSwitchArray->x3), 0, FROM_LE_16(camSwitchArray->y3));
+			quad[3] = Math::Vector3d(FROM_LE_16(camSwitchArray->x4), 0, FROM_LE_16(camSwitchArray->y4));
+
+			if (curCam==camSwitchArray->fromCam) {
+				g_driver->line(quad[0], quad[1]);
+				g_driver->line(quad[1], quad[2]);
+				g_driver->line(quad[2], quad[3]);
+				g_driver->line(quad[3], quad[0]);
+			}
+		}
+
+		++camSwitchArray;
+	}
+}
+
 bool RE1Room::checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2d toPos) {
 	if (!_roomPtr)
 		return false;
@@ -189,6 +222,39 @@ bool RE1Room::checkCamBoundary(int curCam, Math::Vector2d fromPos, Math::Vector2
 	}
 
 	return false;
+}
+
+void RE1Room::drawCamBoundary(int curCam) {
+	if (!_roomPtr)
+		return;
+
+	g_driver->setColor(1.0, 0.0, 0.0);
+
+	int32 offset = FROM_LE_32( ((rdt1_header_t *) _roomPtr)->offsets[RDT1_OFFSET_CAM_SWITCHES] );
+	rdt1_rvd_t *camBoundaryArray = (rdt1_rvd_t *) ((byte *) &_roomPtr[offset]);
+
+	while (FROM_LE_16(camBoundaryArray->toCam) != 0xffff) {
+		bool isBoundary = (FROM_LE_16(camBoundaryArray->toCam) == RDT1_RVD_BOUNDARY);
+
+		if (isBoundary) {
+			Math::Vector3d quad[4];
+			quad[0] = Math::Vector3d(FROM_LE_16(camBoundaryArray->x1), 0, FROM_LE_16(camBoundaryArray->y1));
+			quad[1] = Math::Vector3d(FROM_LE_16(camBoundaryArray->x2), 0, FROM_LE_16(camBoundaryArray->y2));
+			quad[2] = Math::Vector3d(FROM_LE_16(camBoundaryArray->x3), 0, FROM_LE_16(camBoundaryArray->y3));
+			quad[3] = Math::Vector3d(FROM_LE_16(camBoundaryArray->x4), 0, FROM_LE_16(camBoundaryArray->y4));
+
+			if (curCam==camBoundaryArray->fromCam) {
+				g_driver->line(quad[0], quad[1]);
+				g_driver->line(quad[1], quad[2]);
+				g_driver->line(quad[2], quad[3]);
+				g_driver->line(quad[3], quad[0]);
+			}
+		} else {
+			/* Switch, not a boundary */
+		}
+
+		++camBoundaryArray;
+	}
 }
 
 void RE1Room::drawMasks(int numCamera) {
