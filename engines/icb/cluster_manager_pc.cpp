@@ -31,7 +31,6 @@
 #endif
 
 #include "engines/icb/common/px_rccommon.h"
-#include "engines/icb/common/px_windows.h"
 #include "engines/icb/common/px_string.h"
 #include "engines/icb/res_man_pc.h"
 #include "debug_pc.h"
@@ -131,7 +130,7 @@ void ClusterManager::Initialise() {
 
 	if (strcmp(testline, "Please insert disc %d") == 0)
 		m_currentLanguage = T_ENGLISH;
-	else if (strcmp(testline, "Veuillez insйrer le disque %d") == 0)
+	else if (strcmp(testline, "Veuillez ins\xE9rer le disque %d") == 0)
 		m_currentLanguage = T_FRENCH;
 	else if (strcmp(testline, "Inserisci il disco %d") == 0)
 		m_currentLanguage = T_ITALIAN;
@@ -139,7 +138,7 @@ void ClusterManager::Initialise() {
 		m_currentLanguage = T_GERMAN;
 	else if (strcmp(testline, "Por favor, inserta el disco %d") == 0)
 		m_currentLanguage = T_SPANISH;
-	else if (strcmp(testline, "Вставьте диск %d") == 0)
+	else if (strcmp(testline, "\xC2\xF1\xF2\xE0\xE2\xFC\xF2\xE5 \xE4\xE8\xF1\xEA %d") == 0)
 		m_currentLanguage = T_RUSSIAN;
 	else
 		// Must be polish by default

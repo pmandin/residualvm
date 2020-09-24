@@ -31,7 +31,11 @@
 #include "engines/wintermute/base/base_parser.h"
 #include "engines/wintermute/base/gfx/base_renderer.h"
 #include "engines/wintermute/base/gfx/opengl/base_render_opengl3d.h"
+#include "engines/wintermute/base/gfx/x/active_animation.h"
+#include "engines/wintermute/base/gfx/x/animation_channel.h"
+#include "engines/wintermute/base/gfx/x/animation_set.h"
 #include "engines/wintermute/base/gfx/x/frame_node.h"
+#include "engines/wintermute/base/gfx/x/material.h"
 #include "engines/wintermute/base/gfx/x/modelx.h"
 #include "engines/wintermute/base/gfx/x/loader_x.h"
 #include "engines/wintermute/dcgf.h"
@@ -40,6 +44,23 @@
 #include "engines/wintermute/wintermute.h"
 
 namespace Wintermute {
+
+XFileLexer createXFileLexer(byte *buffer, uint32 fileSize) {
+	// the header of an .X file consists of 16 bytes
+	// bytes 9 to 12 contain a string which can be 'txt ', 'bin ', 'bzip, 'tzip', depending on the format
+	byte dataFormatBlock[5];
+	Common::copy(buffer + 8, buffer + 12, dataFormatBlock);
+	dataFormatBlock[4] = '\0';
+
+	bool textMode = (strcmp((char *)dataFormatBlock, "txt ") == 0 || strcmp((char *)dataFormatBlock, "tzip") == 0);
+
+	if (strcmp((char *)dataFormatBlock, "bzip") == 0 || strcmp((char *)dataFormatBlock, "tzip") == 0) {
+		warning("ModelX::loadFromFile compressed .X files are not supported yet");
+	}
+
+	// we skip the 16 byte header of the file
+	return XFileLexer(buffer + 16, fileSize - 16, textMode);
+}
 
 IMPLEMENT_PERSISTENT(ModelX, false)
 
@@ -81,12 +102,26 @@ void ModelX::cleanup(bool complete) {
 
 	_animationSets.clear();
 
+	if (complete) {
+		for (uint i = 0; i < _mergedModels.size(); ++i) {
+			delete[] _mergedModels[i];
+		}
+
+		_mergedModels.clear();
+	}
+
 	for (uint32 i = 0; i < _matSprites.size(); i++) {
 		delete _matSprites[i];
 		_matSprites[i] = nullptr;
 	}
 
 	_matSprites.clear();
+
+	for (uint i = 0; i < _materialReferences.size(); ++i) {
+		delete _materialReferences[i]._material;
+	}
+
+	_materialReferences.clear();
 
 	// remove root frame
 	delete _rootFrame;
@@ -103,22 +138,13 @@ bool ModelX::loadFromFile(const Common::String &filename, ModelX *parentModel) {
 
 	uint32 fileSize = 0;
 	byte *buffer = BaseFileManager::getEngineInstance()->getEngineInstance()->readWholeFile(filename, &fileSize);
-
-	byte *dataFormatBlock = buffer + 8;
-
-	bool textMode = strcmp((char *)dataFormatBlock, "txt");
-
-	if (strcmp((char *)dataFormatBlock, "bzip") == 0 || strcmp((char *)dataFormatBlock, "tzip") == 0) {
-		warning("ModelX::loadFromFile compressed .X files are not supported yet");
-	}
-
-	XFileLexer lexer(buffer + 16, fileSize - 16, textMode);
+	XFileLexer lexer = createXFileLexer(buffer, fileSize);
 
 	bool res = true;
 
 	_parentModel = parentModel;
 	_rootFrame = new FrameNode(_gameRef);
-	res = _rootFrame->loadFromXAsRoot(filename, lexer, this);
+	res = _rootFrame->loadFromXAsRoot(filename, lexer, this, _materialReferences);
 	setFilename(filename.c_str());
 
 	for (int i = 0; i < X_NUM_ANIMATION_CHANNELS; ++i) {
@@ -134,6 +160,36 @@ bool ModelX::loadFromFile(const Common::String &filename, ModelX *parentModel) {
 	return res;
 }
 
+bool ModelX::mergeFromFile(const Common::String &filename) {
+	uint32 fileSize = 0;
+	byte *buffer = BaseFileManager::getEngineInstance()->getEngineInstance()->readWholeFile(filename, &fileSize);
+	XFileLexer lexer = createXFileLexer(buffer, fileSize);
+
+	lexer.advanceToNextToken();
+	parseFrameDuringMerge(lexer, filename);
+
+	findBones(false, nullptr);
+
+	bool found = false;
+
+	for (uint i = 0; i < _mergedModels.size(); ++i) {
+		if (scumm_stricmp(_mergedModels[i], filename.c_str()) == 0) {
+			found = true;
+			break;
+		}
+	}
+
+	if (!found) {
+		char *path = new char[filename.size() + 1];
+		strcpy(path, filename.c_str());
+		_mergedModels.add(path);
+	}
+
+	delete[] buffer;
+
+	return true;
+}
+
 //////////////////////////////////////////////////////////////////////////
 bool ModelX::loadAnimationSet(XFileLexer &lexer, const Common::String &filename) {
 	bool res = true;
@@ -147,7 +203,7 @@ bool ModelX::loadAnimationSet(XFileLexer &lexer, const Common::String &filename)
 		res = false;
 	}
 
-	return true;
+	return res;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -193,6 +249,22 @@ bool ModelX::findBones(bool animOnly, ModelX *parentModel) {
 	}
 
 	return true;
+}
+
+void ModelX::parseFrameDuringMerge(XFileLexer &lexer, const Common::String &filename) {
+	while (!lexer.eof()) {
+		if (lexer.tokenIsIdentifier("Frame")) {
+			lexer.advanceToNextToken();
+			parseFrameDuringMerge(lexer, filename);
+		} else if (lexer.tokenIsIdentifier("AnimationSet")) {
+			lexer.advanceToNextToken();
+			loadAnimationSet(lexer, filename);
+		} else if (lexer.tokenIsOfType(IDENTIFIER)) {
+			lexer.skipObject();
+		} else {
+			lexer.advanceToNextToken(); // we ignore anything else here
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -312,21 +384,14 @@ bool ModelX::updateShadowVol(ShadowVolume *shadow, Math::Matrix4 &modelMat, cons
 bool ModelX::render() {
 	if (_rootFrame) {
 		// set culling
-		//		if(m_Owner && !m_Owner->m_DrawBackfaces)
-		//			Rend->m_Device->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
-		//		else
-		//			Rend->m_Device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-
-		//		// gameSpace stores colors in vertices, disable for now
-		//		Rend->m_Device->SetRenderState(D3DRS_COLORVERTEX, FALSE);
+		if(_owner && !_owner->_drawBackfaces) {
+			_gameRef->_renderer3D->enableCulling();
+		} else {
+			_gameRef->_renderer3D->disableCulling();
+		}
 
 		// render everything
 		bool res = _rootFrame->render(this);
-
-		// remember matrices for object picking purposes
-		//		Rend->m_Device->GetTransform(D3DTS_WORLD,      &lastWorldMat);
-		//		Rend->m_Device->GetTransform(D3DTS_VIEW,       &_lastViewMat);
-		//		Rend->m_Device->GetTransform(D3DTS_PROJECTION, &_lastProjMat);
 
 		// remember scene offset
 		Rect32 rc;
@@ -380,7 +445,6 @@ bool ModelX::isTransparentAt(int x, int y) {
 	Math::Vector3d end = ray.getOrigin() + ray.getDirection();
 	Math::Matrix4 m = _lastWorldMat;
 	m.inverse();
-	m.transpose();
 	m.transform(&ray.getOrigin(), true);
 	m.transform(&end, true);
 	Math::Vector3d pickRayDirection = end - ray.getOrigin();
@@ -685,6 +749,7 @@ bool ModelX::persist(BasePersistenceManager *persistMgr) {
 	persistMgr->transferMatrix4(TMEMBER(_lastWorldMat));
 
 	persistMgr->transferPtr(TMEMBER(_owner));
+	_mergedModels.persist(persistMgr);
 
 	// load model
 	if (!persistMgr->getIsSaving()) {
@@ -696,6 +761,10 @@ bool ModelX::persist(BasePersistenceManager *persistMgr) {
 
 		if (getFilename()) {
 			loadFromFile(getFilename());
+		}
+
+		for (uint i = 0; i < _mergedModels.size(); ++i) {
+			mergeFromFile(_mergedModels[i]);
 		}
 	}
 

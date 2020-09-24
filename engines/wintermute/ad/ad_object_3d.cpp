@@ -31,8 +31,8 @@
 #include "engines/wintermute/ad/ad_scene.h"
 #include "engines/wintermute/ad/ad_scene_geometry.h"
 #include "engines/wintermute/base/gfx/base_renderer.h"
+#include "engines/wintermute/base/gfx/shadow_volume.h"
 #include "engines/wintermute/base/gfx/opengl/base_render_opengl3d.h"
-#include "engines/wintermute/base/gfx/opengl/shadow_volume.h"
 #include "engines/wintermute/base/gfx/x/modelx.h"
 #include "engines/wintermute/base/scriptables/script_stack.h"
 #include "engines/wintermute/base/scriptables/script_value.h"
@@ -225,7 +225,7 @@ bool AdObject3D::scCallMethod(ScScript *script, ScStack *stack, ScStack *thisSta
 	//////////////////////////////////////////////////////////////////////////
 	else if (strcmp(name, "RemoveIgnoredLight") == 0) {
 		stack->correctParams(1);
-		char *lightName;
+		char *lightName = nullptr;
 		BaseUtils::setString(&lightName, stack->pop()->getString());
 		stack->pushBool(removeIgnoredLight(lightName));
 		return true;
@@ -576,7 +576,7 @@ bool AdObject3D::skipTo(int x, int y, bool tolerant) {
 //////////////////////////////////////////////////////////////////////////
 ShadowVolume *AdObject3D::getShadowVolume() {
 	if (_shadowVolume == nullptr) {
-		_shadowVolume = new ShadowVolume(_gameRef);
+		_shadowVolume = _gameRef->_renderer3D->createShadowVolume();
 	}
 
 	return _shadowVolume;

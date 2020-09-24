@@ -69,7 +69,8 @@ class VideoTheoraPlayer;
 class SaveThumbHelper;
 
 #ifdef ENABLE_WME3D
-class BaseRenderOpenGL3D;
+class BaseRenderer3D;
+struct FogParameters;
 #endif
 
 class BaseGame: public BaseObject {
@@ -159,8 +160,18 @@ public:
 
 	BaseRenderer *_renderer;
 #ifdef ENABLE_WME3D
-	BaseRenderOpenGL3D *_renderer3D;
+	BaseRenderer3D *_renderer3D;
 	bool _playing3DGame;
+
+	bool _supportsRealTimeShadows;
+	TShadowType _maxShadowType;
+
+	bool setMaxShadowType(TShadowType maxShadowType);
+	virtual TShadowType getMaxShadowType(BaseObject *object);
+
+	virtual uint32 getAmbientLightColor();
+
+	virtual bool getFogParams(FogParameters &fogParameters);
 #endif
 	BaseSoundMgr *_soundMgr;
 #if EXTENDED_DEBUGGER_ENABLED
@@ -211,8 +222,8 @@ public:
 
 	bool handleKeypress(Common::Event *event, bool printable = false) override;
 	virtual void handleKeyRelease(Common::Event *event);
-	bool handleCustomActionStart(BaseGameCustomAction action);
-	bool handleCustomActionEnd(BaseGameCustomAction action);
+	virtual bool handleCustomActionStart(BaseGameCustomAction action);
+	virtual bool handleCustomActionEnd(BaseGameCustomAction action);
 
 	bool unfreeze();
 	bool freeze(bool includingMusic = true);

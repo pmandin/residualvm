@@ -25,10 +25,6 @@
  *
  */
 
-#ifdef _PC
-#include "engines/icb/common/px_windows.h"
-#endif
-
 #include "engines/icb/common/px_common.h"
 #include "engines/icb/common/ptr_util.h"
 
@@ -443,10 +439,10 @@ mcodeFunctionReturnCodes _game_session::fn_set_voxel_image_path(int32 &, int32 *
 	const char *param1Str = (const char *)MemoryUtil::resolvePtr(params[1]);
 
 	// set 'cord'
-	Set_string((char *)param0Str, logic_structs[cur_id]->mega->chr_name, MAX_CHAR_NAME_LENGTH);
+	Set_string(const_cast<char *>(param0Str), logic_structs[cur_id]->mega->chr_name, MAX_CHAR_NAME_LENGTH);
 
 	// set 'casual_wear'
-	Set_string((char *)param1Str, logic_structs[cur_id]->mega->anim_set, MAX_OUTFIT_NAME_LENGTH);
+	Set_string(const_cast<char *>(param1Str), logic_structs[cur_id]->mega->anim_set, MAX_OUTFIT_NAME_LENGTH);
 
 	// create _vox_image object
 	if (!logic_structs[cur_id]->voxel_info) {
@@ -576,7 +572,7 @@ mcodeFunctionReturnCodes _game_session::fn_init_from_marker_file(int32 &, int32 
 		Fatal_error("FN_INIT_FROM_MARKER_FILE fails because object is not registered as a mega.");
 
 	// fetch tag file for this item
-	start_pos = (_map_marker *)markers.Fetch_marker_by_object_name((char *)object->GetName());
+	start_pos = (_map_marker *)markers.Fetch_marker_by_object_name(const_cast<char *>(object->GetName()));
 
 	if (!start_pos) {
 		Message_box("fn_init_from_marker_file missing map marker file entry for item %s.  You must edit the markers - dont play the game.", object->GetName());
@@ -2983,7 +2979,7 @@ uint32 _game_session::Register_stair_or_ladder(const char *target, bool8 top, ui
 		Fatal_error("%s has illegal length %d", object->GetName(), length);
 
 	// get our nico
-	stair = (_feature_info *)features->Try_fetch_item_by_name((char *)object->GetName());
+	stair = (_feature_info *)features->Try_fetch_item_by_name(const_cast<char *>(object->GetName()));
 	// get other end
 	dest_stair = (_feature_info *)features->Try_fetch_item_by_name(target);
 	dest_stair_id = objects->Fetch_item_number_by_name(target);
@@ -3376,17 +3372,9 @@ mcodeFunctionReturnCodes _game_session::fn_snap_to_ladder_top(int32 &, int32 *) 
 	return IR_CONT;
 }
 
-// Moved here by CJJ to limit scope of warning disable
-
-// DISABLE WARNING to inhibit inexplicable FALSE8 position on line
-//      floor = (_floor*) floor_def->Fetch_named_floor((char*)params[0]);
-#ifdef _MSC_VER
-#pragma warning(disable : 4702) //: warning C4702: unreachable code
-#endif
-
 mcodeFunctionReturnCodes _game_session::fn_set_to_floor(int32 &, int32 *params) {
 	// locate a character onto a specified floor
-	// crudely sticks the character in the middle of the first floor RECT
+	// crudely sticks the character in the middle of the first floor LRECT
 
 	//	params[0]    ascii name of floor
 

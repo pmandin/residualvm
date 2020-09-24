@@ -31,10 +31,6 @@
 
 #include "engines/wintermute/base/base_object.h"
 #include "engines/wintermute/base/base_sprite.h"
-#include "engines/wintermute/base/gfx/x/active_animation.h"
-#include "engines/wintermute/base/gfx/x/animation_channel.h"
-#include "engines/wintermute/base/gfx/x/animation_set.h"
-#include "engines/wintermute/base/gfx/x/frame_node.h"
 #include "engines/wintermute/coll_templ.h"
 #include "engines/wintermute/math/rect32.h"
 #include "engines/wintermute/video/video_theora_player.h"
@@ -44,8 +40,17 @@
 
 namespace Wintermute {
 
+class AnimationChannel;
+class AnimationSet;
+class FrameNode;
+class Material;
 class ShadowVolume;
 class XFileLexer;
+
+struct MaterialReference {
+	Common::String _name;
+	Material *_material;
+};
 
 #define X_NUM_ANIMATION_CHANNELS 10
 
@@ -72,8 +77,9 @@ private:
 			_theora = nullptr;
 			_matName = nullptr;
 			uint32 size = strlen(matName);
-			_matName = new char[size];
+			_matName = new char[size + 1];
 			Common::copy(matName, matName + size, _matName);
+			_matName[size] = 0;
 			_sprite = sprite;
 		}
 
@@ -81,15 +87,16 @@ private:
 			_sprite = nullptr;
 			_matName = nullptr;
 			uint32 size = strlen(matName);
-			_matName = new char[size];
+			_matName = new char[size + 1];
 			Common::copy(matName, matName + size, _matName);
+			_matName[size] = 0;
 			_theora = theora;
 		}
 
 		~ModelXMatSprite() {
 			delete[] _matName;
-			delete[] _sprite;
-			delete[] _theora;
+			delete _sprite;
+			delete _theora;
 		}
 
 		bool setSprite(BaseSprite *sprite) {
@@ -135,6 +142,7 @@ public:
 	ModelX *_parentModel;
 
 	bool loadFromFile(const Common::String &filename, ModelX *parentModel = nullptr);
+	bool mergeFromFile(const Common::String &filename);
 
 	bool update() override;
 	bool render();
@@ -182,6 +190,8 @@ private:
 	void cleanup(bool complete = true);
 	bool findBones(bool animOnly = false, ModelX *parentModel = nullptr);
 
+	void parseFrameDuringMerge(XFileLexer &lexer, const Common::String &filename);
+
 	void updateBoundingRect();
 	void static inline updateRect(Rect32 *rc, int x, int y);
 	Rect32 _drawingViewport;
@@ -193,7 +203,10 @@ private:
 	Math::Vector3d _BBoxStart;
 	Math::Vector3d _BBoxEnd;
 
+	Common::Array<MaterialReference> _materialReferences;
+
 protected:
+	BaseArray<const char*> _mergedModels;
 	AnimationChannel *_channels[X_NUM_ANIMATION_CHANNELS];
 
 	FrameNode *_rootFrame;

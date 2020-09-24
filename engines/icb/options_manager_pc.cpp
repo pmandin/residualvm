@@ -32,7 +32,6 @@
 #include <time.h>
 
 #include "engines/icb/common/px_rccommon.h"
-#include "engines/icb/common/px_windows.h"
 #include "engines/icb/icb.h"
 
 #include "options_manager_pc.h"
@@ -46,9 +45,7 @@
 #include "mission_functions.h"
 #include "text_sprites.h"
 #include "mission.h"
-// Need access to polygon rendering flags but don't require the short define of RECT thank you very much
 #include "global_objects_psx.h"
-#undef RECT
 #include "res_man.h"
 
 #include "common/keyboard.h"
@@ -1438,6 +1435,8 @@ void OptionsManager::DrawGameOverScreen() {
 		DrawQuitGameConfirmScreen();
 
 		break;
+	default:
+		break;
 	}
 }
 
@@ -1703,6 +1702,8 @@ void OptionsManager::DrawInGameOptionsScreen() {
 			surface_manager->Unlock_surface(working_buffer_id);
 
 			break;
+		default:
+			break;
 		}
 	}
 
@@ -1895,6 +1896,8 @@ void OptionsManager::DrawMainOptionsScreen(uint32 surface_id) {
 
 		DrawQuitGameConfirmScreen(surface_id);
 
+		break;
+	default:
 		break;
 	}
 }
@@ -2672,6 +2675,8 @@ void OptionsManager::AlterSelected(bool8 _right_) {
 			PlayChosenFX();
 			Poll_Sound_Engine();
 			return;
+		default:
+			break;
 		}
 		break;
 
@@ -2715,6 +2720,8 @@ void OptionsManager::AlterSelected(bool8 _right_) {
 				if (GetSfxVolume() > 0)
 					SetSfxVolume(GetSfxVolume() - 1);
 			}
+			break;
+		default:
 			break;
 		}
 		break;
@@ -2787,6 +2794,8 @@ void OptionsManager::AlterSelected(bool8 _right_) {
 
 		PlayChosenFX();
 		Poll_Sound_Engine();
+		break;
+	default:
 		break;
 	}
 }
@@ -2969,7 +2978,7 @@ void OptionsManager::DoChoice() {
 
 	m_choiceLimiter = TRUE8;
 
-	RECT r;
+	LRECT r;
 	char buff[128];
 
 	ResetTitleScreenTimeout();
@@ -4021,7 +4030,7 @@ void OptionsManager::DrawGameSlots(uint32 slotOffset, uint32 surface_id /* = wor
 				DisplayText(ad, pitch, msg, nm_wPos, h, (bool8)(m_GAMESLOT_selected == slot) ? SELECTEDFONT : NORMALFONT, FALSE8);
 
 				// The thumbnail
-				RECT dest;
+				LRECT dest;
 				dest.left = id_wPos + 10;
 				dest.right = dest.left + 64;
 				dest.top = h;
@@ -4068,7 +4077,7 @@ void OptionsManager::DrawGameSlots(uint32 slotOffset, uint32 surface_id /* = wor
 
 void OptionsManager::DrawMovieSlots(uint32 offset, uint32 surface_id /* = working_buffer_id*/) {
 	const char *msg = NULL;
-	RECT dest;
+	LRECT dest;
 	uint32 selectedMovie;
 	uint32 selectedMovieSlot;
 
@@ -4805,7 +4814,7 @@ void OptionsManager::DrawProfileScreen(uint32 surface_id) {
 
 	surface_manager->Unlock_surface(m_profileSurface);
 
-	RECT srcr;
+	LRECT srcr;
 	srcr.left = 0;
 	srcr.top = 28;
 	srcr.right = m_profileRect.right - m_profileRect.left;
@@ -5280,7 +5289,7 @@ void OptionsManager::DrawControllerConfiguration() {
 	uint32 halfScreen = SCREEN_WIDTH / 2;
 	uint32 temp;
 	pxString sentence;
-	RECT repairRect;
+	LRECT repairRect;
 
 	// Only perform dirty rectangle refresh in-game (ie no movie)
 	if (m_useDirtyRects) {
@@ -5756,7 +5765,7 @@ void OptionsManager::DrawAudioSettings() {
 	const char *msg = NULL;
 	uint32 halfScreen = SCREEN_WIDTH / 2;
 	uint32 temp;
-	RECT repairRect;
+	LRECT repairRect;
 
 	// Need to blit a dirty rect
 	if (m_useDirtyRects) {
@@ -5816,7 +5825,7 @@ void OptionsManager::DrawVideoSettings() {
 	const char *msg = NULL;
 	uint32 halfScreen = SCREEN_WIDTH / 2;
 	uint32 temp;
-	RECT repairRect;
+	LRECT repairRect;
 
 	// Need to blit a dirty rect
 	if (m_useDirtyRects) {
@@ -5901,7 +5910,7 @@ void OptionsManager::AnimateSlotsPaging() {
 	int boxWidth = m_slotBoundingRect.right - m_slotBoundingRect.left;
 	int inc = 50;
 	uint32 t = 0;
-	RECT repairRect;
+	LRECT repairRect;
 
 	bool8 saveRestoreScreen = (bool8)(m_activeMenu != MAIN_MOVIES);
 
@@ -6151,7 +6160,7 @@ bool8 OptionsManager::AnimateBracketsToBox(bool8 forwards, uint32 surface_id) {
 	uint32 pitch;
 	uint8 *surface_address;
 	uint32 t = 0;
-	RECT repairRect;
+	LRECT repairRect;
 
 	// Check if we still need to animate the brackets
 	if (forwards) {
@@ -6304,7 +6313,7 @@ bool8 OptionsManager::AnimateThoseBrackets(bool8 forwards) {
 	// Time lock code
 	uint32 t = GetMicroTimer();
 
-	RECT repairRect;
+	LRECT repairRect;
 	repairRect.left = m_optionsBox.left - 1;
 	repairRect.right = m_optionsBox.right + 2;
 	repairRect.top = m_optionsBox.top - 1;
@@ -6668,7 +6677,7 @@ const char *OptionsManager::GetTextFromReference(uint32 hashRef) {
 				Fatal_error("Found line number [%s] with no text", textLine);
 
 			// Write the modified pointer back into the text block
-			textLine = (char *)pcTextLine;
+			textLine = const_cast<char *>(pcTextLine);
 		}
 	}
 
@@ -6788,13 +6797,13 @@ void OptionsManager::DisplayText(uint8 *ad, uint32 pitch, const char *str, int32
 	}
 
 	if (boxed) {
-		RECT r;
+		LRECT r;
 		GetCentredRectFotText(str, r, y);
 		DrawRectangle(FALSE8, r.left, r.top, r.right - r.left, r.bottom - r.top, ad, pitch);
 	}
 }
 
-void OptionsManager::GetCentredRectFotText(const char *str, RECT &r, int32 height) {
+void OptionsManager::GetCentredRectFotText(const char *str, LRECT &r, int32 height) {
 	int32 sentenceWidth = CalculateStringWidth(str);
 
 	r.left = (SCREEN_WIDTH / 2) - (sentenceWidth / 2) - 50;
@@ -7534,7 +7543,7 @@ void Crediter::Initialise(const char *textFileName, const char *movieFileName, b
 int32 Crediter::DoScreen() {
 	uint32 halfScreenW = SCREEN_WIDTH / 2;
 	uint32 halfScreenH = SCREEN_DEPTH / 2;
-	RECT logo_rect;
+	LRECT logo_rect;
 	bool8 doText = FALSE8;
 	bool8 onlastMovieFrame = FALSE8;
 

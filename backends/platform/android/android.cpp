@@ -22,6 +22,8 @@
 
 #if defined(__ANDROID__)
 
+#define FORBIDDEN_SYMBOL_EXCEPTION_getenv(a)
+
 // Allow use of stuff in <time.h>
 #define FORBIDDEN_SYMBOL_EXCEPTION_time_h
 
@@ -53,10 +55,15 @@
 #include "common/events.h"
 #include "common/config-manager.h"
 
-#include "backends/keymapper/keymapper.h"
+#include "backends/audiocd/default/default-audiocd.h"
+#include "backends/events/default/default-events.h"
 #include "backends/mutex/pthread/pthread-mutex.h"
 #include "backends/saves/default/default-saves.h"
 #include "backends/timer/default/default-timer.h"
+
+#include "backends/keymapper/keymapper.h"
+#include "backends/keymapper/keymapper-defaults.h"
+#include "backends/keymapper/standard-actions.h"
 
 #include "backends/platform/android/jni-android.h"
 #include "backends/platform/android/android.h"
@@ -145,7 +152,18 @@ OSystem_Android::OSystem_Android(int audio_sample_rate, int audio_buffer_size) :
 
 OSystem_Android::~OSystem_Android() {
 	ENTER();
-
+	// _audiocdManager should be deleted before _mixer!
+	// It is normally deleted in proper order in the OSystem destructor.
+	// However, currently _mixer is deleted here (OSystem_Android)
+	// and in the ModularBackend destructor,
+	// hence unless _audiocdManager is deleted here first,
+	// it will cause a crash for the Android app (arm64 v8a) upon exit
+	// -- when the audio cd manager was actually used eg. audio cd test of the testbed
+	// FIXME: A more proper fix would probably be to:
+	//        - delete _mixer in the base class (OSystem) after _audiocdManager (this is already the current behavior)
+	//	      - remove its deletion from OSystem_Android and ModularBackend (this is what needs to be fixed).
+	delete _audiocdManager;
+	_audiocdManager = 0;
 	delete _mixer;
 	_mixer = 0;
 	delete _fsFactory;
@@ -153,10 +171,10 @@ OSystem_Android::~OSystem_Android() {
 	delete _timerManager;
 	_timerManager = 0;
 
-	deleteMutex(_event_queue_lock);
+	delete _event_queue_lock;
 
-	delete _mutexManager;
-	_mutexManager = 0;
+	delete _savefileManager;
+	_savefileManager = 0;
 }
 
 void *OSystem_Android::timerThreadFunc(void *arg) {
@@ -319,11 +337,11 @@ void OSystem_Android::initBackend() {
 
 	_main_thread = pthread_self();
 
-	ConfMan.set("fullscreen", "true");
+	ConfMan.registerDefault("fullscreen", true);
 	ConfMan.registerDefault("aspect_ratio", true);
 	ConfMan.registerDefault("touchpad_mouse_mode", true);
 
-	ConfMan.setInt("autosave_period", 0);
+	ConfMan.registerDefault("autosave_period", 0);
 	ConfMan.setBool("FM_high_quality", false);
 	ConfMan.setBool("FM_medium_quality", true);
 	ConfMan.set("browser_lastpath", ConfMan.get("path"));
@@ -341,10 +359,13 @@ void OSystem_Android::initBackend() {
 	// screen. Passing the savepath in this way makes it stick
 	// (via ConfMan.registerDefault)
 	_savefileManager = new DefaultSaveFileManager(ConfMan.get("savepath"));
+	// TODO remove the debug message eventually
+	LOGD("Setting DefaultSaveFileManager path to: %s", ConfMan.get("savepath").c_str());
+
 	_mutexManager = new PthreadMutexManager();
 	_timerManager = new DefaultTimerManager();
 
-	_event_queue_lock = createMutex();
+	_event_queue_lock = new Common::Mutex();
 
 	gettimeofday(&_startTime, 0);
 
@@ -367,6 +388,9 @@ void OSystem_Android::initBackend() {
 
 	JNI::setReadyForEvents(true);
 
+	_eventManager = new DefaultEventManager(this);
+	_audiocdManager = new DefaultAudioCDManager();
+
 	BaseBackend::initBackend();
 }
 
@@ -381,7 +405,7 @@ bool OSystem_Android::hasFeature(Feature f) {
 			f == kFeatureClipboardSupport) {
 		return true;
 	}
-	return ModularBackend::hasFeature(f);
+	return ModularGraphicsBackend::hasFeature(f);
 }
 
 void OSystem_Android::setFeatureState(Feature f, bool enable) {
@@ -401,7 +425,7 @@ void OSystem_Android::setFeatureState(Feature f, bool enable) {
 		JNI::showKeyboardControl(enable);
 		break;
 	default:
-		ModularBackend::setFeatureState(f, enable);
+		ModularGraphicsBackend::setFeatureState(f, enable);
 		break;
 	}
 }
@@ -415,8 +439,28 @@ bool OSystem_Android::getFeatureState(Feature f) {
 	case kFeatureOnScreenControl:
 		return ConfMan.getBool("onscreen_control");
 	default:
-		return ModularBackend::getFeatureState(f);
+		return ModularGraphicsBackend::getFeatureState(f);
 	}
+}
+
+Common::KeymapperDefaultBindings *OSystem_Android::getKeymapperDefaultBindings() {
+	Common::KeymapperDefaultBindings *keymapperDefaultBindings = new Common::KeymapperDefaultBindings();
+
+	// The swap_menu_and_back is a legacy configuration key
+	// It is only checked here for compatibility with old config files
+	// where it may have been set as "true"
+	// TODO Why not just ignore it entirely anyway?
+	if (ConfMan.hasKey("swap_menu_and_back")  && ConfMan.getBool("swap_menu_and_back")) {
+		keymapperDefaultBindings->setDefaultBinding(Common::kGlobalKeymapName, "MENU", "AC_BACK");
+		keymapperDefaultBindings->setDefaultBinding("engine-default", Common::kStandardActionSkip, "MENU");
+		keymapperDefaultBindings->setDefaultBinding(Common::kGuiKeymapName, "CLOS", "MENU");
+	} else {
+		keymapperDefaultBindings->setDefaultBinding(Common::kGlobalKeymapName, "MENU", "MENU");
+		keymapperDefaultBindings->setDefaultBinding("engine-default", Common::kStandardActionSkip, "AC_BACK");
+		keymapperDefaultBindings->setDefaultBinding(Common::kGuiKeymapName, "CLOS", "AC_BACK");
+	}
+
+	return keymapperDefaultBindings;
 }
 
 // ResidualVM specific method
@@ -456,7 +500,6 @@ void OSystem_Android::setWindowCaption(const char *caption) {
 
 	JNI::setWindowCaption(caption);
 }
-
 
 void OSystem_Android::showVirtualKeyboard(bool enable) {
 	ENTER("%d", enable);
@@ -516,18 +559,18 @@ Common::String OSystem_Android::getSystemLanguage() const {
 }
 
 bool OSystem_Android::openUrl(const Common::String &url) {
-	return JNI::openUrl(url.c_str());
+	return JNI::openUrl(url);
 }
 
 bool OSystem_Android::hasTextInClipboard() {
 	return JNI::hasTextInClipboard();
 }
 
-Common::String OSystem_Android::getTextFromClipboard() {
+Common::U32String OSystem_Android::getTextFromClipboard() {
 	return JNI::getTextFromClipboard();
 }
 
-bool OSystem_Android::setTextInClipboard(const Common::String &text) {
+bool OSystem_Android::setTextInClipboard(const Common::U32String &text) {
 	return JNI::setTextInClipboard(text);
 }
 
@@ -541,6 +584,10 @@ Common::String OSystem_Android::getSystemProperty(const char *name) const {
 	int len = __system_property_get(name, value);
 
 	return Common::String(value, len);
+}
+
+char *OSystem_Android::convertEncoding(const char *to, const char *from, const char *string, size_t length) {
+	return JNI::convertEncoding(to, from, string, length);
 }
 
 #endif

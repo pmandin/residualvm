@@ -42,7 +42,7 @@ void WorldToFilm(const PXvector_PC &worldpos, const PCcamera &camera, bool8 &is_
 	vWorldPos.vy = (int)worldpos.y;
 	vWorldPos.vz = (int)worldpos.z;
 
-	pcApplyMatrixLV((MATRIX *)&camera.view, &vWorldPos, &scrn);
+	pcApplyMatrixLV(const_cast<MATRIX *>(&camera.view), &vWorldPos, &scrn);
 	scrn.vx += camera.view.t[0];
 	scrn.vy += camera.view.t[1];
 	scrn.vz += camera.view.t[2];
@@ -63,7 +63,7 @@ void WorldToFilm(const PXvector_PC &worldpos, const PCcamera &camera, bool8 &is_
 
 PXreal AngleOfVector(PXreal x, PXreal y) {
 	if (fabs(x) > 0.0001f) { /*smallest value safe for atan2*/
-		return (float)atan2(y, x) / M_PI / 2;
+		return (float)atan2(y, x) / (float)M_PI / 2;
 	} else {
 		// atan2's y/x would be infinite, so treat as special case
 		if (y > 0.0f)

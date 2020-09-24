@@ -71,17 +71,11 @@ namespace ICB {
 
 void AddDynamicLight(PSXLampList &lamplist, _logic *log);
 
-#ifdef _MSC_VER
-#pragma warning(disable : 4200)
-#endif
 typedef struct {
 	uint16 x0, y0, z0;
 	uint16 x1, y1, z1;
-	uint16 map[0];
+//	uint16 map[0];
 } _px_prop_zmap_;
-#ifdef _MSC_VER
-#pragma warning(default : 4200)
-#endif
 /* Local Defines */
 #define ACTORSORTBUFFERSIZE (256 * 1024)
 #define MAXACTORQTY MAXIMUM_POTENTIAL_ON_SCREEN_ACTOR_QUANTITY
@@ -186,7 +180,7 @@ void OpenTexture(const char *tex_name, uint32 tex_hash, const char *pal_name, ui
 	revtex_API *rTexAPI = (revtex_API *)rs_anims->Res_open(tex_name, tex_hash, base, base_hash);
 
 	// Check the texture file is correct ID & schema
-	if ((*(uint32 *)rTexAPI->id) != (*(uint32 *)REVTEX_API_ID))
+	if ((*(uint32 *)rTexAPI->id) != (*(uint32 *)const_cast<char *>(REVTEX_API_ID)))
 		Fatal_error("Invalid revtex_API id file %s API %s in file %s", rTexAPI->id, REVTEX_API_ID, tex_name);
 
 	if (rTexAPI->schema != REVTEX_API_SCHEMA)
@@ -198,7 +192,7 @@ void OpenTexture(const char *tex_name, uint32 tex_hash, const char *pal_name, ui
 	// Is the palette different ?
 	if (rPalAPI != rTexAPI) {
 		// It's different !
-		if ((*(uint32 *)rPalAPI->id) != (*(uint32 *)REVTEX_API_ID))
+		if ((*(uint32 *)rPalAPI->id) != (*(uint32 *)const_cast<char *>(REVTEX_API_ID)))
 			Fatal_error("Invalid revtex_API id file %s API %s in file %s", rTexAPI->id, REVTEX_API_ID, pal_name);
 
 		if (rPalAPI->schema != REVTEX_API_SCHEMA)
@@ -294,7 +288,7 @@ void drawObjects(SDactor &act, PSXLampList &lamplist, PSXrgb *pAmbient, PSXShade
 	pose = (rap_API *)rs_anims->Res_open(poseName, poseHash, vox->base_path, vox->base_path_hash);
 	ConvertRAP(pose);
 	// check the pose data
-	if (*(int *)pose->id != *(int *)RAP_API_ID)
+	if (*(int *)pose->id != *(int *)const_cast<char *>(RAP_API_ID))
 		Fatal_error("Pose Invalid rap ID rap_api.h %s file:%s file:%s", pose->id, RAP_API_ID, poseName);
 	if (pose->schema != RAP_API_SCHEMA)
 		Fatal_error("Wrong rap schema value file %d api %d file:%s", pose->schema, RAP_API_SCHEMA, poseName);
@@ -303,7 +297,7 @@ void drawObjects(SDactor &act, PSXLampList &lamplist, PSXrgb *pAmbient, PSXShade
 	mesh = (rap_API *)rs_anims->Res_open(vox->mesh_name, vox->mesh_hash, vox->base_path, vox->base_path_hash);
 	ConvertRAP(mesh);
 	// check the mesh data
-	if (*(int *)mesh->id != *(int *)RAP_API_ID)
+	if (*(int *)mesh->id != *(int *)const_cast<char *>(RAP_API_ID))
 		Fatal_error("Mesh Invalid rap ID rap_api.h %s file:%s file:%s", mesh->id, RAP_API_ID, vox->mesh_name);
 	if (mesh->schema != RAP_API_SCHEMA)
 		Fatal_error("Mesh rap schema value file %d api %d file:%s", mesh->schema, RAP_API_SCHEMA, vox->mesh_name);
@@ -312,7 +306,7 @@ void drawObjects(SDactor &act, PSXLampList &lamplist, PSXrgb *pAmbient, PSXShade
 	smesh = (rap_API *)rs_anims->Res_open(vox->shadow_mesh_name, vox->shadow_mesh_hash, vox->base_path, vox->base_path_hash);
 	ConvertRAP(smesh);
 	// check the shadow mesh data
-	if (*(int *)smesh->id != *(int *)RAP_API_ID)
+	if (*(int *)smesh->id != *(int *)const_cast<char *>(RAP_API_ID))
 		Fatal_error("Mesh Invalid rap ID rap_api.h %s file:%s file:%s", smesh->id, RAP_API_ID, vox->shadow_mesh_name);
 	if (smesh->schema != RAP_API_SCHEMA)
 		Fatal_error("Mesh rap schema value file %d api %d file:%s", smesh->schema, RAP_API_SCHEMA, vox->shadow_mesh_name);
@@ -320,58 +314,58 @@ void drawObjects(SDactor &act, PSXLampList &lamplist, PSXrgb *pAmbient, PSXShade
 	// Load the BONES
 	bones = (rab_API *)rs_anims->Res_open(vox->anim_name[act.log->cur_anim_type], vox->anim_name_hash[act.log->cur_anim_type], vox->base_path, vox->base_path_hash);
 	// check the bones...
-	if (*(int *)bones->id != *(int *)RAB_API_ID)
+	if (*(int *)bones->id != *(int *)const_cast<char *>(RAB_API_ID))
 		Fatal_error("Bones Invalid rab ID rab_api.h %s file:%s file:%s", bones->id, RAB_API_ID, vox->anim_name[act.log->cur_anim_type]);
 	if (bones->schema != RAB_API_SCHEMA)
 		Fatal_error("Bones rab schema value file %d api %d file:%s", bones->schema, RAB_API_SCHEMA, vox->anim_name[act.log->cur_anim_type]);
 
 	// Check the data is all in still and resman has settled.
-	if (*(int *)mesh->id != *(int *)RAP_API_ID) {
+	if (*(int *)mesh->id != *(int *)const_cast<char *>(RAP_API_ID)) {
 		mesh = (rap_API *)rs_anims->Res_open(vox->mesh_name, vox->mesh_hash, vox->base_path, vox->base_path_hash);
 		ConvertRAP(mesh);
 	}
 
-	if (*(int *)smesh->id != *(int *)RAP_API_ID) {
+	if (*(int *)smesh->id != *(int *)const_cast<char *>(RAP_API_ID)) {
 		smesh = (rap_API *)rs_anims->Res_open(vox->shadow_mesh_name, vox->shadow_mesh_hash, vox->base_path, vox->base_path_hash);
 		ConvertRAP(smesh);
 	}
 
-	if (*(int *)bones->id != *(int *)RAB_API_ID) {
+	if (*(int *)bones->id != *(int *)const_cast<char *>(RAB_API_ID)) {
 		bones = (rab_API *)rs_anims->Res_open(vox->anim_name[act.log->cur_anim_type], vox->anim_name_hash[act.log->cur_anim_type], vox->base_path, vox->base_path_hash);
 	}
 
-	if (*(int *)pose->id != *(int *)RAP_API_ID) {
+	if (*(int *)pose->id != *(int *)const_cast<char *>(RAP_API_ID)) {
 		pose = (rap_API *)rs_anims->Res_open(poseName, poseHash, vox->base_path, vox->base_path_hash);
 		ConvertRAP(pose);
 	}
 
-	if (*(int *)mesh->id != *(int *)RAP_API_ID) {
+	if (*(int *)mesh->id != *(int *)const_cast<char *>(RAP_API_ID)) {
 		mesh = (rap_API *)rs_anims->Res_open(vox->mesh_name, vox->mesh_hash, vox->base_path, vox->base_path_hash);
 		ConvertRAP(mesh);
 	}
 
-	if (*(int *)smesh->id != *(int *)RAP_API_ID) {
+	if (*(int *)smesh->id != *(int *)const_cast<char *>(RAP_API_ID)) {
 		smesh = (rap_API *)rs_anims->Res_open(vox->shadow_mesh_name, vox->shadow_mesh_hash, vox->base_path, vox->base_path_hash);
 		ConvertRAP(smesh);
 	}
 
-	if (*(int *)bones->id != *(int *)RAB_API_ID) {
+	if (*(int *)bones->id != *(int *)const_cast<char *>(RAB_API_ID)) {
 		bones = (rab_API *)rs_anims->Res_open(vox->anim_name[act.log->cur_anim_type], vox->anim_name_hash[act.log->cur_anim_type], vox->base_path, vox->base_path_hash);
 	}
 
-	if (*(int *)pose->id != *(int *)RAP_API_ID) {
+	if (*(int *)pose->id != *(int *)const_cast<char *>(RAP_API_ID)) {
 		pose = (rap_API *)rs_anims->Res_open(poseName, poseHash, vox->base_path, vox->base_path_hash);
 		ConvertRAP(pose);
 	}
 
 	// FINAL CHECKS
-	if (*(int *)mesh->id != *(int *)RAP_API_ID)
+	if (*(int *)mesh->id != *(int *)const_cast<char *>(RAP_API_ID))
 		Fatal_error("Failed to get MESH %s settled within Resman", vox->mesh_name);
-	if (*(int *)smesh->id != *(int *)RAP_API_ID)
+	if (*(int *)smesh->id != *(int *)const_cast<char *>(RAP_API_ID))
 		Fatal_error("Failed to get SHADOW MESH %s settled within Resman", vox->shadow_mesh_name);
-	if (*(int *)bones->id != *(int *)RAB_API_ID)
+	if (*(int *)bones->id != *(int *)const_cast<char *>(RAB_API_ID))
 		Fatal_error("Failed to get BONES %s settled within Resman", vox->anim_name[act.log->cur_anim_type]);
-	if (*(int *)pose->id != *(int *)RAP_API_ID)
+	if (*(int *)pose->id != *(int *)const_cast<char *>(RAP_API_ID))
 		Fatal_error("Failed to get POSE %s settled within Resman", poseName);
 
 	// FINISHED LOADING
@@ -390,7 +384,6 @@ void drawObjects(SDactor &act, PSXLampList &lamplist, PSXrgb *pAmbient, PSXShade
 
 	selFace = 65535;
 
-	SVECTOR scrn;
 	_drawLit = 1;
 	_drawTxture = 1;
 	_drawWfrm = 0;
@@ -587,7 +580,7 @@ void StageDrawPoly(SDactor *actors, uint32 actorQty) {
 	// PSX LIGHT RIG SETUP
 	ConvertRLP(set->GetPRig());
 	// check files
-	if (*(int *)set->GetPRig()->id != *(int *)RLP_API_ID) {
+	if (*(int *)set->GetPRig()->id != *(int *)const_cast<char *>(RLP_API_ID)) {
 		Fatal_error("Invalid rlp ID file %s rlp_api.h %s", set->GetPRig()->id, RLP_API_ID);
 	}
 	if (set->GetPRig()->schema != RLP_API_SCHEMA) {
@@ -895,7 +888,7 @@ void StageDrawPoly(SDactor *actors, uint32 actorQty) {
 							// Get this prop
 							pcPropRGB *pProp = propFile->GetProp(p);
 							// Get the state for this prop
-							uint32 stat = g_mission->session->Fetch_prop_state((char *)pProp->GetName());
+							uint32 stat = g_mission->session->Fetch_prop_state(const_cast<char *>(pProp->GetName()));
 							// Get the state
 							pcPropRGBState *pStat = pProp->GetState(stat);
 							// Get a pointer to the z table

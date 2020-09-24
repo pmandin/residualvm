@@ -30,7 +30,8 @@
 #define WINTERMUTE_FRAME_NODE_H
 
 #include "engines/wintermute/base/base_named_object.h"
-#include "engines/wintermute/base/gfx/opengl/meshx.h"
+#include "engines/wintermute/base/gfx/x/meshx.h"
+#include "engines/wintermute/base/gfx/x/modelx.h"
 #include "engines/wintermute/coll_templ.h"
 #include "math/matrix4.h"
 #include "math/quat.h"
@@ -53,8 +54,8 @@ public:
 	bool render(ModelX *model);
 	bool updateShadowVol(ShadowVolume *shadow, Math::Matrix4 &modelMat, const Math::Vector3d &light, float extrusionDepth);
 
-	bool loadFromX(const Common::String &filename, XFileLexer &lexer, ModelX *model);
-	bool loadFromXAsRoot(const Common::String &filename, XFileLexer &lexer, ModelX *model);
+	bool loadFromX(const Common::String &filename, XFileLexer &lexer, ModelX *model, Common::Array<MaterialReference> &materialReferences);
+	bool loadFromXAsRoot(const Common::String &filename, XFileLexer &lexer, ModelX *model, Common::Array<MaterialReference> &materialReferences);
 	bool findBones(FrameNode *rootFrame);
 	FrameNode *findFrame(const char *frameName);
 	Math::Matrix4 *getCombinedMatrix();

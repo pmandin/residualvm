@@ -58,6 +58,7 @@ AndroidGraphicsManager::AndroidGraphicsManager() :
 	_force_redraw(false),
 	_game_texture(0),
 	_game_pbuf(),
+	_frame_buffer(0),
 	_cursorX(0),
 	_cursorY(0),
 	_overlay_texture(0),
@@ -196,7 +197,7 @@ void AndroidGraphicsManager::updateScreen() {
 		_game_texture->drawTextureRect();
 		if (!_show_overlay) {
 			glEnable(GL_BLEND);
-			static_cast<OSystem_Android *>(g_system)->getTouchControls()->draw();
+			dynamic_cast<OSystem_Android *>(g_system)->getTouchControls()->draw();
 		}
 
 		int cs = _mouse_targetscale;
@@ -222,8 +223,8 @@ void AndroidGraphicsManager::updateScreen() {
 		_frame_buffer->attach();
 }
 
-void AndroidGraphicsManager::displayMessageOnOSD(const char *msg) {
-	ENTER("%s", msg);
+void AndroidGraphicsManager::displayMessageOnOSD(const Common::U32String &msg) {
+	ENTER("%s", msg.encode().c_str());
 
 	JNI::displayMessageOnOSD(msg);
 }
@@ -522,7 +523,7 @@ void AndroidGraphicsManager::warpMouse(int x, int y) {
 
 	setMousePosition(e.mouse.x, e.mouse.y);
 
-	static_cast<OSystem_Android *>(g_system)->pushEvent(e);
+	dynamic_cast<OSystem_Android *>(g_system)->pushEvent(e);
 }
 
 void AndroidGraphicsManager::setMouseCursor(const void *buf, uint w, uint h,
@@ -812,7 +813,7 @@ void AndroidGraphicsManager::initViewport() {
 }
 
 void AndroidGraphicsManager::updateEventScale() {
-	static_cast<OSystem_Android *>(g_system)->updateEventScale(getActiveTexture());
+	dynamic_cast<OSystem_Android *>(g_system)->updateEventScale(getActiveTexture());
 }
 
 void AndroidGraphicsManager::clearScreen(FixupType type, byte count) {

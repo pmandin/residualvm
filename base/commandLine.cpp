@@ -192,7 +192,8 @@ static const char HELP_STRING[] =
 	"  --demo-mode              Start demo mode of Maniac Mansion or The 7th Guest\n"
 #endif
 #if defined(ENABLE_DIRECTOR)
-	"  --start-movie=NAME       Start movie for Director\n"
+	"  --start-movie=NAME@NUM   Start movie at frame for Director\n"
+	"							Either can be specified without the other.\n"
 #endif
 //#ifdef ENABLE_SCUMM // ResidualVM not used
 	"  --tempo=NUM              Set music tempo (in percent, 50-200) for SCUMM games\n"
@@ -248,7 +249,6 @@ void registerDefaults() {
 	// Graphics
 	ConfMan.registerDefault("fullscreen", false);
 	ConfMan.registerDefault("filtering", false);
-	ConfMan.registerDefault("show_fps", false);
 	ConfMan.registerDefault("aspect_ratio", false);
 /* ResidualVM - not used
 	ConfMan.registerDefault("gfx_mode", "normal");
@@ -993,7 +993,7 @@ static Common::Error listSaves(const Common::String &singleTarget) {
 					   "  ---- ------------------------------------------------------\n");
 
 			for (SaveStateList::const_iterator x = saveList.begin(); x != saveList.end(); ++x) {
-				printf("  %-4d %s\n", x->getSaveSlot(), x->getDescription().c_str());
+				printf("  %-4d %s\n", x->getSaveSlot(), x->getDescription().encode().c_str());
 				// TODO: Could also iterate over the full hashmap, printing all key-value pairs
 			}
 			atLeastOneFound = true;
@@ -1056,8 +1056,8 @@ static DetectedGames getGameList(const Common::FSNode &dir) {
 	DetectionResults detectionResults = EngineMan.detectGames(files);
 
 	if (detectionResults.foundUnknownGames()) {
-		Common::String report = detectionResults.generateUnknownGameReport(false, 80);
-		g_system->logMessage(LogMessageType::kInfo, report.c_str());
+		Common::U32String report = detectionResults.generateUnknownGameReport(false, 80);
+		g_system->logMessage(LogMessageType::kInfo, report.encode().c_str());
 	}
 
 	return detectionResults.listRecognizedGames();

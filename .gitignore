@@ -44,9 +44,11 @@ lib*.a
 /*.dat
 
 /README
-/README.html
+/README.html*
 /NEWS
 /NEWS.html
+/CONTRIBUTING
+/CONTRIBUTING.html
 
 /build*
 /staging

@@ -305,7 +305,7 @@ void SdlGraphicsManager::saveScreenshot() {
 #endif
 
 	for (int n = 0;; n++) {
-		filename = Common::String::format("scummvm%s%s-%05d.%s", currentTarget.empty() ? "" : "-",
+		filename = Common::String::format("residualvm%s%s-%05d.%s", currentTarget.empty() ? "" : "-",
 		                                  currentTarget.c_str(), n, extension);
 
 		Common::FSNode file = Common::FSNode(screenshotsPath + filename);
@@ -441,7 +441,7 @@ Common::Keymap *SdlGraphicsManager::getKeymap() {
 	};
 
 	for (uint i = 0; i < ARRAYSIZE(filters); i++) {
-		act = new Action(filters[i].id, filters[i].description);
+		act = new Action(filters[i].id, _(filters[i].description));
 		act->addDefaultInputMapping(String::format("C+A+%d", i + 1));
 		act->addDefaultInputMapping(String::format("C+A+KP%d", i + 1));
 		act->setCustomBackendActionEvent(kActionSetScaleFilter1 + i);

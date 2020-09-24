@@ -26,7 +26,6 @@
  */
 
 #include "engines/icb/common/px_common.h"
-#include "engines/icb/common/px_windows.h"
 #include <cstring>
 #include "engines/icb/p4.h"
 #include "engines/icb/zsupport.h"
@@ -36,7 +35,7 @@ namespace ICB {
 
 #define BUFLEN 65536
 
-static char buf[BUFLEN];
+//static char buf[BUFLEN];
 
 uint32 fileGetZipLength(const char *inFn) {
 	Common::SeekableReadStream *fileStream = openDiskFileForBinaryStreamRead(inFn);

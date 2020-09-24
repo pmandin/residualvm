@@ -65,7 +65,9 @@ MODULE_OBJS := \
 	base/font/base_font_storage.o \
 	base/gfx/base_image.o \
 	base/gfx/base_renderer.o \
+	base/gfx/base_renderer3d.o \
 	base/gfx/base_surface.o \
+	base/gfx/shadow_volume.o \
 	base/gfx/osystem/base_surface_osystem.o \
 	base/gfx/osystem/base_render_osystem.o \
 	base/gfx/osystem/render_ticket.o \
@@ -73,21 +75,27 @@ MODULE_OBJS := \
 	base/gfx/opengl/base_render_opengl_texture.o \
 	base/gfx/opengl/base_surface_opengl3d.o \
 	base/gfx/opengl/base_render_opengl3d.o \
+	base/gfx/opengl/base_render_opengl3d_shader.o \
 	base/gfx/opengl/render_ticket.o \
-	base/gfx/opengl/light3d.o \
-	base/gfx/opengl/camera3d.o \
-	base/gfx/opengl/material.o \
-	base/gfx/opengl/meshx.o \
-	base/gfx/opengl/mesh3ds.o \
-	base/gfx/opengl/loader3ds.o \
-	base/gfx/opengl/shadow_volume.o \
+	base/gfx/opengl/meshx_opengl.o \
+	base/gfx/opengl/meshx_opengl_shader.o \
+	base/gfx/opengl/mesh3ds_opengl.o \
+	base/gfx/opengl/mesh3ds_opengl_shader.o \
+	base/gfx/opengl/shadow_volume_opengl.o \
+	base/gfx/opengl/shadow_volume_opengl_shader.o \
 	base/gfx/x/active_animation.o \
 	base/gfx/x/animation.o \
 	base/gfx/x/animation_channel.o \
 	base/gfx/x/animation_set.o \
 	base/gfx/x/frame_node.o \
+	base/gfx/x/material.o \
+	base/gfx/x/meshx.o \
 	base/gfx/x/modelx.o \
 	base/gfx/x/loader_x.o \
+	base/gfx/3ds/camera3d.o \
+	base/gfx/3ds/light3d.o \
+	base/gfx/3ds/loader3ds.o \
+	base/gfx/3ds/mesh3ds.o \
 	base/particles/part_particle.o \
 	base/particles/part_emitter.o \
 	base/particles/part_force.o \
@@ -133,6 +141,7 @@ MODULE_OBJS := \
 	ext/dll_shell32.o \
 	ext/dll_tools.o \
 	ext/wme_3fstatistics.o \
+	ext/wme_commandlinehelper.o \
 	ext/wme_galaxy.o \
 	ext/wme_steam.o \
 	debugger/breakpoint.o \

@@ -30,15 +30,14 @@
 
 namespace ICB {
 
-#ifndef PX_WINDOWS_H_INCLUDED
+typedef struct {
+	int32 left;
+	int32 top;
+	int32 right;
+	int32 bottom;
+} LRECT;
 
-#ifndef _WIN32
-typedef void *HWND;
-typedef int HRESULT;
-typedef uint32 DWORD;
-#endif
-
-#endif
+#define _MAX_PATH 260
 
 } // End of namespace ICB
 

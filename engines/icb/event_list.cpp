@@ -49,6 +49,7 @@ _event_list::_event_list(const _event_list &oX) {
 	m_nNumNamedEventsPending = oX.m_nNumNamedEventsPending;
 	m_nNumRegisteredEvents = oX.m_nNumRegisteredEvents;
 	m_bEventPending = oX.m_bEventPending;
+	m_nPad1 = 0;
 
 	for (i = 0; i < m_nNumRegisteredEvents; ++i)
 		m_pNamedEventList[i] = oX.m_pNamedEventList[i];
@@ -109,7 +110,7 @@ void _event_list::AddEventForObject(const char *pcEventName) {
 	if (strcmp(m_pNamedEventList[i].s_pcEventName, pcEventName)) {
 		// Setting up a new event.
 		// Set_string( pcEventName, m_pNamedEventList[ i ].s_pcEventName, MAXLEN_EVENT_NAME );
-		m_pNamedEventList[i].s_pcEventName = (char *)pcEventName;
+		m_pNamedEventList[i].s_pcEventName = const_cast<char *>(pcEventName);
 		m_pNamedEventList[i].s_bPending = FALSE8;
 		m_pNamedEventList[i].s_nLastSenderID = EVENT_INVALID_SENDER_ID;
 	}

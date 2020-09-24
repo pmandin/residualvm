@@ -27,6 +27,8 @@
  */
 
 #include "engines/wintermute/base/base_game.h"
+#include "engines/wintermute/base/gfx/base_renderer3d.h"
+#include "engines/wintermute/base/gfx/x/material.h"
 #include "engines/wintermute/base/gfx/x/frame_node.h"
 #include "engines/wintermute/base/gfx/x/modelx.h"
 #include "engines/wintermute/base/gfx/x/loader_x.h"
@@ -96,7 +98,7 @@ void FrameNode::setTransformation(int slot, Math::Vector3d pos, Math::Vector3d s
 }
 
 //////////////////////////////////////////////////////////////////////////
-bool FrameNode::loadFromX(const Common::String &filename, XFileLexer &lexer, ModelX *model) {
+bool FrameNode::loadFromX(const Common::String &filename, XFileLexer &lexer, ModelX *model, Common::Array<MaterialReference> &materialReferences) {
 	_gameRef->miniUpdate();
 
 	bool ret = true;
@@ -109,16 +111,16 @@ bool FrameNode::loadFromX(const Common::String &filename, XFileLexer &lexer, Mod
 		if (lexer.tokenIsIdentifier("Frame")) {
 			lexer.advanceToNextToken();
 			FrameNode *child = new FrameNode(_gameRef);
-			if (child->loadFromX(filename, lexer, model)) {
+			if (child->loadFromX(filename, lexer, model, materialReferences)) {
 				_frames.add(child);
 			} else {
 				delete child;
 			}
 		} else if (lexer.tokenIsIdentifier("Mesh")) {
 			lexer.advanceToNextToken();
-			MeshX *mesh = new MeshX(_gameRef);
+			MeshX *mesh = _gameRef->_renderer3D->createMeshX();
 
-			if (mesh->loadFromX(filename, lexer)) {
+			if (mesh->loadFromX(filename, lexer, materialReferences)) {
 				_meshes.add(mesh);
 			} else {
 				delete mesh;
@@ -131,7 +133,7 @@ bool FrameNode::loadFromX(const Common::String &filename, XFileLexer &lexer, Mod
 			// TODO: check if this is the right format
 			for (int r = 0; r < 4; ++r) {
 				for (int c = 0; c < 4; ++c) {
-					_transformationMatrix(c, r) = readFloat(lexer);
+					_transformationMatrix(c, r) = lexer.readFloat();
 				}
 			}
 
@@ -148,7 +150,7 @@ bool FrameNode::loadFromX(const Common::String &filename, XFileLexer &lexer, Mod
 
 			_originalMatrix = _transformationMatrix;
 
-			lexer.advanceToNextToken();
+			lexer.skipTerminator();
 			lexer.advanceToNextToken();
 
 		} else if (lexer.reachedClosedBraces()) {
@@ -164,7 +166,7 @@ bool FrameNode::loadFromX(const Common::String &filename, XFileLexer &lexer, Mod
 	return ret;
 }
 
-bool FrameNode::loadFromXAsRoot(const Common::String &filename, XFileLexer &lexer, ModelX *model) {
+bool FrameNode::loadFromXAsRoot(const Common::String &filename, XFileLexer &lexer, ModelX *model, Common::Array<MaterialReference> &materialReferences) {
 	// technically, there is no root node in a .X file
 	// so we just start parsing it here
 	lexer.advanceToNextToken();
@@ -173,16 +175,16 @@ bool FrameNode::loadFromXAsRoot(const Common::String &filename, XFileLexer &lexe
 		if (lexer.tokenIsIdentifier("Frame")) {
 			lexer.advanceToNextToken();
 			FrameNode *child = new FrameNode(_gameRef);
-			if (child->loadFromX(filename, lexer, model)) {
+			if (child->loadFromX(filename, lexer, model, materialReferences)) {
 				_frames.add(child);
 			} else {
 				delete child;
 			}
 		} else if (lexer.tokenIsIdentifier("Mesh")) {
 			lexer.advanceToNextToken();
-			MeshX *mesh = new MeshX(_gameRef);
+			MeshX *mesh = _gameRef->_renderer3D->createMeshX();
 
-			if (mesh->loadFromX(filename, lexer)) {
+			if (mesh->loadFromX(filename, lexer, materialReferences)) {
 				_meshes.add(mesh);
 			} else {
 				delete mesh;
@@ -191,7 +193,7 @@ bool FrameNode::loadFromXAsRoot(const Common::String &filename, XFileLexer &lexe
 			lexer.advanceToNextToken();
 			lexer.advanceOnOpenBraces();
 
-			model->_ticksPerSecond = readInt(lexer);
+			model->_ticksPerSecond = lexer.readInt();
 			lexer.advanceToNextToken(); // skip closed braces
 		} else if (lexer.tokenIsIdentifier("AnimationSet")) {
 			lexer.advanceToNextToken();
@@ -207,6 +209,15 @@ bool FrameNode::loadFromXAsRoot(const Common::String &filename, XFileLexer &lexe
 			}
 
 			lexer.advanceToNextToken();
+		} else if(lexer.tokenIsIdentifier("Material")) {
+			lexer.advanceToNextToken();
+			MaterialReference materialReference;
+
+			materialReference._name = lexer.tokenToString();
+			materialReference._material = new Material(_gameRef);
+			materialReference._material->loadFromX(lexer, filename);
+
+			materialReferences.push_back(materialReference);
 		} else if (lexer.tokenIsOfType(NULL_CHAR)) {
 			// prevents some unnecessary warnings
 			lexer.advanceToNextToken();

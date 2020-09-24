@@ -45,8 +45,8 @@
 #include "engines/wintermute/base/base_region.h"
 #include "engines/wintermute/base/base_surface_storage.h"
 #include "engines/wintermute/base/gfx/base_renderer.h"
+#include "engines/wintermute/base/gfx/shadow_volume.h"
 #include "engines/wintermute/base/gfx/opengl/base_render_opengl3d.h"
-#include "engines/wintermute/base/gfx/opengl/shadow_volume.h"
 #include "engines/wintermute/base/gfx/x/modelx.h"
 #include "engines/wintermute/base/particles/part_emitter.h"
 #include "engines/wintermute/base/scriptables/script.h"
@@ -377,16 +377,16 @@ bool AdActor3DX::display() {
 		_gameRef->_renderer3D->setAmbientLightColor(_ambientLightColor);
 	}
 
-	// TODO: display shadow
-	//	TShadowType ShadowType = _gameRef->GetMaxShadowType(this);
-	//	if (ShadowType==SHADOW_STENCIL) {
-	//		DisplayShadowVolume();
-	//	} else if  (ShadowType > SHADOW_NONE) {
-	//		m_Renderer->DisplayShadow(this, Math::Vector3d(_shadowLightPos.x() * _scale3D, _shadowLightPos.y() * _scale3D, _shadowLightPos.z() * _scale3D), NULL, true);
-	//	}
+	TShadowType ShadowType = _gameRef->getMaxShadowType(this);
+
+	if (ShadowType == SHADOW_STENCIL) {
+		displayShadowVolume();
+	} else if  (ShadowType > SHADOW_NONE) {
+		_gameRef->_renderer3D->displayShadow(this, Math::Vector3d(_shadowLightPos.x() * _scale3D, _shadowLightPos.y() * _scale3D, _shadowLightPos.z() * _scale3D), true);
+	}
 
 	_gameRef->_renderer3D->setSpriteBlendMode(_blendMode);
-	_gameRef->_renderer3D->pushWorldTransform(_worldMatrix);
+	_gameRef->_renderer3D->setWorldTransform(_worldMatrix);
 	_modelX->_lastWorldMat = _worldMatrix;
 
 	bool res = _modelX->render();
@@ -419,8 +419,6 @@ bool AdActor3DX::display() {
 	//		_gameRef->_accessMgr->SetHintRect(&_modelX->m_BoundingRect);
 	//	}
 
-	_gameRef->_renderer3D->popWorldTransform();
-
 	return res;
 }
 
@@ -430,7 +428,7 @@ bool AdActor3DX::renderModel() {
 		return true;
 	}
 
-	_gameRef->_renderer3D->pushWorldTransform(_worldMatrix);
+	_gameRef->_renderer3D->setWorldTransform(_worldMatrix);
 	bool res;
 
 	if (_shadowModel) {
@@ -446,7 +444,6 @@ bool AdActor3DX::renderModel() {
 	_modelX->_lastWorldMat = _worldMatrix;
 
 	displayAttachments(false);
-	_gameRef->_renderer3D->popWorldTransform();
 	return res;
 }
 
@@ -455,8 +452,6 @@ bool AdActor3DX::displayShadowVolume() {
 	if (!_modelX) {
 		return false;
 	}
-
-	_gameRef->_renderer3D->pushWorldTransform(_worldMatrix);
 
 	Math::Vector3d lightVector = Math::Vector3d(_shadowLightPos.x() * _scale3D,
 	                                            _shadowLightPos.y() * _scale3D,
@@ -489,15 +484,15 @@ bool AdActor3DX::displayShadowVolume() {
 			continue;
 		}
 
-		at->displayShadowVol(*boneMat, lightVector, extrusionDepth, true);
+		at->displayShadowVol(_worldMatrix * (*boneMat), lightVector, extrusionDepth, true);
 	}
+
+	_gameRef->_renderer3D->setWorldTransform(_worldMatrix);
 
 	getShadowVolume()->renderToStencilBuffer();
 
 	// finally display all the shadows rendered into stencil buffer
 	getShadowVolume()->renderToScene();
-
-	_gameRef->_renderer3D->popWorldTransform();
 
 	return true;
 }
@@ -970,6 +965,8 @@ bool AdActor3DX::loadBuffer(byte *buffer, bool complete) {
 
 		case TOKEN_LIGHT_POSITION:
 			parser.scanStr((char *)params, "%f,%f,%f", &_shadowLightPos.x(), &_shadowLightPos.y(), &_shadowLightPos.z());
+			// invert z coordinate since wme uses a Direct3D coordinate system but we use OpenGL
+			_shadowLightPos.z() *= -1.0f;
 			break;
 
 		case TOKEN_SHADOW: {
@@ -1057,7 +1054,9 @@ bool AdActor3DX::loadBuffer(byte *buffer, bool complete) {
 					cmd = PARSERR_GENERIC;
 				}
 			} else {
-				warning("AdActor3DX::loadFile merging of .X files is not implemented");
+				if (!_modelX->mergeFromFile((char *)params)) {
+					cmd = PARSERR_GENERIC;
+				}
 			}
 			break;
 
@@ -2323,9 +2322,7 @@ bool AdActor3DX::mergeAnimations(const char *filename) {
 		return false;
 	}
 
-	warning("AdActor3DX::mergeAnimations merging of .X is not implemented");
-
-	bool res = false;
+	bool res = _modelX->mergeFromFile(filename);
 	if (!res) {
 		_gameRef->LOG(res, "Error: MergeAnims failed for file '%s'", filename);
 		return res;

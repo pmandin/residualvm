@@ -40,8 +40,8 @@
 #define FORBIDDEN_SYMBOL_EXCEPTION_printf
 
 #include "backends/platform/android/android.h"
-#include "backends/platform/android/events.h"
 #include "backends/platform/android/graphics.h"
+#include "backends/platform/android/events.h"
 #include "backends/platform/android/jni-android.h"
 
 #include "engines/engine.h"
@@ -100,8 +100,10 @@ void OSystem_Android::scaleMouse(Common::Point &p, int x, int y, bool touchpadMo
 }
 
 void OSystem_Android::updateEventScale(const GLESBaseTexture *tex) {
-	_eventScaleY = 100 * 480 / tex->height();
-	_eventScaleX = 100 * 640 / tex->width();
+    if (tex && (tex->height() != 0) && (tex->width() != 0)) {
+	    _eventScaleY = 100 * 480 / tex->height();
+	    _eventScaleX = 100 * 640 / tex->width();
+    }
 }
 
 void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
@@ -129,12 +131,12 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 			e.kbd.keycode = Common::KEYCODE_ESCAPE;
 			e.kbd.ascii = Common::ASCII_ESCAPE;
 
-			lockMutex(_event_queue_lock);
+			_event_queue_lock->lock();
 			e.type = Common::EVENT_KEYDOWN;
 			_event_queue.push(e);
 			e.type = Common::EVENT_KEYUP;
 			_event_queue.push(e);
-			unlockMutex(_event_queue_lock);
+			_event_queue_lock->unlock();
 
 			return;
 
@@ -164,7 +166,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 			else
 				e.type = Common::EVENT_RBUTTONUP;
 
-			e.mouse = getEventManager()->getMousePos();
+			e.mouse = dynamic_cast<AndroidGraphicsManager *>(_graphicsManager)->getMousePosition();
 
 			pushEvent(e);
 
@@ -321,7 +323,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 
 			e.type = Common::EVENT_MOUSEMOVE;
 
-			e.mouse = getEventManager()->getMousePos();
+			e.mouse = dynamic_cast<AndroidGraphicsManager *>(_graphicsManager)->getMousePosition();
 
 			{
 				int16 *c;
@@ -364,7 +366,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 				return;
 			}
 
-			e.mouse = getEventManager()->getMousePos();
+			e.mouse = dynamic_cast<AndroidGraphicsManager *>(_graphicsManager)->getMousePosition();
 
 			pushEvent(e);
 
@@ -372,7 +374,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 		}
 
 	case JE_DOWN:
-		_touch_pt_down = getEventManager()->getMousePos();
+		_touch_pt_down = dynamic_cast<AndroidGraphicsManager *>(_graphicsManager)->getMousePosition();
 		_touch_pt_scroll.x = -1;
 		_touch_pt_scroll.y = -1;
 		break;
@@ -393,6 +395,8 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 			scaleMouse(e.mouse, arg3 - _touch_pt_scroll.x,
 						arg4 - _touch_pt_scroll.y, true);
 			e.mouse += _touch_pt_down;
+			scaleMouse(e.relMouse, arg3 - _touch_pt_scroll.x,
+						arg4 - _touch_pt_scroll.y, true);
 		} else {
 			scaleMouse(e.mouse, arg3, arg4);
 		}
@@ -419,7 +423,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 		e.type = Common::EVENT_MOUSEMOVE;
 
 		if (_touchpad_mode) {
-			e.mouse = getEventManager()->getMousePos();
+			e.mouse = dynamic_cast<AndroidGraphicsManager *>(_graphicsManager)->getMousePosition();
 		} else {
 			scaleMouse(e.mouse, arg1, arg2);
 		}
@@ -439,7 +443,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 				up = Common::EVENT_LBUTTONUP;
 			}
 
-			lockMutex(_event_queue_lock);
+			_event_queue_lock->lock();
 
 			if (_queuedEventTime)
 				_event_queue.push(_queuedEvent);
@@ -454,7 +458,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 			_queuedEvent = e;
 			_queuedEventTime = getMillis() + kQueuedInputEventDelay;
 
-			unlockMutex(_event_queue_lock);
+			_event_queue_lock->unlock();
 		}
 
 		return;
@@ -471,7 +475,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 		e.type = Common::EVENT_MOUSEMOVE;
 
 		if (_touchpad_mode) {
-			e.mouse = getEventManager()->getMousePos();
+			e.mouse = dynamic_cast<AndroidGraphicsManager *>(_graphicsManager)->getMousePosition();
 		} else {
 			scaleMouse(e.mouse, arg1, arg2);
 		}
@@ -510,11 +514,11 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 				return;
 			}
 
-			lockMutex(_event_queue_lock);
+			_event_queue_lock->lock();
 			_event_queue.push(e);
 			e.type = dptype;
 			_event_queue.push(e);
-			unlockMutex(_event_queue_lock);
+			_event_queue_lock->unlock();
 		}
 
 		return;
@@ -554,9 +558,9 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 					return;
 				}
 
-				e.mouse = getEventManager()->getMousePos();
+				e.mouse = dynamic_cast<AndroidGraphicsManager *>(_graphicsManager)->getMousePosition();
 
-				lockMutex(_event_queue_lock);
+				_event_queue_lock->lock();
 
 				if (_queuedEventTime)
 					_event_queue.push(_queuedEvent);
@@ -567,7 +571,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 				_queuedEvent = e;
 				_queuedEventTime = getMillis() + kQueuedInputEventDelay;
 
-				unlockMutex(_event_queue_lock);
+				_event_queue_lock->unlock();
 				return;
 
 			default:
@@ -579,7 +583,7 @@ void OSystem_Android::pushEvent(int type, int arg1, int arg2, int arg3,
 		return;
 
 	case JE_BALL:
-		e.mouse = getEventManager()->getMousePos();
+		e.mouse = dynamic_cast<AndroidGraphicsManager *>(_graphicsManager)->getMousePosition();
 
 		switch (arg1) {
 		case JACTION_DOWN:
@@ -679,6 +683,7 @@ bool OSystem_Android::pollEvent(Common::Event &event) {
 	if (pthread_self() == _main_thread) {
 		if (_screen_changeid != JNI::surface_changeid) {
 			_screen_changeid = JNI::surface_changeid;
+
 			if (JNI::egl_surface_width > 0 && JNI::egl_surface_height > 0) {
 				// surface changed
 				dynamic_cast<AndroidGraphicsManager *>(_graphicsManager)->deinitSurface();
@@ -701,23 +706,21 @@ bool OSystem_Android::pollEvent(Common::Event &event) {
 		}
 	}
 
-	lockMutex(_event_queue_lock);
+	_event_queue_lock->lock();
 
 	if (_queuedEventTime && (getMillis() > _queuedEventTime)) {
 		event = _queuedEvent;
 		_queuedEventTime = 0;
-		unlockMutex(_event_queue_lock);
-		return true;
-	}
-
-	if (_event_queue.empty()) {
-		unlockMutex(_event_queue_lock);
+		// _event_queue_lock->unlock();
+		// return true;
+	} else if (_event_queue.empty()) {
+		_event_queue_lock->unlock();
 		return false;
+	} else {
+		event = _event_queue.pop();
 	}
 
-	event = _event_queue.pop();
-
-	unlockMutex(_event_queue_lock);
+	_event_queue_lock->unlock();
 
 	switch (event.type) {
 	case Common::EVENT_MOUSEMOVE:
@@ -751,18 +754,18 @@ bool OSystem_Android::shouldGenerateMouseEvents() {
 }
 
 void OSystem_Android::pushEvent(const Common::Event &event) {
-	lockMutex(_event_queue_lock);
+	_event_queue_lock->lock();
 	_event_queue.push(event);
-	unlockMutex(_event_queue_lock);
+	_event_queue_lock->unlock();
 }
 
 void OSystem_Android::pushKeyPressEvent(Common::Event &event) {
-	lockMutex(_event_queue_lock);
+	_event_queue_lock->lock();
 	event.type = Common::EVENT_KEYDOWN;
 	_event_queue.push(event);
 	event.type = Common::EVENT_KEYUP;
 	_event_queue.push(event);
-	unlockMutex(_event_queue_lock);
+	_event_queue_lock->unlock();
 }
 
 #endif
