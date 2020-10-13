@@ -24,14 +24,17 @@
 #include "engines/wintermute/ad/ad_generic.h"
 #include "engines/wintermute/ad/ad_walkplane.h"
 #include "engines/wintermute/base/base_game.h"
+#include "engines/wintermute/base/gfx/3ds/camera3d.h"
+#include "graphics/opengl/system_headers.h"
+#include "math/glmath.h"
+
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
+
 #include "engines/wintermute/base/gfx/opengl/base_render_opengl3d_shader.h"
 #include "engines/wintermute/base/gfx/opengl/base_surface_opengl3d.h"
 #include "engines/wintermute/base/gfx/opengl/mesh3ds_opengl_shader.h"
 #include "engines/wintermute/base/gfx/opengl/meshx_opengl_shader.h"
 #include "engines/wintermute/base/gfx/opengl/shadow_volume_opengl_shader.h"
-#include "engines/wintermute/base/gfx/3ds/camera3d.h"
-#include "graphics/opengl/system_headers.h"
-#include "math/glmath.h"
 
 namespace Wintermute {
 BaseRenderer3D *makeOpenGL3DShaderRenderer(BaseGame *inGame) {
@@ -342,26 +345,26 @@ bool BaseRenderOpenGL3DShader::initRenderer(int width, int height, bool windowed
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	static const char *spriteAttributes[] = {"position", "texcoord", "color", nullptr};
-	_spriteShader = OpenGL::Shader::fromFiles("sprite", spriteAttributes);
+	_spriteShader = OpenGL::ShaderGL::fromFiles("wme_sprite", spriteAttributes);
 
 	_spriteShader->enableVertexAttribute("position", _spriteVBO, 2, GL_FLOAT, false, sizeof(SpriteVertexShader), 0);
 	_spriteShader->enableVertexAttribute("texcoord", _spriteVBO, 2, GL_FLOAT, false, sizeof(SpriteVertexShader), 8);
 	_spriteShader->enableVertexAttribute("color", _spriteVBO, 4, GL_FLOAT, false, sizeof(SpriteVertexShader), 16);
 
 	static const char *geometryAttributes[] = { "position", nullptr };
-	_geometryShader = OpenGL::Shader::fromFiles("geometry", geometryAttributes);
+	_geometryShader = OpenGL::ShaderGL::fromFiles("wme_geometry", geometryAttributes);
 
 	static const char *shadowVolumeAttributes[] = { "position", nullptr };
-	_shadowVolumeShader = OpenGL::Shader::fromFiles("shadow_volume", shadowVolumeAttributes);
+	_shadowVolumeShader = OpenGL::ShaderGL::fromFiles("wme_shadow_volume", shadowVolumeAttributes);
 
 	static const char *shadowMaskAttributes[] = { "position", nullptr };
-	_shadowMaskShader = OpenGL::Shader::fromFiles("shadow_mask", shadowMaskAttributes);
+	_shadowMaskShader = OpenGL::ShaderGL::fromFiles("wme_shadow_mask", shadowMaskAttributes);
 
 	_transformStack.push_back(Math::Matrix4());
 	_transformStack.back().setToIdentity();
 
 	static const char *modelXAttributes[] = {"position", "texcoord", "normal", nullptr};
-	_modelXShader = OpenGL::Shader::fromFiles("modelx", modelXAttributes);
+	_modelXShader = OpenGL::ShaderGL::fromFiles("wme_modelx", modelXAttributes);
 
 	setDefaultAmbientLightColor();
 
@@ -396,7 +399,7 @@ bool BaseRenderOpenGL3DShader::initRenderer(int width, int height, bool windowed
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	static const char *fadeAttributes[] = { "position", nullptr };
-	_fadeShader = OpenGL::Shader::fromFiles("fade", fadeAttributes);
+	_fadeShader = OpenGL::ShaderGL::fromFiles("wme_fade", fadeAttributes);
 
 	_fadeShader->enableVertexAttribute("position", _fadeVBO, 2, GL_FLOAT, false, 8, 0);
 
@@ -406,7 +409,7 @@ bool BaseRenderOpenGL3DShader::initRenderer(int width, int height, bool windowed
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	static const char *lineAttributes[] = { "position", nullptr };
-	_lineShader = OpenGL::Shader::fromFiles("line", lineAttributes);
+	_lineShader = OpenGL::ShaderGL::fromFiles("wme_line", lineAttributes);
 	_lineShader->enableVertexAttribute("position", _lineVBO, 2, GL_FLOAT, false, 8, 0);
 
 	_active = true;
@@ -694,3 +697,5 @@ ShadowVolume *BaseRenderOpenGL3DShader::createShadowVolume() {
 }
 
 } // namespace Wintermute
+
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)

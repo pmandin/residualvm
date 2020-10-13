@@ -27,9 +27,9 @@
 
 #include "engines/icb/common/px_common.h"
 #include "engines/icb/icb.h"
-#include "debug.h"
-#include "shake.h"
-#include "fn_routines.h"
+#include "engines/icb/debug.h"
+#include "engines/icb/shake.h"
+#include "engines/icb/fn_routines.h"
 
 namespace ICB {
 
@@ -47,21 +47,13 @@ int32 rangeY = 0;
 int GetShakeX() { return shakeX; }
 
 int GetShakeY() {
-#ifdef _PC
 	return (shakeY << 1);
-#else
-	return shakeY;
-#endif
 }
 
 int GetNextShakeX() { return nextShakeX; }
 
 int GetNextShakeY() {
-#ifdef _PC
 	return nextShakeY << 1;
-#else
-	return nextShakeY;
-#endif
 }
 
 mcodeFunctionReturnCodes fn_set_screen_offset(int32 &, int32 *params) {

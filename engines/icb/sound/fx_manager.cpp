@@ -26,11 +26,11 @@
  */
 
 #include "engines/icb/sound/fx_manager.h"
-
 #include "engines/icb/p4.h"
 #include "engines/icb/res_man_pc.h"
 #include "engines/icb/sound/sound_common.h"
 #include "engines/icb/icb.h"
+
 #include "common/textconsole.h"
 
 #include "audio/decoders/wave.h"
@@ -273,7 +273,7 @@ int FxManager::GetDefaultRateByName(const char * /*name*/, uint32 byteOffsetInCl
 	_wavHeader header;
 
 	// Open the cluster file and seek to the start of the sample
-	const char *clusterName = (const char *)pxVString("%sg\\samples.clu", root);
+	const char *clusterName = (const char *)pxVString("g\\samples.clu");
 
 	Common::SeekableReadStream *stream = openDiskFileForBinaryStreamRead(clusterName);
 	if (!stream)
@@ -300,7 +300,7 @@ bool8 FxManager::Load(int id, const char * /*name*/, uint32 byteOffsetInCluster)
 	int lengthInCycles;
 
 	// Open the cluster file and seek to the start of the sample
-	const char *clusterName = (const char *)pxVString("%sg\\samples.clu", root);
+	const char *clusterName = (const char *)pxVString("g\\samples.clu");
 
 	Common::SeekableReadStream *stream = openDiskFileForBinaryStreamRead(clusterName);
 	if (!stream)

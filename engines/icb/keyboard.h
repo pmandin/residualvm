@@ -25,10 +25,10 @@
  *
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef ICB_KEYBOARD_H
+#define ICB_KEYBOARD_H
 
-#include "p4_generic.h"
+#include "engines/icb/p4_generic.h"
 
 namespace ICB {
 

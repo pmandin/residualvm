@@ -25,12 +25,12 @@
  *
  */
 
-#ifndef PX2DLINE_H_INCLUDED
-#define PX2DLINE_H_INCLUDED
+#ifndef ICB_PX2DLINE_H_INCLUDED
+#define ICB_PX2DLINE_H_INCLUDED
 
-#include "px_rccommon.h"
-#include "px_array.h"
-#include "px_2drealpoint.h"
+#include "engines/icb/common/px_rccommon.h"
+#include "engines/icb/common/px_array.h"
+#include "engines/icb/common/px_2drealpoint.h"
 
 namespace ICB {
 

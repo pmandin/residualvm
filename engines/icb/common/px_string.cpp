@@ -25,12 +25,11 @@
  *
  */
 
-#include "px_rccommon.h"
-#include "px_assert.h"
-#include "px_exception.h"
-#include "px_common.h"
-
-#include "px_string.h"
+#include "engines/icb/common/px_rccommon.h"
+#include "engines/icb/common/px_assert.h"
+#include "engines/icb/common/px_exception.h"
+#include "engines/icb/common/px_common.h"
+#include "engines/icb/common/px_string.h"
 
 #include "common/textconsole.h"
 
@@ -199,7 +198,6 @@ void pxString::ToLower() {
 }
 
 void pxString::ConvertPath() {
-#ifndef _WIN32
 	if (s) {
 		char *sp = s;
 		while (*sp) {
@@ -207,7 +205,6 @@ void pxString::ConvertPath() {
 			sp++;
 		}
 	}
-#endif
 }
 
 const pxString &pxString::Format(const char *format, ...) {

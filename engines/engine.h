@@ -31,6 +31,7 @@
 #include "common/singleton.h"
 
 class OSystem;
+class MetaEngineStatic;
 class MetaEngine;
 
 namespace Audio {
@@ -206,14 +207,7 @@ public:
 		 * The engine will need to read the actual resolution used by the
 		 * backend using OSystem::getWidth and OSystem::getHeight.
 		 */
-		kSupportsArbitraryResolutions, // ResidualVM specific
-
-		/**
-		 * Engine must receive joystick events because the game uses them.
-		 * For engines which have not this feature, joystick events are converted
-		 * to mouse events.
-		 */
-		kSupportsJoystick // ResidualVM specific
+		kSupportsArbitraryResolutions // ResidualVM specific
 	};
 
 
@@ -393,6 +387,7 @@ public:
 	 */
 	static bool shouldQuit();
 
+	static MetaEngineStatic &getMetaEngineStatic();
 	static MetaEngine &getMetaEngine();
 
 	/**

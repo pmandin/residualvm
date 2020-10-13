@@ -25,16 +25,15 @@
  *
  */
 
-#if !defined(ICON_LIST_MANAGER_H_INCLUDED)
-#define ICON_LIST_MANAGER_H_INCLUDED
+#ifndef ICB_ICON_LIST_MANAGER_H_INCLUDED
+#define ICB_ICON_LIST_MANAGER_H_INCLUDED
 
 #include "engines/icb/common/px_rccommon.h"
 #include "engines/icb/common/px_string.h"
-
-#include "string_vest.h"
-#include "p4.h"
-#include "icon_menu.h"
-#include "icon_list.h"
+#include "engines/icb/string_vest.h"
+#include "engines/icb/p4.h"
+#include "engines/icb/icon_menu.h"
+#include "engines/icb/icon_list.h"
 
 namespace ICB {
 

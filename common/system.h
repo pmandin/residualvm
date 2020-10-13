@@ -29,6 +29,7 @@
 #include "common/list.h" // For OSystem::getSupportedFormats()
 #include "common/ustr.h"
 #include "graphics/pixelformat.h"
+#include "graphics/pixelbuffer.h" // ResidualVM specific
 #include "graphics/mode.h"
 
 namespace Audio {
@@ -37,8 +38,6 @@ class Mixer;
 
 namespace Graphics {
 struct Surface;
-//ResidualVM specific:
-class PixelBuffer;
 }
 
 namespace Common {
@@ -69,6 +68,15 @@ class Encoding;
 
 typedef Array<Keymap *> KeymapArray;
 }
+
+/**
+ * @defgroup common_system System
+ * @ingroup common
+ *
+ * @brief Operating system related API.
+ *
+ * @{
+ */
 
 class AudioCDManager;
 class FilesystemFactory;
@@ -365,10 +373,13 @@ public:
 		 */
 		kFeatureIconifyWindow,
 
-		//ResidualVM specific
+		/**
+		 * This feature flag can be used to check if hardware accelerated
+		 * OpenGl is supported.
+		 *
+		 * ResidualVM specific
+		 */
 		kFeatureOpenGL,
-		// Can side textures be rendered on the side for widescreen support?
-		kFeatureSideTextures,
 
 		/**
 		 * If supported, this feature flag can be used to check if
@@ -552,8 +563,6 @@ public:
 	//@{
 
 	/**
-	 * !!! Not used in ResidualVM !!!
-	 *
 	 * Description of a graphics mode.
 	 */
 	struct GraphicsMode {
@@ -577,8 +586,6 @@ public:
 	};
 
 	/**
-	 * !!! Not used in ResidualVM !!!
-	 *
 	 * Retrieve a list of all graphics modes supported by this backend.
 	 * This can be both video modes as well as graphic filters/scalers;
 	 * it is completely up to the backend maintainer to decide what is
@@ -592,8 +599,6 @@ public:
     }
 
 	/**
-	 * !!! Not used in ResidualVM !!!
-	 *
 	 * Return the ID of the 'default' graphics mode. What exactly this means
 	 * is up to the backend. This mode is set by the client code when no user
 	 * overrides are present (i.e. if no custom graphics mode is selected via
@@ -603,20 +608,32 @@ public:
 	 */
 	virtual int getDefaultGraphicsMode() const { return 0; }
 
+	// ResidualVM start:
+	enum GfxModeFlags {
+		kGfxModeNoFlags = 0,					    /**< No Flags */
+		kGfxModeRender3d = (1 << 0),            	/**< Indicate 3d drawing mode */
+		kGfxModeAcceleration3d = (1 << 1)        	/**< Indicate 3d hardware support */
+	};
+	// ResidualVM end
+
 	/**
-	 * !!! Not used in ResidualVM !!!
-	 *
 	 * Switch to the specified graphics mode. If switching to the new mode
 	 * failed, this method returns false.
 	 *
+	 * The flag 'kGfxModeRender3d' is optional. It allow to switch to 3D only rendering mode.
+	 * The argument 'mode' will be ignored. Game engine is allowed to use OpenGL(ES) or TinyGL API direclty.
+	 * Which one depends on 'kGfxModeAcceleration3d' flag.
+	 *
+	 * The flag 'kGfxModeAcceleration3d' is optional and work only with kGfxModeRender3d.
+	 * OpenGL(ES) is only allowed to use by game engine to draw graphics.
+	 *
 	 * @param mode	the ID of the new graphics mode
+	 * @param flags	the flags for new graphics mode
 	 * @return true if the switch was successful, false otherwise
 	 */
-	virtual bool setGraphicsMode(int mode) { return (mode == 0); }
+	virtual bool setGraphicsMode(int mode, uint flags = kGfxModeNoFlags) { return (mode == 0); } // ResidualVM
 
 	/**
-	 * !!! Not used in ResidualVM !!!
-	 *
 	 * Switch to the graphics mode with the given name. If 'name' is unknown,
 	 * or if switching to the new mode failed, this method returns false.
 	 *
@@ -629,8 +646,6 @@ public:
 	bool setGraphicsMode(const char *name);
 
 	/**
-	 * !!! Not used in ResidualVM !!!
-	 *
 	 * Determine which graphics mode is currently active.
 	 * @return the ID of the active graphics mode
 	 */
@@ -848,15 +863,6 @@ public:
 	 * @param modes the list of graphics modes the engine will probably use.
 	 */
 	virtual void initSizeHint(const Graphics::ModeList &modes) {}
- 
-	/**
-	 * !!! ResidualVM specific method !!!
-	 * Set the size of the launcher virtual screen.
-	 *
-	 * @param width		the new virtual screen width
-	 * @param height	the new virtual screen height
-	 */
-	virtual void launcherInitSize(uint width, uint height) = 0;
 
 	/**
 	 * !!! Not used in ResidualVM !!!
@@ -876,8 +882,6 @@ public:
 	virtual int getScreenChangeID() const { return 0; }
 
 	/**
-	 * !!! Not used in ResidualVM !!!
-	 *
 	 * Begin a new GFX transaction, which is a sequence of GFX mode changes.
 	 * The idea behind GFX transactions is to make it possible to activate
 	 * several different GFX changes at once as a "batch" operation. For
@@ -896,8 +900,6 @@ public:
 	virtual void beginGFXTransaction() {}
 
 	/**
-	 * !!! Not used in ResidualVM !!!
-	 *
 	 * This type is able to save the different errors which can happen while
 	 * changing GFX config values inside GFX transactions.
 	 *
@@ -928,38 +930,12 @@ public:
 	virtual TransactionError endGFXTransaction() { return kTransactionSuccess; }
 
 	/**
-	 * Set the size of the screen.
-	 * !!! ResidualVM specific method: !!!
-	 *
-	 * @param width			the new screen width
-	 * @param height		the new screen height
-	 * @param fullscreen	the new screen will be displayed in fullscreeen mode
-	 */
-
-	virtual void setupScreen(uint screenW, uint screenH, bool fullscreen, bool accel3d) = 0;
-
-	/**
 	 * Return a Graphics::PixelBuffer representing the framebuffer.
 	 * The caller can then perform arbitrary graphics transformations
 	 * on the framebuffer (blitting, scrolling, etc.).
 	 * !!! ResidualVM specific method: !!!
 	 */
-	virtual Graphics::PixelBuffer getScreenPixelBuffer() = 0;
-
-	/**
-	 * Suggest textures to render at the side of the game window.
-	 * This enables eg. Grim to render the game in a widescreen format.
-	 * 
-	 * The system must take a copy of the Surfaces, as they will be free()d
-	 * automatically.
-	 *
-	 * !!! ResidualVM specific method: !!!
-	 *
-	 * @param left			Texture to be used on the left
-	 * @param height		Texture to be used on the right
-	 */
-	virtual void suggestSideTextures(Graphics::Surface *left,
-	                                 Graphics::Surface *right) {};
+	virtual Graphics::PixelBuffer getScreenPixelBuffer() { return Graphics::PixelBuffer(); }
 
 	/**
 	 * Returns the currently set virtual screen height.
@@ -1220,7 +1196,7 @@ public:
 	 *
 	 * ResidualVM specific method
 	 */
-	virtual bool lockMouse(bool lock) = 0;
+	virtual bool lockMouse(bool lock) { return false; }
 
 	/**
 	 * Move ("warp") the mouse cursor to the specified position in virtual
@@ -1709,5 +1685,7 @@ protected:
 
 /** The global OSystem instance. Initialized in main(). */
 extern OSystem *g_system;
+
+/** @} */
 
 #endif

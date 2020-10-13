@@ -25,17 +25,12 @@
  *
  */
 
-#ifndef __P4_H
-#define __P4_H
-
-// check the machine version
-#if ((_PSX != 1) && (_PC != 1))
-#error " p4.h : unknown machine version : _PSX !=1 && _PC !=1"
-#endif
+#ifndef ICB_P4_H
+#define ICB_P4_H
 
 // Silly codewarrior doesn't understand relative paths
 #include "engines/icb/common/px_common.h"
-#include "string_vest.h"
+#include "engines/icb/string_vest.h"
 
 namespace ICB {
 
@@ -48,21 +43,13 @@ void Terminate_ap(); // call this to end the game and return to windows
 
 // variables
 extern int gameCycle; // for head-up display
-extern char root[];
-extern char croot[];
 extern char gamelanguage[];
 extern bool8 camera_hack;
 extern uint32 font_cluster_hash; // Res_open will compute the hash value and store it
 extern uint32 sys_font_hash;     // Res_open will compute the hash value and store it
 
-#if _PSX
-#include "p4_psx.h"
-#else
-#endif
-
 #define RESOURCE_IS_COMPRESSED 1
 
-#if _PC
 extern bool gRegainedFocus; // Set when we regain the focus.  Cleared by the graphics reloading functions
 
 } // End of namespace ICB (To avoid including inside the namespace
@@ -74,16 +61,16 @@ extern char g_characters[];
 
 #define REMORA_GRAPHICS_PATH "remora\\pc\\"
 #define FONT_PATH "fonts\\pc\\%s"
-#define REMORA_CLUSTER_PATH "\\A\\2DART"
+#define REMORA_CLUSTER_PATH "A\\2DART"
 
 // Using psx style cluster paths
-#define ICON_CLUSTER_PATH "\\A\\2DART"                  // icon cluster path
-#define FONT_CLUSTER_PATH "\\A\\2DART"                  // font cluster path
-#define GLOBAL_CLUSTER_PATH "\\G\\G"                    // global cluster path
-#define SESSION_TEST_PATH "%sm\\%s\\%s.sex", (cstr)root // File to test for a sessions existence
-#define SESSION_CLUSTER_PATH "\\M\\%s\\%s.SEX"          // Path to the session cluster
-#define CHR_PATH "\\C\\%s\\%s.OFT"
-#define SET_PATH "\\M\\%s\\%s.CAM" // path to the set
+#define ICON_CLUSTER_PATH "A\\2DART"                  // icon cluster path
+#define FONT_CLUSTER_PATH "A\\2DART"                  // font cluster path
+#define GLOBAL_CLUSTER_PATH "G\\G"                    // global cluster path
+#define SESSION_TEST_PATH "m\\%s\\%s.sex"             // File to test for a sessions existence
+#define SESSION_CLUSTER_PATH "M\\%s\\%s.SEX"          // Path to the session cluster
+#define CHR_PATH "C\\%s\\%s.OFT"
+#define SET_PATH "M\\%s\\%s.CAM" // path to the set
 
 #define SYS_FONT "fonts\\font.tdw"       // default font name
 #define ICON_PATH "inventory_icon\\pc\\" // path for inventory objects
@@ -96,7 +83,7 @@ extern char g_characters[];
 #define FILENAME_VOTEXT "remora.ctf"
 #define GLOBAL_VOTEXT_NAME "remora.ctf"
 #define ICON_LABELS_FILENAME "iconlabels.ctf"
-#define CONFIG_INI_FILENAME "%sengine\\icb.ini", (const char *)root
+#define CONFIG_INI_FILENAME "engine\\icb.ini"
 
 // Resource Manager Sizes -- Initalize in Memory_stats
 extern uint32 BACKGROUND_BUFFER_SIZE;
@@ -106,7 +93,6 @@ extern uint32 SONICS_BUFFER_SIZE;
 
 // globals for the font cluster name and hash value
 extern pxString font_cluster;
-#endif
 
 #define ANIM_CHECK(a)                                                                                                                                                              \
 	if (!I->IsAnimTable(a))                                                                                                                                                    \
@@ -158,9 +144,7 @@ class _stub {
 
 	__stub_modes mode[TOTAL_STUBS];
 	int32 stub; // stub level number
-#ifdef _PC
 	int cycle_speed;
-#endif
 private:
 	uint32 stub_timer_time;
 	bool8 timer; // on off

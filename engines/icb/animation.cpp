@@ -26,23 +26,17 @@
  */
 
 #include "engines/icb/common/px_common.h"
-
-#include "debug.h"
-
-#include "res_man.h"
+#include "engines/icb/debug.h"
+#include "engines/icb/res_man.h"
 #include "engines/icb/common/px_scriptengine.h"
 #include "engines/icb/common/px_linkeddatafile.h"
 #include "engines/icb/common/px_prop_anims.h"
-
 #include "engines/icb/common/ptr_util.h"
-
-#include "object_structs.h"
-
-#include "session.h"
-#include "mission.h"
-
-#include "global_switches.h"
-#include "global_objects.h"
+#include "engines/icb/object_structs.h"
+#include "engines/icb/session.h"
+#include "engines/icb/mission.h"
+#include "engines/icb/global_switches.h"
+#include "engines/icb/global_objects.h"
 
 namespace ICB {
 
@@ -344,9 +338,7 @@ mcodeFunctionReturnCodes _game_session::fn_inherit_prop_anim_height_id(int32 &, 
 				int16 *heights = (int16 *)(((char *)index) + anim->offset_heights);
 				PXreal one_height = (PXreal)(heights[L->list[0]]);
 				M->actor_xyz.y = one_height;
-#ifdef _PC
 				Zdebug("new height %3.1f", M->actor_xyz.y);
-#endif
 				// come back again next cycle
 				return (IR_REPEAT);
 			}

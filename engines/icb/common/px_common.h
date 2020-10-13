@@ -25,13 +25,13 @@
  *
  */
 
-#ifndef _PX_INC_PROJECT_X_COMMON_H
-#define _PX_INC_PROJECT_X_COMMON_H
+#ifndef ICB_PX_COMMON_H
+#define ICB_PX_COMMON_H
 
 #include "common/scummsys.h"
 
-#include "px_rccommon.h"
-#include "px_rcutypes.h"
+#include "engines/icb/common/px_rccommon.h"
+#include "engines/icb/common/px_rcutypes.h"
 
 namespace ICB {
 

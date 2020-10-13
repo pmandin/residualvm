@@ -27,35 +27,22 @@
 
 #include "engines/icb/common/px_common.h"
 #include "engines/icb/common/ptr_util.h"
-
 #include "engines/icb/icb.h"
-
-#include <ctype.h>
-#include <math.h>
-
-#include "p4_generic.h"
-#include "debug.h"
-#include "mission.h"
-#include "global_objects.h"
-#include "global_switches.h"
-#include "floors.h"
-#include "fn_routines.h"
-#include "p4_generic.h"
-#include "sound.h" // to get PauseSounds()
-
+#include "engines/icb/p4_generic.h"
+#include "engines/icb/debug.h"
+#include "engines/icb/mission.h"
+#include "engines/icb/global_objects.h"
+#include "engines/icb/global_switches.h"
+#include "engines/icb/floors.h"
+#include "engines/icb/fn_routines.h"
+#include "engines/icb/p4_generic.h"
+#include "engines/icb/sound.h" // to get PauseSounds()
 #include "engines/icb/common/px_scriptengine.h"
 #include "engines/icb/common/px_floor_map.h"
 #include "engines/icb/common/px_features.h"
-
-#include "direct_input.h"
-
-#if _PSX
-#include "engines/icb/gfx/psx_menu.h"
-#include "p4_psx.h"
-#endif
-
-#include "actor.h"
-#include "remora.h"
+#include "engines/icb/direct_input.h"
+#include "engines/icb/actor.h"
+#include "engines/icb/remora.h"
 
 #include "common/keyboard.h"
 
@@ -1557,7 +1544,6 @@ mcodeFunctionReturnCodes _game_session::fn_set_custom(int32 &, int32 *params) {
 mcodeFunctionReturnCodes _game_session::fn_message(int32 &, int32 *params) {
 	const char *message = (const char *)MemoryUtil::resolvePtr(params[0]);
 
-#if _PC
 	// pc has to muck around to clear sticky ctrl key
 	// hold until ctrl key released
 	if ((Read_DI_keys(Common::KEYCODE_LCTRL)) && (!first_session_cycle))
@@ -1568,17 +1554,6 @@ mcodeFunctionReturnCodes _game_session::fn_message(int32 &, int32 *params) {
 	} else {
 		Message_box("%s - %s", object->GetName(), message);
 	}
-#else
-
-#if CD_MODE == 0
-	if ((params[0] > -65535) && (params[0] < 65535)) {
-		Message_box("%d", params[0]);
-	} else {
-		Message_box("%s - %s", object->GetName(), message);
-	}
-#endif // #if CD_MODE == 0
-
-#endif
 	return IR_CONT;
 }
 
@@ -1589,12 +1564,6 @@ mcodeFunctionReturnCodes _game_session::fn_message_var(int32 &, int32 *params) {
 	if (var == 0xffffffff)
 		Fatal_error("fn_message_var - object %s has no var %s", object->GetName(), var_name);
 
-#if _PSX
-	if (object->IsVariableString(var))
-		Zdebug("\n%s=\"%s\"\n", var_name, object->GetStringVariable(var));
-	else
-		Zdebug("\n%s=%d\n", var_name, object->GetIntegerVariable(var));
-#else
 	// pc has to muck around to clear sticky ctrl key
 	// hold until ctrl key released
 	if (Read_DI_keys(Common::KEYCODE_LCTRL))
@@ -1608,8 +1577,6 @@ mcodeFunctionReturnCodes _game_session::fn_message_var(int32 &, int32 *params) {
 		sprintf(txt, "%s=%d", var_name, object->GetIntegerVariable(var));
 
 	Message_box(txt);
-
-#endif // #if _PSX
 
 	return IR_CONT;
 }
@@ -2058,14 +2025,12 @@ mcodeFunctionReturnCodes _game_session::fn_lib_lift_chord_and_chi(int32 &result,
 	return IR_CONT;
 }
 
-#ifdef _PC
 typedef struct {
 	uint32 init;
 	int32 params[4];
 } _lift_verify;
 
 _lift_verify lift2s[MAX_session_objects];
-#endif
 
 mcodeFunctionReturnCodes _game_session::fn_lift2_process(int32 &result, int32 *params) {
 	// special lift logic function - checks all megas in the lift against named nico
@@ -2090,7 +2055,6 @@ mcodeFunctionReturnCodes _game_session::fn_lift2_process(int32 &result, int32 *p
 	static int issued_warning = FALSE8;
 	const char *nico_name = (const char *)MemoryUtil::resolvePtr(params[0]);
 
-#ifdef _PC
 	static int inited = FALSE8;
 	if (!inited) {
 		for (j = 0; j < MAX_session_objects; j++)
@@ -2114,7 +2078,6 @@ mcodeFunctionReturnCodes _game_session::fn_lift2_process(int32 &result, int32 *p
 		Message_box("%s param 2 changed from %d to %d", object->GetName(), lift2s[cur_id].params[2], params[2]);
 	if (lift2s[cur_id].params[3] != params[3])
 		Message_box("%s param 3 changed from %d to %d", object->GetName(), lift2s[cur_id].params[3], params[3]);
-#endif
 
 	// check for no people in list! Could be redefined as an error in-fact
 	if (!L->total_list) {
@@ -3139,17 +3102,11 @@ mcodeFunctionReturnCodes _game_session::fn_quick_restart(int32 &result, int32 *)
 	// if not then mission ends
 	// if so then simply reset the player
 
-#ifdef _PC
 	// if ( MessageBox(windowHandle, "reset player?", "would you like to...", MB_YESNO | MB_DEFBUTTON2 ) == IDYES )
 	{
 		result = 1; // do
 		MS->Restart_player();
 	}
-#else
-	SetDrawBG(GAMESCREEN);
-	YesNoMenu("Game Over - Restart the game ?");
-	result = 0;
-#endif
 
 	return IR_CONT;
 }

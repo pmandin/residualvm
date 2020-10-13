@@ -25,16 +25,12 @@
  *
  */
 
-#include "icon_menu.h"
-#include "global_objects.h"
-#include "sound.h"
-#include "res_man.h"
-#include "remora.h"
-#if _PSX
-#include "control_psx.h"
-#endif
-
-#include "mission.h"
+#include "engines/icb/icon_menu.h"
+#include "engines/icb/global_objects.h"
+#include "engines/icb/sound.h"
+#include "engines/icb/res_man.h"
+#include "engines/icb/remora.h"
+#include "engines/icb/mission.h"
 
 namespace ICB {
 
@@ -54,15 +50,8 @@ _icon_menu::_icon_menu() {
 	m_nAddedSymbol = 0;
 	m_nAddedFlashCount = 0;
 
-#if defined(_PC)
 	strcpy(m_pcGlobalClusterFile, GLOBAL_CLUSTER_PATH);
 	strcpy(m_pcIconCluster, ICON_CLUSTER_PATH);
-#endif
-
-#if defined(_PSX)
-	m_pcGlobalClusterFile = GLOBAL_CLUSTER_PATH;
-	m_pcIconCluster = ICON_CLUSTER_PATH;
-#endif
 
 	m_nGlobalClusterHash = NULL_HASH;
 	m_nIconClusterHash = NULL_HASH;
@@ -84,14 +73,7 @@ bool8 _icon_menu::CycleIconMenu(const _input &sKeyboardState) {
 		m_bHighlightVisible = (bool8)!m_bHighlightVisible;
 	}
 
-#if _PC
 	inventoryPress = sKeyboardState.IsButtonSet(__INVENTORY);
-#else
-	if ((joypad1.b & buttonConfig[INVENTORYbut]) == 0)
-		inventoryPress = 1;
-	else
-		inventoryPress = 0;
-#endif
 
 	// FIND GOBACK if there is one
 	// found is -1 means none found
@@ -324,10 +306,8 @@ void _icon_menu::PreloadIcon(const char *pcIconPath, const char *pcIconName) {
 	uint32 nFullIconNameHash;
 
 	// Make the full URL for the icon.
-#if defined(_PC)
 	char pcFullIconName[MAXLEN_URL];
 	sprintf(pcFullIconName, "%s%s.%s", pcIconPath, pcIconName, PX_BITMAP_EXT);
-#endif // #if defined(_PC)
 
 #if defined(_PSX)
 	const char *pcFullIconName = pcIconName;

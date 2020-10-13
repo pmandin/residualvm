@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef _OBSTRUCTS
-#define _OBSTRUCTS
+#ifndef ICB_OBSTRUCTS
+#define ICB_OBSTRUCTS
 
 #include "engines/icb/common/px_common.h"
 #include "engines/icb/common/px_game_object.h"
@@ -34,16 +34,12 @@
 #include "engines/icb/common/px_rccommon.h"
 #include "engines/icb/common/px_array.h"
 #include "engines/icb/common/px_string.h"
-
-#include "animation_mega_set.h"
-#include "p4_generic.h"
-#include "string_vest.h"
-#include "route_manager.h"
-#include "breath.h"
-
-// for the dynamic lights...
+#include "engines/icb/animation_mega_set.h"
+#include "engines/icb/p4_generic.h"
+#include "engines/icb/string_vest.h"
+#include "engines/icb/route_manager.h"
+#include "engines/icb/breath.h"
 #include "engines/icb/gfx/rlp_api.h"
-
 #include "engines/icb/common/px_bones.h"
 
 // depth of script logic tree for game objects - 3 is same as Broken Sword games
@@ -79,17 +75,10 @@ extern bool8 crouch_state_table[__TOTAL_WEAPONS];
 #define MAX_OUTFIT_NAME_LENGTH 16
 #define MAX_CUSTOM_NAME_LENGTH 16
 
-#if _PC
 #define IMAGE_PATH_STR_LEN 144
 #define BASE_PATH_STR_LEN 144
 #define ANIM_NAME_STR_LEN 144
 #define PALETTE_STR_LEN ENGINE_STRING_LEN
-#else
-#define IMAGE_PATH_STR_LEN 32
-#define BASE_PATH_STR_LEN 64
-#define ANIM_NAME_STR_LEN 32
-#define PALETTE_STR_LEN 8
-#endif
 
 // game objects with voxel images need one of these
 // assigned at session start when objects are initialised
@@ -103,7 +92,6 @@ public:
 
 	// temprarily store these for swapping between voxel and polygons (so we can call ___init() again...
 	// when the voxels go these things can go
-#if _PC
 	char palette[PALETTE_STR_LEN];
 	char temp_chr[128];
 	char temp_set[128];
@@ -111,8 +99,6 @@ public:
 	char alternativeImagePath[128]; // this stores the pcp path for animations (for getting the raj files instead of rai files...
 	char alternativeBasePath[128];  // this is same as base path but is pcp (on voxels) - isn't required for polys and can go when we
                                         // ditch
-#endif
-
 	// setting functions
 	bool8 Init_custom_animation(const char *anim_name);
 	bool8 Find_anim_type(__mega_set_names *anim, const char *name);
@@ -159,23 +145,6 @@ public:
 	uint8 padding2;
 	uint8 padding3;
 
-#if _PSX
-	// on the psx we dont store the strings for
-	// many things so these functions are built
-	// to return NULL and therefore have a
-	// constant interface
-
-	char *get_anim_name(int i) { return NULL; }
-	char *get_info_name(int i) { return NULL; }
-	char *get_mesh_name() { return NULL; }
-	char *get_shadow_mesh_name() { return NULL; }
-	char *get_texture_name() { return NULL; }
-	char *get_palette_name() { return NULL; }
-	char *get_pose_name() { return NULL; }
-	char *get_custom_pose_name() { return NULL; }
-
-#else
-
 	// on the pc we store these strings
 	char anim_name[__TOTAL_ANIMS][ANIM_NAME_STR_LEN];
 	char info_name[__TOTAL_ANIMS][ANIM_NAME_STR_LEN];
@@ -198,7 +167,6 @@ public:
 	char *get_pose_name() { return pose_name; }
 	char *get_custom_pose_name() { return custom_pose_name; }
 
-#endif
 };
 
 inline int8 _vox_image::IsAnimTable(int i) {

@@ -25,10 +25,10 @@
  *
  */
 
-#ifndef __px_camera_h__included__
-#define __px_camera_h__included__
+#ifndef ICB_PX_CAMERA_H
+#define ICB_PX_CAMERA_H
 
-#include "px_common.h"
+#include "engines/icb/common/px_common.h"
 
 namespace ICB {
 

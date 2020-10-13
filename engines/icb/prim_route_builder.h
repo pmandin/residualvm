@@ -25,12 +25,12 @@
  *
  */
 
-#ifndef PRIM_ROUTE_BUILDER_H
-#define PRIM_ROUTE_BUILDER_H
+#ifndef ICB_PRIM_ROUTE_BUILDER_H
+#define ICB_PRIM_ROUTE_BUILDER_H
 
 #include "engines/icb/common/px_rcutypes.h"
 #include "engines/icb/common/px_route_barriers.h"
-#include "route_manager.h"
+#include "engines/icb/route_manager.h"
 
 namespace ICB {
 

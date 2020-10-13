@@ -30,14 +30,17 @@
 #define WINTERMUTE_SHADOW_VOLUME_OPENGL_SHADER_H
 
 #include "engines/wintermute/base/gfx/shadow_volume.h"
-#include "graphics/opengl/shader.h"
 #include "graphics/opengl/system_headers.h"
+
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
+
+#include "graphics/opengl/shader.h"
 
 namespace Wintermute {
 
 class ShadowVolumeOpenGLShader : public ShadowVolume {
 public:
-	ShadowVolumeOpenGLShader(BaseGame *inGame, OpenGL::Shader *volumeShader, OpenGL::Shader *maskShader);
+	ShadowVolumeOpenGLShader(BaseGame *inGame, OpenGL::ShaderGL *volumeShader, OpenGL::ShaderGL *maskShader);
 	virtual ~ShadowVolumeOpenGLShader();
 
 	bool renderToStencilBuffer() override;
@@ -49,10 +52,12 @@ private:
 	bool initMask() override;
 	GLuint _shadowVolumeVertexBuffer;
 	GLuint _shadowMaskVertexBuffer;
-	OpenGL::Shader *_volumeShader;
-	OpenGL::Shader *_maskShader;
+	OpenGL::ShaderGL *_volumeShader;
+	OpenGL::ShaderGL *_maskShader;
 };
 
 } // namespace Wintermute
+
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
 
 #endif

@@ -28,14 +28,15 @@
 #include "engines/icb/common/px_rccommon.h"
 
 #if defined (SDL_BACKEND)
-#include <SDL/SDL_joystick.h>
+#include <SDL_joystick.h>
 #endif
-#include "p4_generic.h"
-#include "debug.h"
-#include "p4.h"
-#include "player.h"
-#include "direct_input.h"
-#include "cluster_manager_pc.h"
+
+#include "engines/icb/p4_generic.h"
+#include "engines/icb/debug.h"
+#include "engines/icb/p4.h"
+#include "engines/icb/player.h"
+#include "engines/icb/direct_input.h"
+#include "engines/icb/cluster_manager_pc.h"
 
 #include "common/textconsole.h"
 #include "common/events.h"

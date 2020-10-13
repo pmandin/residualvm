@@ -38,7 +38,7 @@ class DiscordPresence;
 #endif
 // ResidualVM - Start
 #ifdef USE_OPENGL
-#include "backends/graphics/resvmopenglsdl/resvmopenglsdl-graphics.h"
+#include "backends/graphics3d/openglsdl/openglsdl-graphics3d.h"
 #endif
 // ResidualVM - End
 
@@ -94,10 +94,8 @@ public:
 
 	// ResidualVM - Start
 #ifdef USE_OPENGL
-	virtual void setupScreen(uint screenW, uint screenH, bool fullscreen, bool accel3d) override;
-	Common::Array<uint> getSupportedAntiAliasingLevels() const;
+	Common::Array<uint> getSupportedAntiAliasingLevels() const override;
 #endif
-	virtual void launcherInitSize(uint w, uint h) override;
 	// ResidualVM - End
 
 protected:
@@ -133,11 +131,13 @@ protected:
 	SdlWindow *_window;
 
 	// ResidualVM specific code - start
+	SdlGraphicsManager::State _gfxManagerState;
+
 #ifdef USE_OPENGL
 	// Graphics capabilities
 	void detectFramebufferSupport();
 	void detectAntiAliasingSupport();
-	ResVmOpenGLSdlGraphicsManager::Capabilities _capabilities;
+	OpenGLSdlGraphics3dManager::Capabilities _capabilities;
 #endif
 	// End of ResidualVM specific code
 
@@ -157,7 +157,6 @@ protected:
 	virtual Common::WriteStream *createLogFile();
 	Backends::Log::Log *_logger;
 
-#if 0 // ResidualVM - not used
 #ifdef USE_OPENGL
 	typedef Common::Array<GraphicsMode> GraphicsModeArray;
 	GraphicsModeArray _graphicsModes;
@@ -174,10 +173,9 @@ protected:
 
 	virtual const OSystem::GraphicsMode *getSupportedGraphicsModes() const override;
 	virtual int getDefaultGraphicsMode() const override;
-	virtual bool setGraphicsMode(int mode) override;
+	virtual bool setGraphicsMode(int mode, uint flags) override; // ResidualVM
 	virtual int getGraphicsMode() const override;
 #endif
-#endif // ResidulVM
 protected:
 	virtual char *convertEncoding(const char *to, const char *from, const char *string, size_t length) override;
 };

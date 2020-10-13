@@ -25,12 +25,12 @@
  *
  */
 
-#ifndef PX_3DREALPOINT_H_INCLUDED
-#define PX_3DREALPOINT_H_INCLUDED
+#ifndef ICB_PX_3DREALPOINT_H_INCLUDED
+#define ICB_PX_3DREALPOINT_H_INCLUDED
 
 // Include the header files needed by this class.
-#include "px_rccommon.h"
-#include "px_rcutypes.h"
+#include "engines/icb/common/px_rccommon.h"
+#include "engines/icb/common/px_rcutypes.h"
 
 namespace ICB {
 

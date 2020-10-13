@@ -26,16 +26,13 @@
  */
 
 #include "engines/icb/common/px_rccommon.h"
-
-#include "debug.h"
-
-#include "global_objects.h"
-#include "mission.h"
-#include "session.h"
-
+#include "engines/icb/debug.h"
+#include "engines/icb/global_objects.h"
+#include "engines/icb/mission.h"
+#include "engines/icb/session.h"
 #include "engines/icb/sound/direct_sound.h"
 #include "engines/icb/sound/music_manager.h"
-#include "sound.h"
+#include "engines/icb/sound.h"
 
 namespace ICB {
 
@@ -75,7 +72,7 @@ void LoadSting(uint32 looking_for_hash) {
 	if (looking_for_hash == 0)
 		return;
 
-	clustername.Format("%s\\g\\music.clu", root);
+	clustername.Format("g\\music.clu");
 
 	// To store offsets in cluster
 	uint32 file_offset, file_size;
@@ -108,7 +105,7 @@ void PlaySting(uint32 looking_for_hash) {
 	// Just so that the game can be run from non-clustered data
 	/*const char* cluster_root = "thegame\\english\\pc\\everything\\cd1";*/
 
-	clustername.Format("%s\\g\\music.clu", root);
+	clustername.Format("g\\music.clu");
 
 	// To store offsets in cluster
 	uint32 file_offset, file_size;

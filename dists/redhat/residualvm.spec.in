@@ -78,13 +78,13 @@ fi
 #------------------------------------------------------------------------------
 %files
 %defattr(0644,root,root,0755)
-%doc AUTHORS README.md KNOWN_BUGS NEWS.md COPYING COPYING.LGPL COPYING.BSD COPYING.FREEFONT COPYING.OFL COPYING.ISC COPYING.LUA COPYING.TINYGL COPYRIGHT
+%doc AUTHORS README.md NEWS.md COPYING COPYING.LGPL COPYING.BSD COPYING.FREEFONT COPYING.OFL COPYING.ISC COPYING.LUA COPYING.TINYGL COPYRIGHT
 %attr(0755,root,root)%{_bindir}/residualvm
 %{_datadir}/applications/*
 %{_datadir}/pixmaps/residualvm.xpm
 %{_datadir}/icons/hicolor/48x48/apps/residualvm.png
 %{_datadir}/icons/hicolor/scalable/apps/residualvm.svg
-%{_datadir}/residualvm/modern.zip
+%{_datadir}/residualvm/residualvm.zip
 %{_datadir}/residualvm/residualvm-grim-patch.lab
 %{_datadir}/residualvm/residualvm-emi-patch.m4b
 %{_datadir}/residualvm/myst3.dat

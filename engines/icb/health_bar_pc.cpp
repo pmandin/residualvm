@@ -26,17 +26,13 @@
  */
 
 #include "engines/icb/common/px_common.h"
-
-#include "debug.h"
-#include "p4_generic.h"
-
+#include "engines/icb/debug.h"
+#include "engines/icb/p4_generic.h"
 #include "engines/icb/common/px_scriptengine.h"
 #include "engines/icb/common/px_game_object.h"
-
-#include "mission.h"
-
-#include "global_objects.h"
-#include "object_structs.h"
+#include "engines/icb/mission.h"
+#include "engines/icb/global_objects.h"
+#include "engines/icb/object_structs.h"
 
 namespace ICB {
 
@@ -47,7 +43,6 @@ namespace ICB {
 #define MAX_HEALTH 10
 
 void _game_session::Draw_health_bar() {
-#ifdef _PC
 	static int targetHealth = -1;
 	static int barEnd;
 	static int barTarget;
@@ -143,7 +138,6 @@ void _game_session::Draw_health_bar() {
 
 	// Unlock the surface
 	surface_manager->Unlock_surface(working_buffer_id);
-#endif
 }
 
 } // End of namespace ICB

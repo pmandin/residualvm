@@ -25,21 +25,13 @@
  *
  */
 
-#ifndef _GLOBAL_OBJECTS
-#define _GLOBAL_OBJECTS
+#ifndef ICB_GLOBAL_OBJECTS
+#define ICB_GLOBAL_OBJECTS
 
-#include "p4.h"
-#include "line_of_sight.h"
-
-#include "game_script.h"
-
-#ifdef _PSX
-// PC specifics
-#include "global_objects_psx.h"
-#else
-// PC specifics
-#include "global_objects_pc.h"
-#endif // #ifdef _PSX
+#include "engines/icb/p4.h"
+#include "engines/icb/line_of_sight.h"
+#include "engines/icb/game_script.h"
+#include "engines/icb/global_objects_pc.h"
 
 namespace ICB {
 
@@ -96,9 +88,7 @@ extern _vox_image vox_images[MAX_voxel_list];
 #define MAX_SESSIONS (29 * 2)
 #define MAX_MISSIONS (NUMBER_OF_MISSIONS * 2)
 
-#if defined(_PC)
 extern const char *g_sessions[MAX_SESSIONS];
-#endif
 extern const char *g_mission_startup_names[MAX_MISSIONS];
 extern const char *g_mission_names[NUMBER_OF_MISSIONS];
 

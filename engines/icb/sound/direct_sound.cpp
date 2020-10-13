@@ -26,7 +26,7 @@
  */
 
 #if defined (SDL_BACKEND)
-#include <SDL/SDL.h>
+#include <SDL.h>
 #endif
 
 #include "engines/icb/sound/direct_sound.h"
@@ -34,6 +34,7 @@
 #include "engines/icb/sound/speech_manager.h"
 #include "engines/icb/sound/fx_manager.h"
 #include "engines/icb/icb.h"
+
 #include "audio/mixer.h"
 
 namespace ICB {

@@ -23,30 +23,25 @@
 #include "backends/graphics/sdl/sdl-graphics.h"
 #include "backends/platform/sdl/sdl-sys.h"
 #include "backends/platform/sdl/sdl.h"
-#include "backends/events/sdl/resvm-sdl-events.h"
+#include "backends/events/sdl/sdl-events.h"
 #include "backends/keymapper/action.h"
 #include "backends/keymapper/keymap.h"
 #include "common/config-manager.h"
 #include "common/fs.h"
 #include "common/textconsole.h"
 #include "common/translation.h"
-//#include "graphics/scaler/aspect.h" // ResidualVM
-#if 0 // ResidualVM
+#include "graphics/scaler/aspect.h"
 #ifdef USE_OSD
 #include "common/translation.h"
 #endif
-#endif // ResidualVM
 
 SdlGraphicsManager::SdlGraphicsManager(SdlEventSource *source, SdlWindow *window)
-	: _eventSource(source), _window(window)// ResidualVM not used: , _hwScreen(nullptr) {
-#if 0 // ResidualVM
+	: _eventSource(source), _window(window), _hwScreen(nullptr)
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	, _allowWindowSizeReset(false), _hintedWidth(0), _hintedHeight(0), _lastFlags(0)
 #endif
-#endif // ResidualVM
 {
-	// ResidualVM - not used:
-	//SDL_GetMouseState(&_cursorX, &_cursorY);
+	SDL_GetMouseState(&_cursorX, &_cursorY);
 }
 
 void SdlGraphicsManager::activateManager() {
@@ -97,7 +92,6 @@ bool SdlGraphicsManager::setState(const State &state) {
 	}
 }
 
-#if 0 // ResidualVM
 bool SdlGraphicsManager::defaultGraphicsModeConfig() const {
 	const Common::ConfigManager::Domain *transientDomain = ConfMan.getDomain(Common::ConfigManager::kTransientDomain);
 	if (transientDomain && transientDomain->contains("gfx_mode")) {
@@ -198,6 +192,9 @@ bool SdlGraphicsManager::showMouse(bool visible) {
 }
 
 bool SdlGraphicsManager::notifyMousePosition(Common::Point &mouse) {
+	mouse.x = CLIP<int16>(mouse.x, 0, _windowWidth - 1);
+	mouse.y = CLIP<int16>(mouse.y, 0, _windowHeight - 1);
+
 	int showCursor = SDL_DISABLE;
 	bool valid = true;
 	if (_activeArea.drawRect.contains(mouse)) {
@@ -305,7 +302,7 @@ void SdlGraphicsManager::saveScreenshot() {
 #endif
 
 	for (int n = 0;; n++) {
-		filename = Common::String::format("residualvm%s%s-%05d.%s", currentTarget.empty() ? "" : "-",
+		filename = Common::String::format("scummvm%s%s-%05d.%s", currentTarget.empty() ? "" : "-",
 		                                  currentTarget.c_str(), n, extension);
 
 		Common::FSNode file = Common::FSNode(screenshotsPath + filename);
@@ -364,7 +361,7 @@ void SdlGraphicsManager::toggleFullScreen() {
 		displayMessageOnOSD(_("Windowed mode"));
 #endif
 }
-#endif // ResidualVM
+
 Common::Keymap *SdlGraphicsManager::getKeymap() {
 	using namespace Common;
 
@@ -395,7 +392,7 @@ Common::Keymap *SdlGraphicsManager::getKeymap() {
 		act->setCustomBackendActionEvent(kActionToggleAspectRatioCorrection);
 		keymap->addAction(act);
 	}
-#if 0 // ResidualVM: not used
+
 	if (hasFeature(OSystem::kFeatureFilteringMode)) {
 		act = new Action("FILT", _("Toggle linear filtered scaling"));
 		act->addDefaultInputMapping("C+A+f");
@@ -448,6 +445,6 @@ Common::Keymap *SdlGraphicsManager::getKeymap() {
 		keymap->addAction(act);
 	}
 #endif
-#endif // ResidualVM
+
 	return keymap;
 }

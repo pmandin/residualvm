@@ -25,13 +25,9 @@
  *
  */
 
-#ifndef SET_H
-#define SET_H
+#ifndef ICB_SET_H
+#define ICB_SET_H
 
-#ifdef _PSX
-#include "set_psx.h"
-#else
-#include "set_pc.h"
-#endif // #ifdef _PSX
+#include "engines/icb/set_pc.h"
 
 #endif

@@ -25,30 +25,18 @@
  *
  */
 
-#ifndef _OPTIONS_MANAGER_PC_H_INCLUDED
-#define _OPTIONS_MANAGER_PC_H_INCLUDED
-
-// Stop inclusion in psx build
-#ifdef _PSX
-#error "options_manager_pc.h only for pc builds"
-#endif
+#ifndef ICB_OPTIONS_MANAGER_PC_H_INCLUDED
+#define ICB_OPTIONS_MANAGER_PC_H_INCLUDED
 
 #include "engines/icb/common/px_rccommon.h"
-
-#include "p4.h"
-
-// For access to surface_manager
-#include "global_objects.h"
-#include "global_switches.h"
-
-// For access to DirectSound includes
+#include "engines/icb/p4.h"
+#include "engines/icb/global_objects.h"
+#include "engines/icb/global_switches.h"
 #include "engines/icb/sound/fx_manager.h"
 #include "engines/icb/sound/speech_manager.h"
 #include "engines/icb/sound/music_manager.h"
-// So we can control the game sound state
-#include "sound.h"
-// So we can configure controllers
-#include "direct_input.h"
+#include "engines/icb/sound.h"
+#include "engines/icb/direct_input.h"
 
 namespace ICB {
 

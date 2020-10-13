@@ -29,17 +29,12 @@
 
 #include "engines/icb/common/px_rccommon.h"
 #include "engines/icb/common/px_common.h"
-
-#include "global_objects.h"
-#include "global_vars.h"
-#include "global_switches.h"
-#include "mission.h"
-#include "mission_functions.h"
-#include "res_man.h"
-#if _PSX
-#include "engines/icb/gfx/psx_disc.h"
-#include "engines/icb/gfx/psx_profile.h"
-#endif
+#include "engines/icb/global_objects.h"
+#include "engines/icb/global_vars.h"
+#include "engines/icb/global_switches.h"
+#include "engines/icb/mission.h"
+#include "engines/icb/mission_functions.h"
+#include "engines/icb/res_man.h"
 
 #include "common/textconsole.h"
 
@@ -80,19 +75,8 @@ int LoadMission(int m, void *usr) {
 		return 0;
 	}
 
-#ifdef _PSX
-
-	_drawText = 0;
-	_profile = 0;
-
-#endif // #ifdef _PSX
 
 	// Go straight into mission not the console
-#ifdef _PSX
-
-	reloadFont = 1;
-
-#endif // #ifdef _PSX
 
 	zdebug = FALSE8;
 
@@ -107,11 +91,7 @@ void RestartMission(void) {
 	// Get the mission name for the current mission
 	const char *mission_name;
 
-#ifdef _PC
 	mission_name = g_mission->Fetch_tiny_mission_name();
-#else
-	mission_name = g_mission->Fetch_mission_name();
-#endif
 
 	// Find which mission number the current mission is
 	int m = FindMissionNumber(mission_name);

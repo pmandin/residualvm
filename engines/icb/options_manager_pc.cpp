@@ -27,31 +27,24 @@
 
 #define FORBIDDEN_SYMBOL_EXCEPTION_time
 
-// So we can get information about (save) files
-#include <sys/stat.h>
-#include <time.h>
-
 #include "engines/icb/common/px_rccommon.h"
 #include "engines/icb/icb.h"
-
-#include "options_manager_pc.h"
-#include "movie_pc.h"
-#include "cluster_manager_pc.h"
-
-// So we can close the window down
-#include "keyboard.h"
-
-#include "actor_view_pc.h"
-#include "mission_functions.h"
-#include "text_sprites.h"
-#include "mission.h"
-#include "global_objects_psx.h"
-#include "res_man.h"
+#include "engines/icb/options_manager_pc.h"
+#include "engines/icb/movie_pc.h"
+#include "engines/icb/cluster_manager_pc.h"
+#include "engines/icb/keyboard.h"
+#include "engines/icb/actor_view_pc.h"
+#include "engines/icb/mission_functions.h"
+#include "engines/icb/text_sprites.h"
+#include "engines/icb/mission.h"
+#include "engines/icb/global_objects_psx.h"
+#include "engines/icb/res_man.h"
 
 #include "common/keyboard.h"
 #include "common/system.h"
 #include "common/events.h"
 #include "common/textconsole.h"
+#include "common/file.h"
 
 namespace ICB {
 
@@ -526,7 +519,7 @@ void LoadAMovieShot(uint32 slot_id, uint32 to_surface_id) {
 	uint32 fo, fs;
 
 	// Now see if it exists in the cluster
-	if (!DoesClusterContainFile(pxVString("%sa\\2dart", root), HashString(thbFile), fo, fs)) {
+	if (!DoesClusterContainFile(pxVString("a\\2dart"), HashString(thbFile), fo, fs)) {
 		// If no file exists then fill the surface with black
 		surface_manager->Clear_surface(to_surface_id);
 		return;
@@ -646,12 +639,9 @@ OptionsManager::OptionsManager() {
 
 	m_movieRect.left = m_movieRect.right = m_movieRect.top = m_movieRect.bottom = 0;
 
-#ifdef _WIN32
-	m_colourKey = RGB(255, 0, 255);
-#else
+	//m_colourKey = RGB(255, 0, 255); // WIN32
 	warning("TODO: Use a pixelformat and SDL_MapRGB here, m_colourKey set by hand for now");
 	m_colourKey = 0xFF00FF00;
-#endif
 
 	m_moveLimiter = FALSE8;
 	m_alterLimiter = FALSE8;
@@ -1049,7 +1039,7 @@ void OptionsManager::LoadTitleScreenMovie() {
 	// Initialise background movie (looping)
 	pxString filename;
 
-	filename.Format("%sgmovies\\title.bik", root);
+	filename.Format("gmovies\\title.bik");
 	filename.ConvertPath();
 	// For maximum playback performance on the title screen play this movie directly from memory
 
@@ -2063,13 +2053,13 @@ void OptionsManager::InitialiseSounds() {
 
 		uint32 b_offset, sz;
 
-		if (!DoesClusterContainFile(pxVString("%sg\\samples.clu", root), HashString("options_select.wav"), b_offset, sz))
+		if (!DoesClusterContainFile(pxVString("g\\samples.clu"), HashString("options_select.wav"), b_offset, sz))
 			Fatal_error(pxVString("Couldn't find options_select.wav in global sample cluster"));
 
 		// Pass sample name only if we're running from clusters
 		g_theFxManager->Register(m_move_sfx_channel, "options_select.wav", 0, b_offset);
 
-		if (!DoesClusterContainFile(pxVString("%sg\\samples.clu", root), HashString("options_choose.wav"), b_offset, sz))
+		if (!DoesClusterContainFile(pxVString("g\\samples.clu"), HashString("options_choose.wav"), b_offset, sz))
 			Fatal_error(pxVString("Couldn't find options_choose.wav in global sample cluster"));
 
 		// Pass sample name only if we're running from clusters
@@ -3896,12 +3886,6 @@ void OptionsManager::EditSlotLabel() {
 
 void OptionsManager::InitialiseSlots() {
 	char buff[128];
-	time_t lastAccessedTime = 0;
-	struct stat st;
-	int result;
-
-	// Get a reference time
-	time_t timeRightNow = time(NULL);
 
 	// Set all slots by default to empty
 	for (uint32 i = 0; i < TOTAL_NUMBER_OF_GAME_SLOTS; i++) {
@@ -3916,20 +3900,7 @@ void OptionsManager::InitialiseSlots() {
 		if (!checkFileExists(buff))
 			continue;
 
-		// Inspect the file's vitals
-		result = stat(buff, &st);
-		if (result == 0) {
-			// Get time accessed for first slot as reference
-			if (i == 0) {
-				lastAccessedTime = timeRightNow - st.st_mtime;
-			} else {
-				// Record the time if it's newer
-				if (timeRightNow - st.st_mtime < lastAccessedTime) {
-					lastAccessedTime = timeRightNow - st.st_mtime;
-					g_lastAccessedSlot = i;
-				}
-			}
-		}
+		g_lastAccessedSlot = 0;
 
 		// This slot is in use so record largest id
 		g_largestValidSlotID = i;
@@ -6709,7 +6680,6 @@ void OptionsManager::LoadGlobalTextFile() {
 	sprintf(textFileName, GLOBAL_TEXT_FILE);
 
 	// Special text loading code so the translators can test their stuff
-#ifdef _PC
 
 	if (tt) {
 		// Ok, translators mode has been activated
@@ -6718,10 +6688,6 @@ void OptionsManager::LoadGlobalTextFile() {
 			m_global_text = LoadTranslatedFile("global", "global\\global\\");
 	} else
 		m_global_text = (_linked_data_file *)rs1->Res_open(textFileName, buf_hash, globalClusterFile, globalClusterHash);
-
-#else
-	m_global_text = (_linked_data_file *)rs1->Res_open(textFileName, buf_hash, globalClusterFile, globalClusterHash);
-#endif
 
 	m_global_text = (_linked_data_file *)rs1->Res_open(textFileName, buf_hash, globalClusterFile, globalClusterHash);
 }
@@ -7100,7 +7066,7 @@ void OptionsManager::DoCredits() {
 		char movieFileName[128];
 
 		sprintf(textFileName, "%s.crd", gamelanguage);
-		sprintf(movieFileName, "%sgmovies\\title.bik", root);
+		sprintf(movieFileName, "gmovies\\title.bik");
 
 		// Free the sequence manager
 		UnloadTitleScreenMovie();
@@ -7149,7 +7115,7 @@ bool8 IsAValidSlide(uint32 num, char *slideFile) {
 	uint32 fo, fs;
 
 	// Now see if it exists in the cluster
-	if (!DoesClusterContainFile(pxVString("%sa\\2dart", root), HashString(slideFile), fo, fs))
+	if (!DoesClusterContainFile(pxVString("a\\2dart"), HashString(slideFile), fo, fs))
 		return FALSE8;
 
 	return TRUE8;
@@ -7427,14 +7393,13 @@ uint32 ExamineCharacter(char c) {
 }
 
 uint32 GetFileSz(const char *path) {
-	struct stat buf;
+	Common::File file;
 
-	if (stat(path, &buf) == 0) {
-		return (uint32)(buf.st_size);
+	if (!file.open(path)) {
+		return 0;
 	}
 
-	// On error
-	return 0;
+	return (uint32)file.size();
 }
 
 Crediter::Crediter()

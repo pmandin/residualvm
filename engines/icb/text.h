@@ -25,16 +25,10 @@
  *
  */
 
-#ifndef TEXT_H
-#define TEXT_H
+#ifndef ICB_TEXT_H
+#define ICB_TEXT_H
 
 #include "engines/icb/p4_generic.h"
-
-#ifdef _PSX
-
-#include "engines/icb/text_psx.h"
-
-#endif // #ifdef _PSX
 
 namespace ICB {
 

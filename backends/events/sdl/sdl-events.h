@@ -43,7 +43,7 @@ public:
 	SdlEventSource();
 	virtual ~SdlEventSource();
 
-	void setGraphicsManager(SdlGraphicsManager *gMan) { _graphicsManager = gMan; }
+	void setGraphicsManager(GraphicsManager *gMan) { _graphicsManager = gMan; } // ResidualVM specific
 
 	/**
 	 * Gets and processes SDL events.
@@ -85,7 +85,7 @@ protected:
 	/**
 	 * The associated graphics manager.
 	 */
-	SdlGraphicsManager *_graphicsManager;
+	GraphicsManager *_graphicsManager; // ResidualVM specific
 
 	/**
 	 * Search for a game controller db file and load it.

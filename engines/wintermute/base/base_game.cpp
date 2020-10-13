@@ -83,6 +83,7 @@
 
 #ifdef ENABLE_WME3D
 #include "graphics/renderer.h"
+#include "engines/util.h"
 #endif
 
 namespace Wintermute {
@@ -499,15 +500,28 @@ bool BaseGame::initialize1() {
 bool BaseGame::initialize2() { // we know whether we are going to be accelerated
 #ifdef ENABLE_WME3D
 	bool fullscreen = ConfMan.getBool("fullscreen");
-	g_system->setupScreen(_settings->getResWidth(), _settings->getResHeight(), fullscreen, true);
+	initGraphics3d(_settings->getResWidth(), _settings->getResHeight(), fullscreen, true);
 
 	Common::String rendererConfig = ConfMan.get("renderer");
 	Graphics::RendererType desiredRendererType = Graphics::parseRendererTypeCode(rendererConfig);
 
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
 	if (desiredRendererType == Graphics::kRendererTypeOpenGLShaders) {
 		_renderer3D = makeOpenGL3DShaderRenderer(this);
-	} else {
+	}
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
+#if defined(USE_OPENGL) && !defined(USE_GLES2)
+	if (desiredRendererType == Graphics::kRendererTypeOpenGL) {
 		_renderer3D = makeOpenGL3DRenderer(this);
+	}
+#endif // defined(USE_OPENGL) && !defined(USE_GLES2)
+	if (desiredRendererType == Graphics::kRendererTypeTinyGL) {
+		// TODO
+		//_renderer3D = makeTinyGL3DRenderer(this);
+	}
+	if (!_renderer3D) {
+		error("Unable to create a 3D renderer");
+		return STATUS_FAILED;
 	}
 
 	_renderer = _renderer3D;

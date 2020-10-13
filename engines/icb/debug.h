@@ -25,26 +25,14 @@
  *
  */
 
-#ifndef D_DEBUG
-#define D_DEBUG
+#ifndef ICB_D_DEBUG
+#define ICB_D_DEBUG
 
-#include "p4_generic.h"
-
+#include "engines/icb/p4_generic.h"
 #include "engines/icb/common/px_rccommon.h"
 #include "engines/icb/common/px_string.h"
 #include "engines/icb/common/px_array.h"
-
-#if defined(_PSX) && (_PSX_ON_PC == 0)
-
-// PSX specifics
-#include "debug_psx.h"
-
-#else
-
-// PC specifics
-#include "debug_pc.h"
-
-#endif // #if defined(_PSX) && ( _PSX_ON_PC == 0 )
+#include "engines/icb/debug_pc.h"
 
 namespace ICB {
 

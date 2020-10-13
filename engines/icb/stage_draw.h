@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef __STAGE_DRAW_MODULE_H__
-#define __STAGE_DRAW_MODULE_H__
+#ifndef ICB_STAGE_DRAW_MODULE_H__
+#define ICB_STAGE_DRAW_MODULE_H__
 
 #include "engines/icb/gfx/psx_pxactor.h"
 
@@ -48,9 +48,7 @@ typedef struct {
 	uint16 r;
 	uint16 g;
 	uint16 b;
-#if _PC
 	_logic *log;
-#endif
 } SDactor;
 
 void StageDrawPoly(SDactor *actors, uint32 actorQty);

@@ -26,9 +26,6 @@
  * Copyright (c) 2011 Jan Nedoma
  */
 
-#include "engines/wintermute/base/gfx/opengl/base_render_opengl_texture.h"
-#include "engines/wintermute/base/gfx/opengl/base_surface_opengl_texture.h"
-#include "engines/wintermute/base/gfx/opengl/render_ticket.h"
 #include "engines/wintermute/base/base_surface_storage.h"
 #include "engines/wintermute/base/gfx/base_image.h"
 #include "engines/wintermute/math/math_util.h"
@@ -40,6 +37,12 @@
 #include "graphics/transparent_surface.h"
 #include "graphics/opengl/texture.h"
 #include "graphics/opengl/surfacerenderer.h"
+
+#if defined(USE_OPENGL) && !defined(USE_GLES2)
+
+#include "engines/wintermute/base/gfx/opengl/base_render_opengl_texture.h"
+#include "engines/wintermute/base/gfx/opengl/base_surface_opengl_texture.h"
+#include "engines/wintermute/base/gfx/opengl/render_ticket.h"
 
 #define DIRTY_RECT_LIMIT 800
 
@@ -127,7 +130,7 @@ bool BaseRenderOpenGLTexture::initRenderer(int width, int height, bool windowed)
 
 	_windowed = !ConfMan.getBool("fullscreen");
 
-	Graphics::PixelFormat format = OpenGL::Texture::getRGBAPixelFormat();
+	Graphics::PixelFormat format = OpenGL::TextureGL::getRGBAPixelFormat();
 
 	g_system->showMouse(false);
 
@@ -497,7 +500,7 @@ void BaseRenderOpenGLTexture::drawRenderSurface() {
 		}
 	}
 
-	OpenGL::Texture tex(*_renderSurface);
+	OpenGL::TextureGL tex(*_renderSurface);
 
 	OpenGL::SurfaceRenderer* renderer = OpenGL::createBestSurfaceRenderer();
 
@@ -641,3 +644,5 @@ bool BaseRenderOpenGLTexture::endSpriteBatch() {
 }
 
 } // End of namespace Wintermute
+
+#endif // defined(USE_OPENGL) && !defined(USE_GLES2)

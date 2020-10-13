@@ -27,10 +27,13 @@
  */
 
 #include "engines/wintermute/base/base_game.h"
-#include "engines/wintermute/base/gfx/opengl/base_render_opengl3d.h"
-#include "engines/wintermute/base/gfx/opengl/shadow_volume_opengl_shader.h"
 #include "engines/wintermute/dcgf.h"
 #include "graphics/opengl/system_headers.h"
+
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
+
+#include "engines/wintermute/base/gfx/opengl/base_render_opengl3d.h"
+#include "engines/wintermute/base/gfx/opengl/shadow_volume_opengl_shader.h"
 
 namespace Wintermute {
 
@@ -44,7 +47,7 @@ struct ShadowVertexShader {
 #include "common/pack-end.h"
 
 //////////////////////////////////////////////////////////////////////////
-ShadowVolumeOpenGLShader::ShadowVolumeOpenGLShader(BaseGame *inGame, OpenGL::Shader *volumeShader, OpenGL::Shader *maskShader)
+ShadowVolumeOpenGLShader::ShadowVolumeOpenGLShader(BaseGame *inGame, OpenGL::ShaderGL *volumeShader, OpenGL::ShaderGL *maskShader)
 	: ShadowVolume(inGame), _color(0x7f000000), _volumeShader(volumeShader), _maskShader(maskShader) {
 	ShadowVertexShader shadowMask[4];
 	Rect32 viewport = _gameRef->_renderer->getViewPort();
@@ -203,3 +206,5 @@ bool ShadowVolumeOpenGLShader::initMask() {
 }
 
 } // namespace Wintermute
+
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)

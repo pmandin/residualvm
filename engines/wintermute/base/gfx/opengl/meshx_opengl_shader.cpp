@@ -26,15 +26,18 @@
  * Copyright (c) 2003-2013 Jan Nedoma and contributors
  */
 
-#include "engines/wintermute/base/gfx/opengl/base_surface_opengl3d.h"
-#include "engines/wintermute/base/gfx/opengl/meshx_opengl_shader.h"
 #include "engines/wintermute/base/gfx/x/material.h"
 #include "graphics/opengl/system_headers.h"
+
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
+
+#include "engines/wintermute/base/gfx/opengl/base_surface_opengl3d.h"
+#include "engines/wintermute/base/gfx/opengl/meshx_opengl_shader.h"
 
 namespace Wintermute {
 
 //////////////////////////////////////////////////////////////////////////
-MeshXOpenGLShader::MeshXOpenGLShader(BaseGame *inGame, OpenGL::Shader *shader) :
+MeshXOpenGLShader::MeshXOpenGLShader(BaseGame *inGame, OpenGL::ShaderGL *shader) :
 	MeshX(inGame), _shader(shader) {
 	glGenBuffers(1, &_vertexBuffer);
 	glGenBuffers(1, &_indexBuffer);
@@ -113,3 +116,5 @@ bool MeshXOpenGLShader::update(FrameNode *parentFrame) {
 }
 
 } // namespace Wintermute
+
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)

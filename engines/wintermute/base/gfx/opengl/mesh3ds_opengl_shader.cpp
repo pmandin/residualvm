@@ -20,13 +20,16 @@
  *
  */
 
-#include "engines/wintermute/base/gfx/opengl/mesh3ds_opengl_shader.h"
 #include "engines/wintermute/wintypes.h"
 #include "graphics/opengl/system_headers.h"
 
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
+
+#include "engines/wintermute/base/gfx/opengl/mesh3ds_opengl_shader.h"
+
 namespace Wintermute {
 
-Mesh3DSOpenGLShader::Mesh3DSOpenGLShader(OpenGL::Shader *shader) : _shader(shader) {
+Mesh3DSOpenGLShader::Mesh3DSOpenGLShader(OpenGL::ShaderGL *shader) : _shader(shader) {
 	glGenBuffers(1, &_vertexBuffer);
 	glGenBuffers(1, &_indexBuffer);
 }
@@ -66,3 +69,5 @@ void Mesh3DSOpenGLShader::render() {
 }
 
 } // namespace Wintermute
+
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)

@@ -25,13 +25,11 @@
  *
  */
 
-#ifndef PSX_CAMERA_H
-#define PSX_CAMERA_H
+#ifndef ICB_PSX_CAMERA_H
+#define ICB_PSX_CAMERA_H
 
-#include "psx_pcdefines.h"
-
+#include "engines/icb/gfx/psx_pcdefines.h"
 #include "engines/icb/common/px_rcutypes.h"
-
 #include "engines/icb/common/px_common.h"
 
 namespace ICB {

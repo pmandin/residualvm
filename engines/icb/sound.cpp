@@ -25,33 +25,22 @@
  *
  */
 
-#include "p4.h"
-
+#include "engines/icb/p4.h"
 #include "engines/icb/common/px_common.h"
 #include "engines/icb/common/px_sfx_description.h"
 #include "engines/icb/common/px_linkeddatafile.h"
 #include "engines/icb/common/px_clu_api.h"
 #include "engines/icb/icb.h"
-
-#include "debug.h"
-#include "sound.h"
-
-#include "sound_lowlevel.h"
-
-#include "global_objects.h"
-#include "res_man.h"
-#include "session.h"
-#include "mission.h"
-
+#include "engines/icb/debug.h"
+#include "engines/icb/sound.h"
+#include "engines/icb/sound_lowlevel.h"
+#include "engines/icb/global_objects.h"
+#include "engines/icb/res_man.h"
+#include "engines/icb/session.h"
+#include "engines/icb/mission.h"
 #include "engines/icb/common/px_sound_constants.h"
-
-#include "sound_logic.h"
-
-#ifdef _PSX
-#include "fn_sting_psx.h"
-#endif
-
-#include "remora.h"
+#include "engines/icb/sound_logic.h"
+#include "engines/icb/remora.h"
 
 #include "common/textconsole.h"
 
@@ -273,31 +262,16 @@ _linked_data_file *GetMissionSfxFile() {
 	// if no mission return NULL
 	if (!g_mission) {
 		// PC NEEDS THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#if _PC
 		Fatal_error("No global mission sound so no special sfx!");
-#else
-
-		fileHash = NULL_HASH;
-		clusterHash = NULL_HASH;
-		f = (_linked_data_file *)private_session_resman->Res_open("m_sfxlist", fileHash, global_cluster_path, clusterHash);
-
-#endif
 
 	}
 	// get the file...
 	else {
-#if _PSX
-		fileHash = HashString("m_sfxlist");
-		clusterHash = MS->Fetch_session_cluster_hash();
-
-		f = (_linked_data_file *)private_session_resman->Res_open("m_sfxlist", fileHash, MS->Fetch_session_cluster(), clusterHash);
-#else // _PSX
 
 		fileHash = NULL_HASH;
 		clusterHash = MS->Fetch_session_cluster_hash();
 		f = (_linked_data_file *)private_session_resman->Res_open("m_sfxlist", fileHash, MS->Fetch_session_cluster(), clusterHash);
 
-#endif // _PSX
 	}
 
 	if ((f->GetHeaderVersion() != SFX_VERSION) || (f->header.type != FT_COMPILED_SFX))
@@ -317,9 +291,6 @@ _linked_data_file *GetSessionSfxFile() {
 	uint32 fileHash = NULL_HASH;
 	uint32 clusterHash = MS->Fetch_session_cluster_hash();
 	_linked_data_file *f;
-#if _PSX
-	f = (_linked_data_file *)private_session_resman->Res_open("s_sfxlist", fileHash, MS->Fetch_session_cluster(), clusterHash);
-#else
 
 	// For the PC clustering the sfx file does not have the path, just the name
 
@@ -328,7 +299,6 @@ _linked_data_file *GetSessionSfxFile() {
 	    "s_sfxlist",
 
 	    fileHash, MS->Fetch_session_cluster(), clusterHash);
-#endif
 
 	if ((f->GetHeaderVersion() != SFX_VERSION) || (f->header.type != FT_COMPILED_SFX))
 		Fatal_error("Sound: session::the.cmpsfxlist, Header wrong, engine:%d,%08x file:%d,%08x\n", SFX_VERSION, FT_COMPILED_SFX, f->GetHeaderVersion(), f->header.type);
@@ -896,11 +866,7 @@ void CRegisteredSound::RegisterFromAbsolute(const uint32 objID, const cstr sndNa
 	m_objMoving = 0;
 }
 
-#if _PSX
-#define MAX_SCREEN (SCREEN_WIDTH / 2)
-#else
 #define MAX_SCREEN (float)(SCREEN_WIDTH / 2)
-#endif
 
 // if the sound if coming froma moving souce, this updates the position, otherwise it does nothing
 void CRegisteredSound::GetPosition() {
@@ -1115,11 +1081,7 @@ int32 GetFreeSound(const cstr sfxName) {
 			return i;
 		}
 
-#if _PSX
-	Real_Fatal_error("No free sounds! %s", sfxName);
-#else // #if _PSX
 	Fatal_error("No free sounds! %s", sfxName);
-#endif
 	return -1;
 }
 
@@ -1301,17 +1263,10 @@ void StopAllSoundsNow() {
 void PauseSounds() {
 	pauseSound = TRUE8;
 	UpdateHearableSounds();
-
-#ifdef _PSX
-	PauseStings();
-#endif
 }
 
 void UnpauseSounds() {
 	pauseSound = FALSE8;
-#ifdef _PSX
-	UnpauseStings();
-#endif
 }
 
 } // End of namespace ICB

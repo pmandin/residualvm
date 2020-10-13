@@ -25,10 +25,10 @@
  *
  */
 
-#ifndef SET_PC_H
-#define SET_PC_H
+#ifndef ICB_SET_PC_H
+#define ICB_SET_PC_H
 
-#include "p4_generic.h"
+#include "engines/icb/p4_generic.h"
 #include "engines/icb/gfx/psx_pcdefines.h"
 #include "engines/icb/gfx/rlp_api.h"
 #include "engines/icb/common/pc_props.h"

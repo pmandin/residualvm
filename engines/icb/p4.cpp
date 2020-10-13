@@ -25,51 +25,21 @@
  *
  */
 
-#define FORBIDDEN_SYMBOL_EXCEPTION_time
-#define FORBIDDEN_SYMBOL_EXCEPTION_localtime
-#define FORBIDDEN_SYMBOL_EXCEPTION_mkdir
-
-#include <math.h>
-
-#ifdef _WIN32
-#include <direct.h> // _getcwd()
-#else
-
-#endif
-#include <time.h>
-
-#include "p4.h"
-
-#include "keyboard.h"
-#include "mouse.h"
-#include "debug.h"
-
-#include "res_man.h"
-
-#include "direct_input.h"
-
-#include "main_menu.h"
-#include "gameover.h"
-
+#include "engines/icb/p4.h"
+#include "engines/icb/keyboard.h"
+#include "engines/icb/mouse.h"
+#include "engines/icb/debug.h"
+#include "engines/icb/res_man.h"
+#include "engines/icb/direct_input.h"
+#include "engines/icb/main_menu.h"
+#include "engines/icb/gameover.h"
 #include "engines/icb/common/px_common.h"
-
-#include "stage_view.h"
-#include "game_script.h"
-
-#include "global_switches.h"
-
-#if _PSX
-#include "pause_menu_psx.h"
-#include "options_menu_psx.h"
-#include "load_save_psx.h"
-#endif // #if   _PSX
-
-#if _PC
-#include "movie_pc.h"
-#include "options_manager_pc.h"
-#endif // #if   _PC
-
-#include "mission.h"
+#include "engines/icb/stage_view.h"
+#include "engines/icb/game_script.h"
+#include "engines/icb/global_switches.h"
+#include "engines/icb/movie_pc.h"
+#include "engines/icb/options_manager_pc.h"
+#include "engines/icb/mission.h"
 
 #include "common/keyboard.h"
 #include "common/textconsole.h"
@@ -97,9 +67,7 @@ _stub::_stub() {
 	mode[0] = __no_stub_mode; // engine MUST set a real mode depending upon environment
 
 	Timer_on();
-#ifdef _PC
 	cycle_speed = 100;
-#endif
 }
 
 _stub::~_stub() {
@@ -122,7 +90,6 @@ void _stub::Set_current_stub_mode(__stub_modes new_mode) {
 void _stub::Process_stub() {
 	// call the mode!
 
-#if _PC
 	// update current keys
 	Poll_direct_input();
 
@@ -137,7 +104,6 @@ void _stub::Process_stub() {
 			}
 		}
 	}
-#endif
 
 	// reset the time equaliser
 	Reset_timer();
@@ -155,9 +121,7 @@ void _stub::Process_stub() {
 
 		Mission_and_console();
 
-#if _PC
 		Fix_time();
-#endif
 		Update_screen();
 		break;
 
@@ -190,7 +154,6 @@ void _stub::Process_stub() {
 
 	case __sequence:
 
-#if _PC
 		// Ask to bink to display a frame of the movie
 		int32 ret;
 		ret = g_theSequenceManager->drawFrame();
@@ -210,9 +173,6 @@ void _stub::Process_stub() {
 			// This smooths the playback framerate
 			Fix_time();
 		}
-#else
-		Fatal_error("Sequence stub mode not used for PSX");
-#endif
 		Update_screen();
 		break;
 
@@ -228,47 +188,24 @@ void _stub::Process_stub() {
 
 	case __options_menu:
 
-#if _PC
 		Fatal_error("__options_menu stub not supported on PC");
-#endif
 
-#if _PSX
-		Options_menu();
-#endif
 		break;
 
 	case __load_save_menu:
 
-#if _PC
 		Fatal_error("__load_save_menu stub not supported on PC");
-#endif
-
-#if _PSX
-		LoadSaveMenu();
-#endif
 
 		break;
 
 	case __credits:
 
-#if _PC
 		Credits();
-#endif
-
-#if _PSX
-		Fatal_error("__credits stub not supported on PSX");
-#endif
 		break;
 
 	case __scrolling_text:
 
-#if _PC
 		ScrollingText();
-#endif
-
-#if _PSX
-		Fatal_error("__scrolling_text stub not supported on PSX");
-#endif
 		break;
 
 	default:
@@ -280,32 +217,26 @@ void _stub::Process_stub() {
 
 void _stub::Update_screen() {
 	// had to be split off to stop screen updates between stub cycles - i.e. sequence to game...
-#if _PC
 
 	// Record the next frame of the video if any
 	static uint32 frameNumber = 0;
 	if (px.recordingVideo)
-		surface_manager->RecordFrame(pxVString("c:\\temp\\icb%05d.bmp", frameNumber++));
+		surface_manager->RecordFrame(pxVString("icb%05d.bmp", frameNumber++));
 
 	// Grab screen shots if required
 	if (Read_DI_keys(Common::KEYCODE_LCTRL) || Read_DI_keys(Common::KEYCODE_RCTRL)) {
 		if (Read_DI_keys(Common::KEYCODE_s)) {
 			// Take a screen grab
-			struct tm *newtime;
-			time_t int32_time;
-			time(&int32_time);                                      /* Get time as int32 integer. */
-			newtime = localtime(&int32_time);                       /* Convert to local time. */
-			if (!checkFileExists(pxVString("%sScreenShots", root))) // TODO: Had amode = 0
-				error("ICB wants to create folder %sScreenShots", root);
+			if (!checkFileExists(pxVString("ScreenShots"))) // TODO: Had amode = 0
+				error("ICB wants to create folder ScreenShots");
 			/*
 #ifdef _WIN32
-				mkdir(pxVString("%sScreenShots", root));
+				mkdir(pxVString("ScreenShots"));
 #else
-				mkdir(pxVString("%sScreenShots", root), 0755);
+				mkdir(pxVString("ScreenShots"), 0755);
 #endif
 			*/
-			surface_manager->RecordFrame(pxVString("%sScreenShots\\%02d_%02d_%04d__%02d_%02d_%02d.bmp", root, newtime->tm_mday, 1 + newtime->tm_mon,
-			                                       1900 + newtime->tm_year, newtime->tm_hour, newtime->tm_min, newtime->tm_sec));
+			surface_manager->RecordFrame(pxVString("ScreenShots\\%08d.bmp", g_system->getMillis()));
 		}
 	}
 
@@ -313,13 +244,6 @@ void _stub::Update_screen() {
 	// FLIP
 	surface_manager->Flip();
 	g_icb_mission->flip_time = GetMicroTimer() - g_icb_mission->flip_time;
-
-#endif
-
-#if _PSX
-	if (mode[stub] != __mission_and_console)
-		Flip();
-#endif
 }
 
 void _stub::Push_stub_mode(__stub_modes new_mode) {

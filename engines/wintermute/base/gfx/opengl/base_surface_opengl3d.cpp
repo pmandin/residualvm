@@ -21,10 +21,13 @@
  */
 
 #include "common/algorithm.h"
-#include "engines/wintermute/base/gfx/opengl/base_surface_opengl3d.h"
-#include "engines/wintermute/base/gfx/opengl/base_render_opengl3d.h"
 #include "engines/wintermute/base/gfx/base_image.h"
 #include "graphics/transparent_surface.h"
+
+#if defined(USE_OPENGL) && !defined(USE_GLES2)
+
+#include "engines/wintermute/base/gfx/opengl/base_surface_opengl3d.h"
+#include "engines/wintermute/base/gfx/opengl/base_render_opengl3d.h"
 
 namespace Wintermute {
 
@@ -176,7 +179,7 @@ bool BaseSurfaceOpenGL3D::create(const Common::String &filename, bool defaultCK,
 	bool needsColorKey = false;
 	bool replaceAlpha = true;
 
-	Graphics::Surface *surf = img.getSurface()->convertTo(OpenGL::Texture::getRGBAPixelFormat(), img.getPalette());
+	Graphics::Surface *surf = img.getSurface()->convertTo(OpenGL::TextureGL::getRGBAPixelFormat(), img.getPalette());
 
 	if (_filename.hasSuffix(".bmp") && img.getSurface()->format.bytesPerPixel == 4) {
 		// 32 bpp BMPs have nothing useful in their alpha-channel -> color-key
@@ -302,4 +305,6 @@ void BaseSurfaceOpenGL3D::setTexture() {
 	glBindTexture(GL_TEXTURE_2D, _tex);
 }
 
-}
+} // End of namespace Wintermute
+
+#endif // defined(USE_OPENGL) && !defined(USE_GLES2)

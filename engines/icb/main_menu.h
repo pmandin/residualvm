@@ -25,26 +25,18 @@
  *
  */
 
-#ifndef MAIN_MENU_H
-#define MAIN_MENU_H
+#ifndef ICB_MAIN_MENU_H
+#define ICB_MAIN_MENU_H
 
 namespace ICB {
 
 void Main_menu();
 void Pause_menu();
 
-#if _PSX
-#define INGAME_IDLE_TIMEOUT (12 * 60 * 3)
-#define INGAME_ACTIVE_TIMEOUT (12 * 60 * 10)
-extern int ingameIdle;
-#endif
-
-#if _PC
 void Credits();
 void ScrollingText();
 void InitisliaseScrollingText(const char *textFileName, const char *movieFileName, int frameStart);
 void GameCompleted();
-#endif
 
 } // End of namespace ICB
 

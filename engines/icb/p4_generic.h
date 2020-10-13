@@ -25,22 +25,12 @@
  *
  */
 
-#ifndef INCLUDED_P4_GENERIC_H
-#define INCLUDED_P4_GENERIC_H
+#ifndef ICB_INCLUDED_P4_GENERIC_H
+#define ICB_INCLUDED_P4_GENERIC_H
 
 #include "engines/icb/common/px_rccommon.h"
-
-#include "p4.h"
-
-#ifdef _PSX
-
-#include "p4_generic_psx.h"
-
-#else
-
-#include "p4_generic_pc.h"
-
-#endif // #ifdef _PSX
+#include "engines/icb/p4.h"
+#include "engines/icb/p4_generic_pc.h"
 
 namespace ICB {
 

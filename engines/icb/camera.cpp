@@ -25,21 +25,20 @@
  *
  */
 
-#include "p4.h"
-
+#include "engines/icb/p4.h"
 #include "engines/icb/common/px_common.h"
 #include "engines/icb/common/px_game_object.h"
 #include "engines/icb/common/px_scriptengine.h"
 #include "engines/icb/common/ptr_util.h"
-#include "session.h"
-#include "object_structs.h"
-#include "debug.h"
-#include "player.h"
-#include "global_objects.h"
-#include "global_switches.h"
-#include "res_man.h"
-#include "floors.h"
-#include "mission.h"
+#include "engines/icb/session.h"
+#include "engines/icb/object_structs.h"
+#include "engines/icb/debug.h"
+#include "engines/icb/player.h"
+#include "engines/icb/global_objects.h"
+#include "engines/icb/global_switches.h"
+#include "engines/icb/res_man.h"
+#include "engines/icb/floors.h"
+#include "engines/icb/mission.h"
 
 namespace ICB {
 
@@ -499,15 +498,9 @@ mcodeFunctionReturnCodes _game_session::fn_switch_to_manual_camera(int32 &, int3
 
 	manual_camera = TRUE8;
 
-#ifdef _PC
 	len = sprintf(manual_camera_name, "%s\\pc\\%s", room_name, camera_name);
 	if (len > ENGINE_STRING_LEN)
 		Fatal_error("fn_switch_to_manual_camera string len error");
-#else
-	len = sprintf(manual_camera_name, "%s\\psx\\%s", room_name, camera_name);
-	if (len > ENGINE_STRING_LEN)
-		Fatal_error("fn_switch_to_manual_camera string len error");
-#endif
 
 	HashFile(manual_camera_name, h_buf);
 
@@ -549,15 +542,9 @@ mcodeFunctionReturnCodes _game_session::fn_is_current_location(int32 &result, in
 
 	Message_box("is %s current location?", location_name);
 
-#ifdef _PC
 	len = sprintf(manual_camera_name, "%s\\pc\\%s", location_name, set.GetSetName());
 	if (len > ENGINE_STRING_LEN)
 		Fatal_error("fn_is_current_location string len error");
-#else
-	len = sprintf(manual_camera_name, "%s\\psx\\%s", location_name, set.GetSetName());
-	if (len > ENGINE_STRING_LEN)
-		Fatal_error("fn_is_current_location string len error");
-#endif
 
 	HashFile(manual_camera_name, h_buf);
 	result = 1;

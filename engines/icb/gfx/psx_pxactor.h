@@ -25,10 +25,10 @@
  *
  */
 
-#ifndef PSX_PXACTOR_H
-#define PSX_PXACTOR_H
+#ifndef ICB_PSX_PXACTOR_H
+#define ICB_PSX_PXACTOR_H
 
-#include "psx_pcgpu.h"
+#include "engines/icb/gfx/psx_pcgpu.h"
 #include "engines/icb/common/px_common.h"
 #include "engines/icb/shadow.h"
 

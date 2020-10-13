@@ -25,10 +25,10 @@
  *
  */
 
-#ifndef LIGHT_PC_H
-#define LIGHT_PC_H
+#ifndef ICB_LIGHT_PC_H
+#define ICB_LIGHT_PC_H
 
-#include "light.h"
+#include "engines/icb/light.h"
 
 namespace ICB {
 

@@ -25,10 +25,10 @@
  *
  */
 
-#ifndef _PX_BONES_H
-#define _PX_BONES_H
+#ifndef ICB_PX_BONES_H
+#define ICB_PX_BONES_H
 
-#include "px_common.h"
+#include "engines/icb/common/px_common.h"
 
 namespace ICB {
 

@@ -27,6 +27,7 @@
 #include "backends/events/sdl/sdl-events.h"
 #include "backends/platform/sdl/sdl.h"
 #include "backends/graphics/graphics.h"
+#include "backends/graphics3d/sdl/sdl-graphics3d.h" // ResidualVM
 #include "common/config-manager.h"
 #include "common/textconsole.h"
 #include "common/fs.h"
@@ -185,9 +186,17 @@ bool SdlEventSource::processMouseEvent(Common::Event &event, int x, int y, int r
 
 	event.mouse.x = x;
 	event.mouse.y = y;
+	event.relMouse.x = relx; // ResidualVM
+	event.relMouse.y = rely; // ResidualVM
 
 	if (_graphicsManager) {
-		return _graphicsManager->notifyMousePosition(event.mouse);
+// ResidualVM start:
+		if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
+			dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyMousePosition(event.mouse);
+		} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
+			dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyMousePosition(event.mouse);
+		}
+// ResidualVM end
 	}
 
 	return true;
@@ -508,8 +517,15 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 	case SDL_WINDOWEVENT:
 		switch (ev.window.event) {
 		case SDL_WINDOWEVENT_EXPOSED:
-			if (_graphicsManager)
-				_graphicsManager->notifyVideoExpose();
+			if (_graphicsManager) {
+// ResidualVM start:
+				if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
+					dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyVideoExpose();
+				} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
+					dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyVideoExpose();
+				}
+// ResidualVM end
+			}
 			return false;
 
 		// SDL2 documentation indicate that SDL_WINDOWEVENT_SIZE_CHANGED is sent either as a result
@@ -566,8 +582,15 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 		return true;
 #else
 	case SDL_VIDEOEXPOSE:
-		if (_graphicsManager)
-			_graphicsManager->notifyVideoExpose();
+		if (_graphicsManager) {
+// ResidualVM start:
+			if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
+				dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyVideoExpose();
+			} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
+				dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyVideoExpose();
+			}
+// ResidualVM end
+		}
 		return false;
 
 	case SDL_VIDEORESIZE:
@@ -960,8 +983,13 @@ void SdlEventSource::setEngineRunning(const bool value) {
 
 bool SdlEventSource::handleResizeEvent(Common::Event &event, int w, int h) {
 	if (_graphicsManager) {
-		_graphicsManager->notifyResize(w, h);
-
+// ResidualVM start:
+		if (dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)) {
+			dynamic_cast<SdlGraphics3dManager *>(_graphicsManager)->notifyResize(w, h);
+		} else if (dynamic_cast<SdlGraphicsManager *>(_graphicsManager)) {
+			dynamic_cast<SdlGraphicsManager *>(_graphicsManager)->notifyResize(w, h);
+		}
+// ResidualVM end
 		// If the screen changed, send an Common::EVENT_SCREEN_CHANGED
 		int screenID = g_system->getScreenChangeID();
 		if (screenID != _lastScreenID) {

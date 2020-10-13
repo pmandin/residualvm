@@ -25,22 +25,15 @@
  *
  */
 
-#ifndef _GLOBAL_OBJECTS_PSX_H
-#define _GLOBAL_OBJECTS_PSX_H
+#ifndef ICB_GLOBAL_OBJECTS_PSX_H
+#define ICB_GLOBAL_OBJECTS_PSX_H
 
 #include "engines/icb/common/px_rcutypes.h"
-#include "surface_manager.h"
+#include "engines/icb/surface_manager.h"
 #include "engines/icb/gfx/psx_light.h"
 #include "engines/icb/gfx/psx_tman.h"
 
 namespace ICB {
-
-#if _PSX && !_PSX_ON_PC
-
-extern const char *productCode;
-#define PRODUCT_CODE productCode
-
-#endif // #if _PSX && !_PSX_ON_PC
 
 #define DECOMPRESSION_BUFFER_SIZE (64 * 64)
 // A piece of memory for decompressing sprites into

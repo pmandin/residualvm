@@ -25,10 +25,10 @@
  *
  */
 
-#ifndef PC_PROPS_H
-#define PC_PROPS_H
+#ifndef ICB_PC_PROPS_H
+#define ICB_PC_PROPS_H
 
-#include "px_staticlayers.h" // for types + defines
+#include "engines/icb/common/px_staticlayers.h" // for types + defines
 #include "engines/icb/common/px_types.h"
 
 namespace ICB {

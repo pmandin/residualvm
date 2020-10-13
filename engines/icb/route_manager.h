@@ -25,14 +25,13 @@
  *
  */
 
-#ifndef ROUTE_MANAGER_H
-#define ROUTE_MANAGER_H
+#ifndef ICB_ROUTE_MANAGER_H
+#define ICB_ROUTE_MANAGER_H
 
 #include "engines/icb/common/px_rcutypes.h"
 #include "engines/icb/common/px_array.h"
-
-#include "graphic_prims.h" //_point etc.
-#include "animation_mega_set.h"
+#include "engines/icb/graphic_prims.h" //_point etc.
+#include "engines/icb/animation_mega_set.h"
 
 namespace ICB {
 

@@ -62,7 +62,7 @@ Rect32 BaseRenderer3D::getViewPort() {
 }
 
 Graphics::PixelFormat BaseRenderer3D::getPixelFormat() const {
-	return OpenGL::Texture::getRGBAPixelFormat();
+	return g_system->getScreenFormat();
 }
 
 void BaseRenderer3D::fade(uint16 alpha) {

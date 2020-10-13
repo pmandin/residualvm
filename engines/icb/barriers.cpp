@@ -25,24 +25,19 @@
  *
  */
 
-#include <limits.h>
-#include <math.h>
-
-#include "p4.h"
-
+#include "engines/icb/p4.h"
 #include "engines/icb/common/px_common.h"
 #include "engines/icb/common/px_floor_map.h"
 #include "engines/icb/common/px_linkeddatafile.h"
 #include "engines/icb/common/px_route_barriers.h"
 #include "engines/icb/common/px_prop_anims.h"
-
-#include "mission.h"
-#include "session.h"
-#include "debug.h"
-#include "floors.h"
-#include "barriers.h"
-#include "global_objects.h"
-#include "res_man.h"
+#include "engines/icb/mission.h"
+#include "engines/icb/session.h"
+#include "engines/icb/debug.h"
+#include "engines/icb/floors.h"
+#include "engines/icb/barriers.h"
+#include "engines/icb/global_objects.h"
+#include "engines/icb/res_man.h"
 
 #include "common/textconsole.h"
 
@@ -407,22 +402,12 @@ __barrier_result _game_session::Check_barrier_bump_and_bounce(PXreal newx, PXrea
 
 				if ((dz * (mx - M->actor_xyz.x)) <= (dx * (mz - M->actor_xyz.z))) {
 					// right
-#ifdef  _PC
 					if ((distance > (50 * 50)) && (distance < (120 * 120)))
 						L->pan += 0.03f;
-#else
-					if ((distance > (50 * 50)) && (distance < (120 * 120)))
-						L->pan += (FULL_TURN * 3) / 100;
-#endif
 				} else {
 					// left
-#ifdef  _PC
 					if ((distance > (50 * 50)) && (distance < (120 * 120)))
 						L->pan -= 0.03f;
-#else
-					if ((distance > (50 * 50)) && (distance < (120 * 120)))
-						L->pan -= (FULL_TURN * 3) / 100;
-#endif
 				}
 
 				total_adjusts++;
@@ -901,13 +886,9 @@ _parent_box *_barrier_handler::Fetch_parent_box_for_xyz(PXreal x, PXreal y, PXre
 		// safety
 		slice_num++;
 		if (slice_num == total_slices) { // if so then must be last slice :O
-#ifdef _PC
 			Fatal_error("_barrier_handler::Fetch_parent_box_for_xyz ran out of slices: object [%s] (%3.1f %3.1f %3.1f) has an "
 			            "illegal marker",
 			            MS->Fetch_object_name(MS->Fetch_cur_id()), x, y, z);
-#else
-			Fatal_error("_barrier_handler::Fetch_parent_box_for_xyz ran out of slices: object [%s] has an illegal marker", MS->Fetch_object_name(MS->Fetch_cur_id()));
-#endif
 		}
 		// next
 		slice++;

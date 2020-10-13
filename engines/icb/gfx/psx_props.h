@@ -25,22 +25,16 @@
  *
  */
 
-#ifndef PSX_PROPS_H
-#define PSX_PROPS_H
+#ifndef ICB_PSX_PROPS_H
+#define ICB_PSX_PROPS_H
 
-#ifdef _PSX
-
-#else //#ifdef _PSX
-
-#include "psx_pcdefines.h"
-
-#endif //#ifdef _PSX
+#include "engines/icb/gfx/psx_pcdefines.h"
 
 #define PSXPL_SCHEMA 4
 #define PSXPL_ID "PLF"
 
-#include "psx_zlayers.h"
-#include "psx_bg.h"
+#include "engines/icb/gfx/psx_zlayers.h"
+#include "engines/icb/gfx/psx_bg.h"
 #include "engines/icb/common/px_bitmap_psx.h"
 
 namespace ICB {
@@ -285,14 +279,12 @@ typedef struct psxPropState {
 	inline psxZMicroFrag *GetZMicroFragPtr(void);
 	inline _pxPSXBitmap *GetPropBitmapPtr(void);
 
-#if _PC
 	psxPropState() { ; }
 
 private:
 	// Make '=' and copy constructor private to stop accidental assignment.
 	psxPropState(const psxPropState &) { ; }
 	void operator=(const psxPropState &) { ; }
-#endif
 
 } psxPropState;
 

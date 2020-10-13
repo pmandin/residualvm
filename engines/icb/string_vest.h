@@ -25,28 +25,13 @@
  *
  */
 
-#ifndef __STRING_VEST_H
-#define __STRING_VEST_H
+#ifndef ICB_STRING_VEST_H
+#define ICB_STRING_VEST_H
 
 #include "engines/icb/common/px_common.h"
 #include "engines/icb/debug.h"
 
 namespace ICB {
-
-#ifdef _PSX
-
-#define ENGINE_STRING_LEN 64
-
-// This is the maximum length of a complete URL (clustering might remove the need for this).
-#define MAXLEN_URL ENGINE_STRING_LEN
-
-// This is the maximum length of a complete URL to a cluster.
-#define MAXLEN_CLUSTER_URL 16
-
-// The maximum length of an icon name.
-#define MAXLEN_ICON_NAME 4
-
-#else
 
 #define ENGINE_STRING_LEN 256
 
@@ -58,8 +43,6 @@ namespace ICB {
 
 // The maximum length of an icon name.
 #define MAXLEN_ICON_NAME 32
-
-#endif
 
 // Maximum length of an event name.
 #define MAXLEN_EVENT_NAME 16

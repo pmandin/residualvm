@@ -24,7 +24,7 @@
 
 #include "backends/audiocd/audiocd.h"
 #include "backends/graphics/graphics.h"
-#include "backends/graphics/resvm-graphics.h" // ResidualVM specific
+#include "backends/graphics3d/graphics3d.h" // ResidualVM specific
 #include "backends/mixer/mixer.h"
 #include "backends/mutex/mutex.h"
 #include "gui/EventRecorder.h"
@@ -69,8 +69,8 @@ int ModularGraphicsBackend::getDefaultGraphicsMode() const {
 	return _graphicsManager->getDefaultGraphicsMode();
 }
 
-bool ModularGraphicsBackend::setGraphicsMode(int mode) {
-	return _graphicsManager->setGraphicsMode(mode);
+bool ModularGraphicsBackend::setGraphicsMode(int mode, uint flags) { // ResidualVM
+	return _graphicsManager->setGraphicsMode(mode, flags); // ResidualVM
 }
 
 int ModularGraphicsBackend::getGraphicsMode() const {
@@ -126,18 +126,8 @@ Common::List<Graphics::PixelFormat> ModularGraphicsBackend::getSupportedFormats(
 #endif
 
 // ResidualVM specific method
-void ModularGraphicsBackend::setupScreen(uint screenW, uint screenH, bool fullscreen, bool accel3d) {
-	_graphicsManager->setupScreen(screenW, screenH, fullscreen, accel3d);
-}
-
-// ResidualVM specific method
 Graphics::PixelBuffer ModularGraphicsBackend::getScreenPixelBuffer() {
 	return _graphicsManager->getScreenPixelBuffer();
-}
-
-// ResidualVM specific method
-void ModularGraphicsBackend::suggestSideTextures(Graphics::Surface *left, Graphics::Surface *right) {
-	_graphicsManager->suggestSideTextures(left, right);
 }
 
 void ModularGraphicsBackend::initSize(uint w, uint h, const Graphics::PixelFormat *format ) {

@@ -25,15 +25,10 @@
  *
  */
 
-#ifndef __DIRECT_SOUND_H__
-#define __DIRECT_SOUND_H__
-
-#ifdef _PSX
-#error "DirectSound.h only for pc builds"
-#endif
+#ifndef ICB_DIRECT_SOUND_H__
+#define ICB_DIRECT_SOUND_H__
 
 #include "engines/icb/common/px_common.h"
-
 #include "engines/icb/common/px_types.h"
 
 namespace ICB {

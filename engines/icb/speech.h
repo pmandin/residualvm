@@ -25,19 +25,14 @@
  *
  */
 
-#ifndef SPEECH_H
-#define SPEECH_H
+#ifndef ICB_SPEECH_H
+#define ICB_SPEECH_H
 
 #include "engines/icb/common/px_array.h"
 #include "engines/icb/common/px_string.h"
 #include "engines/icb/common/px_assert.h"
 #include "engines/icb/common/px_common.h"
-
-#if defined(_PSX)
-#include "engines/icb/speech_psx.h"
-#endif
-
-#include "string_vest.h"
+#include "engines/icb/string_vest.h"
 
 namespace ICB {
 

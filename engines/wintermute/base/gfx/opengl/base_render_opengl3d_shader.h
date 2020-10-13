@@ -27,12 +27,15 @@
 #include "engines/wintermute/dctypes.h"
 #include "engines/wintermute/math/rect32.h"
 #include "engines/wintermute/math/vector2.h"
-#include "graphics/opengl/shader.h"
 #include "graphics/opengl/system_headers.h"
 #include "graphics/opengl/texture.h"
 #include "graphics/transform_struct.h"
 #include "math/matrix4.h"
 #include "math/ray.h"
+
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
+
+#include "graphics/opengl/shader.h"
 
 namespace Wintermute {
 
@@ -114,7 +117,7 @@ public:
 	};
 
 	bool drawSpriteEx(BaseSurfaceOpenGL3D &tex, const Rect32 &rect, const Vector2 &pos, const Vector2 &rot, const Vector2 &scale,
-	                  float angle, uint32 color, bool alphaDisable, Graphics::TSpriteBlendMode blendMode, bool mirrorX, bool mirrorY);
+	                  float angle, uint32 color, bool alphaDisable, Graphics::TSpriteBlendMode blendMode, bool mirrorX, bool mirrorY) override;
 
 	void renderSceneGeometry(const BaseArray<AdWalkplane *> &planes, const BaseArray<AdBlock *> &blocks,
 	                         const BaseArray<AdGeneric *> &generics, const BaseArray<Light3D *> &lights, Camera3D *camera) override;
@@ -138,15 +141,17 @@ private:
 	GLuint _spriteVBO;
 	GLuint _fadeVBO;
 	GLuint _lineVBO;
-	OpenGL::Shader *_spriteShader;
-	OpenGL::Shader *_fadeShader;
-	OpenGL::Shader *_modelXShader;
-	OpenGL::Shader *_geometryShader;
-	OpenGL::Shader *_shadowVolumeShader;
-	OpenGL::Shader *_shadowMaskShader;
-	OpenGL::Shader *_lineShader;
+	OpenGL::ShaderGL *_spriteShader;
+	OpenGL::ShaderGL *_fadeShader;
+	OpenGL::ShaderGL *_modelXShader;
+	OpenGL::ShaderGL *_geometryShader;
+	OpenGL::ShaderGL *_shadowVolumeShader;
+	OpenGL::ShaderGL *_shadowMaskShader;
+	OpenGL::ShaderGL *_lineShader;
 };
 
 } // namespace Wintermute
+
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
 
 #endif

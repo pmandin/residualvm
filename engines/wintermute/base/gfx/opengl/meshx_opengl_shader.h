@@ -30,13 +30,16 @@
 #define WINTERMUTE_MESH_X_OPENGL_SHADER_H
 
 #include "engines/wintermute/base/gfx/x/meshx.h"
+
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
+
 #include "graphics/opengl/shader.h"
 
 namespace Wintermute {
 
 class MeshXOpenGLShader : public MeshX {
 public:
-	MeshXOpenGLShader(BaseGame *inGame, OpenGL::Shader *shader);
+	MeshXOpenGLShader(BaseGame *inGame, OpenGL::ShaderGL *shader);
 	~MeshXOpenGLShader() override;
 
 	bool loadFromX(const Common::String &filename, XFileLexer &lexer, Common::Array<MaterialReference> &materialReferences) override;
@@ -47,9 +50,11 @@ protected:
 	GLuint _vertexBuffer;
 	GLuint _indexBuffer;
 
-	OpenGL::Shader *_shader;
+	OpenGL::ShaderGL *_shader;
 };
 
 } // namespace Wintermute
+
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
 
 #endif

@@ -25,10 +25,10 @@
  *
  */
 
-#ifndef _px_rcUTYPES_H
-#define _px_rcUTYPES_H
+#ifndef ICB_RCUTYPES_H
+#define ICB_RCUTYPES_H
 
-#include "px_rccommon.h" // This should be included in every file before anything else
+#include "engines/icb/common/px_rccommon.h" // This should be included in every file before anything else
 
 #include <limits.h>
 

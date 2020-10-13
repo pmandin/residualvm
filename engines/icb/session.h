@@ -25,25 +25,22 @@
  *
  */
 
-#ifndef SESSION_H
-#define SESSION_H
+#ifndef ICB_SESSION_H
+#define ICB_SESSION_H
 
-#include "p4_generic.h"
-#include "object_structs.h"
-
+#include "engines/icb/p4_generic.h"
+#include "engines/icb/object_structs.h"
 #include "engines/icb/common/px_linkeddatafile.h"
 #include "engines/icb/common/px_game_object.h"
 #include "engines/icb/common/px_walkarea_integer.h"
-
-#include "barriers.h"
-#include "player.h"
-#include "map_marker.h"
-#include "prim_route_builder.h"
-#include "speech.h"
-#include "text_sprites.h"
-
-#include "string_vest.h"
-#include "set.h"
+#include "engines/icb/barriers.h"
+#include "engines/icb/player.h"
+#include "engines/icb/map_marker.h"
+#include "engines/icb/prim_route_builder.h"
+#include "engines/icb/speech.h"
+#include "engines/icb/text_sprites.h"
+#include "engines/icb/string_vest.h"
+#include "engines/icb/set.h"
 
 namespace ICB {
 
@@ -200,9 +197,7 @@ public:
 	inline void SetReset();
 
 	void Stage_draw();
-#if _PC
 	void Stage_draw_poly();
-#endif
 	void Display_mega_times();
 
 	void UpdateMegaFX();
@@ -255,11 +250,6 @@ public:
 	void Awaken_doors();
 
 	// speech on psx
-#if _PSX
-	const char *Fetch_session_speech_cluster() { return (const char *)session_speech_cluster; }
-
-	uint32 Fetch_session_speech_cluster_hash() { return session_speech_cluster_hash; }
-#endif
 
 	bool8 can_save, prev_save_state;
 	void Set_can_save(bool8 stat) {
@@ -1009,12 +999,6 @@ private:
 	uint32 total_props; // holds number of props in current session
 
 	// speech
-
-	// only needed on psx, not sure what the pc does for this!
-#if _PSX
-	char session_speech_cluster[ENGINE_STRING_LEN];
-	uint32 session_speech_cluster_hash;
-#endif
 
 	// logic cycle stuff
 	// all these are of course available to fn_functions and associated engine modules

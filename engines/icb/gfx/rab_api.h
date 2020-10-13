@@ -25,12 +25,11 @@
  *
  */
 
-#ifndef RAB_API_HH
-#define RAB_API_HH
+#ifndef ICB_RAB_API_HH
+#define ICB_RAB_API_HH
 
-#include "psx_pcdefines.h"
-
-#include "rap_api.h"
+#include "engines/icb/gfx/psx_pcdefines.h"
+#include "engines/icb/gfx/rap_api.h"
 
 namespace ICB {
 
@@ -130,12 +129,10 @@ typedef struct MatrixHierarchy {
 	MatrixHierarchy *parent;
 } MatrixHierarchy;
 
-#if _PC || (_PSX_ON_PC == 1)
 typedef struct MatrixHierarchyPC {
 	MATRIXPC matrix;
 	MatrixHierarchyPC *parent;
 } MatrixHierarchyPC;
-#endif // #if _PC || (_PSX_ON_PC==1)
 
 typedef uint32 CompTriplet;
 

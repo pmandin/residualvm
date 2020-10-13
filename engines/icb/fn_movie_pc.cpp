@@ -27,14 +27,13 @@
 
 #include "engines/icb/common/px_rccommon.h"
 #include "engines/icb/common/ptr_util.h"
-
-#include "mission.h"
-#include "global_objects.h"
-#include "global_switches.h"
-#include "options_manager_pc.h"
-#include "cluster_manager_pc.h"
+#include "engines/icb/mission.h"
+#include "engines/icb/global_objects.h"
+#include "engines/icb/global_switches.h"
+#include "engines/icb/options_manager_pc.h"
+#include "engines/icb/cluster_manager_pc.h"
 #include "engines/icb/res_man_pc.h"
-#include "movie_pc.h"
+#include "engines/icb/movie_pc.h"
 
 #include "common/util.h"
 
@@ -92,7 +91,7 @@ void Init_play_movie(const char *param0, bool8 param1) {
 	pxString fullname;
 
 	// Non-global movies are streamed from the CD
-	char *_root = root;
+	char *_root;
 
 #ifndef PC_DEMO
 #if 1 // was #ifdef FROM_PC_CD
@@ -101,7 +100,7 @@ void Init_play_movie(const char *param0, bool8 param1) {
 #endif
 
 	// All in one directory, which is nice
-	fullname.Format("%smovies\\%s.bik", _root, moviename);
+	fullname.Format("movies\\%s.bik", moviename);
 	fullname.ConvertPath();
 	// Ensure correct CD is in the drive (can't assume this because of movie library)
 	switch (moviename[2]) {
@@ -138,7 +137,7 @@ void Init_play_movie(const char *param0, bool8 param1) {
 	if (!checkFileExists(fullname)) {
 		// File is not present in the mission directory so check the global directory
 
-		fullname.Format("%sgmovies\\%s.bik", root, moviename);
+		fullname.Format("gmovies\\%s.bik", moviename);
 		fullname.ConvertPath();
 
 		if (!checkFileExists(fullname))

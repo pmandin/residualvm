@@ -27,16 +27,12 @@
 
 #if defined (SDL_BACKEND) && defined (ENABLE_OPENGL)
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "gfxstub.h"
-#include "gfxstub_rev_dutch.h"
-
+#include "engines/icb/gfx/gfxstub.h"
+#include "engines/icb/gfx/gfxstub_rev_dutch.h"
 #include "engines/icb/surface_manager.h"
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_opengl.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
 
 namespace ICB {
 

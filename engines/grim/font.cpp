@@ -22,6 +22,9 @@
 
 #include "common/endian.h"
 
+#include "graphics/fonts/ttf.h"
+#include "graphics/font.h"
+
 #include "engines/grim/debug.h"
 #include "engines/grim/grim.h"
 #include "engines/grim/savegame.h"
@@ -158,6 +161,14 @@ void Font::restoreState(SaveGame *state) {
 	stream = g_resourceloader->openNewStreamFile(fname.c_str(), true);
 	load(fname, stream);
 	delete stream;
+}
+
+void FontTTF::loadTTF(const Common::String &filename, Common::SeekableReadStream *data, int size) {
+#ifdef USE_FREETYPE2
+	_font = Graphics::loadTTFFont(*data, size);
+#else
+	_font = nullptr;
+#endif
 }
 
 // Hardcoded default font for FPS, GUI, etc

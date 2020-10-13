@@ -24,15 +24,24 @@
 #include "engines/wintermute/ad/ad_generic.h"
 #include "engines/wintermute/ad/ad_walkplane.h"
 #include "engines/wintermute/base/base_game.h"
+#include "engines/wintermute/base/gfx/3ds/camera3d.h"
+#include "engines/wintermute/base/gfx/3ds/light3d.h"
+#include "graphics/opengl/system_headers.h"
+#include "math/glmath.h"
+
+#if defined(USE_OPENGL) && !defined(USE_GLES2)
+
 #include "engines/wintermute/base/gfx/opengl/base_render_opengl3d.h"
 #include "engines/wintermute/base/gfx/opengl/base_surface_opengl3d.h"
 #include "engines/wintermute/base/gfx/opengl/mesh3ds_opengl.h"
 #include "engines/wintermute/base/gfx/opengl/meshx_opengl.h"
-#include "engines/wintermute/base/gfx/3ds/camera3d.h"
-#include "engines/wintermute/base/gfx/3ds/light3d.h"
 #include "engines/wintermute/base/gfx/opengl/shadow_volume_opengl.h"
-#include "graphics/opengl/system_headers.h"
-#include "math/glmath.h"
+
+#if defined(__MINGW32__) && defined (SDL_BACKEND) && !defined(USE_GLEW)
+// We need SDL.h for SDL_GL_GetProcAddress.
+#include "backends/platform/sdl/sdl-sys.h"
+PFNGLACTIVETEXTUREPROC glActiveTexturePtr;
+#endif
 
 namespace Wintermute {
 BaseRenderer3D *makeOpenGL3DRenderer(BaseGame *inGame) {
@@ -46,6 +55,19 @@ BaseRenderOpenGL3D::BaseRenderOpenGL3D(BaseGame *inGame)
 	_lightPositions.resize(maximumLightsCount());
 	_lightDirections.resize(maximumLightsCount());
 	(void)_spriteBatchMode; // silence warning
+
+#if defined(__MINGW32__) && defined (SDL_BACKEND) && !defined(USE_GLEW)
+	union {
+		void *obj_ptr;
+		void (APIENTRY *func_ptr)();
+	} u;
+	// We're casting from an object pointer to a function pointer, the
+	// sizes need to be the same for this to work.
+	assert(sizeof(u.obj_ptr) == sizeof(u.func_ptr));
+	u.obj_ptr = SDL_GL_GetProcAddress("glActiveTexture");
+	glActiveTexturePtr = (PFNGLACTIVETEXTUREPROC)u.func_ptr;
+	assert(glActiveTexturePtr);
+#endif
 }
 
 BaseRenderOpenGL3D::~BaseRenderOpenGL3D() {
@@ -219,7 +241,9 @@ void BaseRenderOpenGL3D::setWindowed(bool windowed) {
 }
 
 void BaseRenderOpenGL3D::fadeToColor(byte r, byte g, byte b, byte a) {
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
 
 	setProjection2D();
 
@@ -449,7 +473,11 @@ bool BaseRenderOpenGL3D::setup2D(bool force) {
 		glPolygonMode(GL_FRONT, GL_FILL);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+#if defined(__MINGW32__) && defined (SDL_BACKEND) && !defined(USE_GLEW)
+		glActiveTexturePtr(GL_TEXTURE0);
+#else
 		glActiveTexture(GL_TEXTURE0);
+#endif
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE);
@@ -458,11 +486,19 @@ bool BaseRenderOpenGL3D::setup2D(bool force) {
 		glTexEnvf(GL_TEXTURE_ENV, GL_SRC1_ALPHA, GL_TEXTURE);
 		glTexEnvf(GL_TEXTURE_ENV, GL_SRC0_ALPHA, GL_PRIMARY_COLOR);
 
+#if defined(__MINGW32__) && defined (SDL_BACKEND) && !defined(USE_GLEW)
+		glActiveTexturePtr(GL_TEXTURE1);
+#else
 		glActiveTexture(GL_TEXTURE1);
+#endif
 		glDisable(GL_TEXTURE_2D);
 
+#if defined(__MINGW32__) && defined (SDL_BACKEND) && !defined(USE_GLEW)
+		glActiveTexturePtr(GL_TEXTURE0);
+#else
 		glActiveTexture(GL_TEXTURE0);
 
+#endif
 		glViewport(0, 0, _width, _height);
 		setProjection2D();
 	}
@@ -576,7 +612,9 @@ bool BaseRenderOpenGL3D::drawSpriteEx(BaseSurfaceOpenGL3D &tex, const Wintermute
 
 	// The ShaderSurfaceRenderer sets an array buffer which appearently conflicts with us
 	// Reset it!
+#if defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+#endif // defined(USE_GLES2) || defined(USE_OPENGL_SHADERS)
 
 	if (_forceAlphaColor != 0) {
 		color = _forceAlphaColor;
@@ -808,3 +846,5 @@ ShadowVolume *BaseRenderOpenGL3D::createShadowVolume() {
 }
 
 } // namespace Wintermute
+
+#endif // defined(USE_OPENGL) && !defined(USE_GLES2)

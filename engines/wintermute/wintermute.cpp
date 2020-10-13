@@ -35,9 +35,9 @@
 #include "engines/wintermute/ad/ad_game.h"
 #include "engines/wintermute/wintermute.h"
 #include "engines/wintermute/debugger.h"
-#include "engines/wintermute/game_description.h"
 #include "engines/wintermute/platform_osystem.h"
 #include "engines/wintermute/base/base_engine.h"
+#include "engines/wintermute/detection.h"
 
 #include "engines/wintermute/base/sound/base_sound_manager.h"
 #include "engines/wintermute/base/base_file_manager.h"
@@ -129,7 +129,7 @@ Common::Error WintermuteEngine::run() {
 		return Common::kUnsupportedColorMode;
 	}
 #else
-	g_system->setupScreen(800, 600, false, true);
+	initGraphics3d(800, 600, ConfMan.getBool("fullscreen"), true);
 #endif
 
 	// Create debugger console. It requires GFX to be initialized

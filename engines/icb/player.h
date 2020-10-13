@@ -25,17 +25,17 @@
  *
  */
 
-#ifndef _PLAYER
-#define _PLAYER
+#ifndef ICB_PLAYER
+#define ICB_PLAYER
 
 #include "engines/icb/common/px_common.h"
-#include "debug.h"
-#include "object_structs.h"
+#include "engines/icb/debug.h"
+#include "engines/icb/object_structs.h"
 #include "engines/icb/common/px_route_barriers.h"
 #include "engines/icb/common/px_scriptengine.h"
-#include "animation_mega_set.h"
-#include "fn_routines.h"
-#include "bone.h"
+#include "engines/icb/animation_mega_set.h"
+#include "engines/icb/fn_routines.h"
+#include "engines/icb/bone.h"
 
 namespace ICB {
 
@@ -403,8 +403,6 @@ inline void _player::Pop_control_mode() {}
 inline __Actor_control_mode _player::Get_control_mode() { return focus_mode; }
 
 
-#ifdef _PC
-
 extern uint32 fire_key;
 extern uint32 interact_key;
 extern uint32 inventory_key;
@@ -419,7 +417,6 @@ extern uint32 down_key;
 extern uint32 left_key;
 extern uint32 right_key;
 
-#endif
 
 } // End of namespace ICB
 
