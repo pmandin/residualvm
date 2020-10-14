@@ -21,6 +21,7 @@
  */
 
 #include "engines/advancedDetector.h"
+
 #include "engines/reevengi/reevengi.h"
 #include "engines/reevengi/re1/re1.h"
 #include "engines/reevengi/re2/re2.h"
@@ -143,9 +144,9 @@ static const ReevengiGameDescription gameDescriptions[] = {
 	{AD_TABLE_END_MARKER, RType_None}
 };
 
-class ReevengiMetaEngine : public AdvancedMetaEngine {
+class ReevengiMetaEngineStatic : public AdvancedMetaEngineStatic {
 public:
-	ReevengiMetaEngine() : AdvancedMetaEngine(Reevengi::gameDescriptions, sizeof(Reevengi::ReevengiGameDescription), reevengiGames, nullptr) {
+	ReevengiMetaEngineStatic() : AdvancedMetaEngineStatic(Reevengi::gameDescriptions, sizeof(Reevengi::ReevengiGameDescription), reevengiGames, nullptr) {
 		_maxScanDepth = 4;
 		_directoryGlobs = directoryGlobs;
 		_matchFullPaths = true;
@@ -160,11 +161,11 @@ public:
 		return "reevengi";
 	}
 
-	const char *getOriginalCopyright() const override {
+	const char *getOriginalCopyright() const /*override*/ {
 		return "(C) Capcom";
 	}
 
-	bool createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const override {
+	bool createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const /*override*/ {
 		const ReevengiGameDescription *gd = (const ReevengiGameDescription *)desc;
 
 		switch(gd->gameType) {
@@ -189,7 +190,7 @@ public:
 } // End of namespace Reevengi
 
 #if PLUGIN_ENABLED_DYNAMIC(REEVENGI)
-	REGISTER_PLUGIN_DYNAMIC(REEVENGI, PLUGIN_TYPE_ENGINE, Reevengi::ReevengiMetaEngine);
+	REGISTER_PLUGIN_DYNAMIC(REEVENGI_DETECTION, PLUGIN_TYPE_METAENGINE, Reevengi::ReevengiMetaEngineStatic);
 #else
-	REGISTER_PLUGIN_STATIC(REEVENGI, PLUGIN_TYPE_ENGINE, Reevengi::ReevengiMetaEngine);
+	REGISTER_PLUGIN_STATIC(REEVENGI_DETECTION, PLUGIN_TYPE_METAENGINE, Reevengi::ReevengiMetaEngineStatic);
 #endif

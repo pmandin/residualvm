@@ -87,7 +87,7 @@ GfxBase *ReevengiEngine::createRenderer(int screenW, int screenH, bool fullscree
 	Graphics::RendererType matchingRendererType = Graphics::getBestMatchingAvailableRendererType(desiredRendererType);
 
 	_softRenderer = matchingRendererType == Graphics::kRendererTypeTinyGL;
-	g_system->setupScreen(screenW, screenH, fullscreen, !_softRenderer);
+	initGraphics3d(screenW, screenH, fullscreen, !_softRenderer);
 
 #if defined(USE_OPENGL)
 	// Check the OpenGL context actually supports shaders

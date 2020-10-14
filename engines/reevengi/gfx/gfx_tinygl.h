@@ -36,14 +36,14 @@ public:
 
 	byte *setupScreen(int screenW, int screenH, bool fullscreen) override;
 
-	const char *getVideoDeviceName() override;
+	const char *getVideoDeviceName() /*override*/;
 
 	void clearScreen() override;
-	void clearDepthBuffer() override;
+	void clearDepthBuffer() /*override*/;
 	void flipBuffer() override;
 
-	bool isHardwareAccelerated() override;
-	bool supportsShaders() override;
+	bool isHardwareAccelerated() /*override*/;
+	bool supportsShaders() /*override*/;
 
 	void prepareMovieFrame(Graphics::Surface *frame) override;
 	void drawMovieFrame(int offsetX, int offsetY) override;

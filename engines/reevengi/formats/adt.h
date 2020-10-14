@@ -63,7 +63,7 @@ public:
 	// ImageDecoder API
 	virtual void destroy() override;
 	virtual bool loadStream(Common::SeekableReadStream &adt) override;
-	virtual const Graphics::Surface *getSurface() const { return TimDecoder::getSurface(); } override;
+	virtual const Graphics::Surface *getSurface() const { return TimDecoder::getSurface(); } /*override;*/
 
 	virtual bool loadStreamNumber(Common::SeekableReadStream &adt, int numFile = 0);
 
